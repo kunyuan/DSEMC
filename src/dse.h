@@ -20,9 +20,11 @@ struct green {
 
 struct ver4 {
   int Level;
+  int DiagNum;
+  bool IsProjection;
   ver4 *SubVer[2];
-  momentum *Legs[4];
-  int ExtTau[4];
+  momentum *LegK[4];
+  int LegT[4];
   green *Internal[MaxOrder * 2];
   double Weight[MaxOrder * MaxOrder * 4];
 };
@@ -36,8 +38,34 @@ struct pool {
   int Ver4Index;
 };
 
-ver4 *Bubble()
+typedef array<bool, 3> channel;
+
+class verDiagram {
+public:
+  void Build(int LoopNum);
+  pool Pool;
+
+private:
+  ver4 *Ver4AtOrder(
+      array<int, 4> LegK, array<int, 2> InLegT,
+      int Type // -1: DSE diagrams, 0: normal digrams, 1: renormalzied diagrams
+  );
+
+  ver4 *Ver0(array<int, 4> LegK, array<int, 2> InLegT, bool IsBare = false);
+
+  ver4 *Bubble(array<int, 4> LegK, array<int, 2> InLegT,
+               array<int, 2> SubVerType, array<int, 2> SubVerLoopNum,
+               array<channel, 2> SubVerChannel, int TauIndex, int LoopIndex,
+               bool IsProjection);
+
+  channel ALL = {true, true, true};
+  channel US[3] = {false, true, true};
+  channel UT[3] = {true, true, false};
+  channel ST[3] = {true, false, true};
+  channel T[3] = {true, false, false};
+  channel U[3] = {false, true, false};
+  channel S[3] = {false, false, true};
+};
 
 } // namespace dse
-
 #endif
