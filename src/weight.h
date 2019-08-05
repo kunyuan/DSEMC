@@ -2,6 +2,7 @@
 #define weight_H
 
 #include "diagram.h"
+#include "dse.h"
 #include "utility/rng.h"
 #include "vertex.h"
 #include <vector>
