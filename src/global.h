@@ -28,7 +28,7 @@ const int TauBasisNum = 32;
 enum selfenergy { BARE, FOCK, DRESSED }; // self energy type
 enum type { RG, POLAR };
 enum obstype { FREQ, EQUALTIME };
-enum ver4 { POINT, FULL, MOM, MOM_ANGLE };
+enum ver4type { POINT, FULL, MOM, MOM_ANGLE };
 
 typedef Vec<double, D> momentum;
 // typedef std::array<double, D> momentum;
@@ -44,7 +44,7 @@ struct parameter {
   double Mass2;      // screening length^2
   double MaxExtMom;  // the maximum external momentum
   selfenergy SelfEnergyType;
-  ver4 Vertex4Type;
+  ver4type Vertex4Type;
 
   // MC inputs
   type Type;             // polarization, RG
