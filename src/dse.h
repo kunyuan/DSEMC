@@ -40,7 +40,7 @@ struct pool {
 
 typedef array<bool, 3> channel;
 
-class verDiagram {
+class verDiag {
 public:
   void Build(int LoopNum);
   pool Pool;
