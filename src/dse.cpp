@@ -48,20 +48,12 @@ ver4 *verDiag::Ver0(array<int, 4> LegK, array<int, 2> InT, bool IsBare) {
   if (IsBare == false) {
     //////////// dressed interaction ///////////
     Ver4.DiagNum++;
+    Ver4.Type[Ver4.DiagNum] = DYNAMIC;
     SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-    //     DiWeight = VerQTheta.Interaction(InL, InR, DirTran, Tau, 1);
-    //     SETTAU(_GlobalOrder, Level, Index, TauIndex, TauIndex, TauIndex + 1,
-    //            TauIndex + 1);
-    //     _Weight[Level][Index][0] = DiWeight;
-    //     Index += 1;
 
-    //     ExWeight = VerQTheta.Interaction(InL, InR, InR + DirTran - InL, Tau,
-    //     1); SETTAU(_GlobalOrder, Level, Index, TauIndex, TauIndex + 1,
-    //     TauIndex
-    //     + 1,
-    //            TauIndex);
-    //     _Weight[Level][Index][0] = -ExWeight;
-    //     Index += 1;
+    Ver4.DiagNum++;
+    Ver4.Type[Ver4.DiagNum] = DYNAMIC;
+    SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
   }
   return &Ver4;
 }

@@ -26,16 +26,19 @@ enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 struct ver4 {
   int Level;
   int DiagNum;
+  int SubVerNum;
   vertype Type[MAXDIAG]; //-2: bare coupling, -1: dynamic coupling, 0: normal
                          // vertex, 1:
                          // projected vertex, 2: renormalized vertex
   int LoopNum;
   bool IsProjection;
-  ver4 *SubVer[2];
+  ver4 *SubVer[MaxOrder];
   int LegK[4];
   int InT[2];
   int OutT[MAXDIAG][2];
-  green *Internal[MaxOrder * 2];
+  momentum Internal[MaxOrder * 2];
+  double GWeight[MaxOrder * 2][2 * (MaxOrder + 1)];
+  double Weight[MAXDIAG];
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 
