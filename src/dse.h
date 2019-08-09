@@ -24,31 +24,29 @@ const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 
 struct ver4 {
+  int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
+  int Side;    // 0: left, 1: right
   int Level;
   int DiagNum;
-  int SubVerNum;
-  vertype Type[MAXDIAG]; //-2: bare coupling, -1: dynamic coupling, 0: normal
-                         // vertex, 1:
-                         // projected vertex, 2: renormalized vertex
   int LoopNum;
-  bool IsProjection;
-  ver4 *SubVer[MaxOrder];
+  int TauIndex;
+  int LoopIndex;
+  ver4 *LVer;
+  ver4 *RVer;
   int LegK[4];
   int InT[2];
-  int OutT[MAXDIAG][2];
-  momentum Internal[MaxOrder * 2];
-  double GWeight[MaxOrder * 2][2 * (MaxOrder + 1)];
-  double Weight[MAXDIAG];
+  momentum Internal[2];
+  vector<double> GWeight;
+  vector<vertype> Type; //-1: bare/dynamic coupling,  0: normal vertex,
+                        // 1: projected vertex, 2: renormalized vertex
+  vector<array<int, 2>> OutT[2];
+  vector<double> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 
 struct pool {
-  momentum Mom[MaxDiagNum * MaxOrder * 2];
-  int MomIndex;
-  green G[MaxDiagNum * MaxOrder * 2];
-  int GIndex;
-  ver4 Ver4[MaxDiagNum];
-  int Ver4Index;
+  vector<momentum> Mom;
+  vector<ver4> Ver4;
 };
 
 typedef array<bool, 3> channel;
