@@ -31,25 +31,22 @@ struct ver4 {
   int LoopNum;
   int TauIndex;
   int LoopIndex;
-  ver4 *LVer;
-  ver4 *RVer;
+  ver4 *LVer[3]; // left vertex has three channels
+  ver4 *RVer[4]; // right vertex has four channels
   int LegK[4];
   int InT[2];
   momentum Internal[2];
   vector<double> GWeight;
-  vector<vertype> Type; //-1: bare/dynamic coupling,  0: normal vertex,
-                        // 1: projected vertex, 2: renormalized vertex
-  vector<array<int, 2>> OutT[2];
+  vector<vertype> Type;
+  vector<array<int, 2>> OutT;
   vector<double> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 
-struct pool {
-  vector<momentum> Mom;
-  vector<ver4> Ver4;
-};
-
-typedef array<bool, 3> channel;
+// struct pool {
+//   vector<momentum> Mom;
+//   vector<ver4> Ver4;
+// };
 
 class verDiag {
 public:
@@ -57,7 +54,8 @@ public:
   // &tau)
   //     : LoopMom(loopmom), Tau(tau){};
   void Build(int LoopNum);
-  pool Pool;
+  vector<ver4> VerPool;
+  // pool Pool;
 
 private:
   // array<momentum, MaxLoopNum> &LoopMom; // all momentum loop variables
@@ -70,20 +68,19 @@ private:
       int Type // -1: DSE diagrams, 0: normal digrams, 1: renormalzied diagrams
   );
 
-  ver4 *Ver0(array<int, 4> LegK, array<int, 2> InLegT, bool IsBare = false);
+  ver4 *Ver0(array<int, 4> LegK, array<int, 2> InT, bool IsBare = false);
 
-  ver4 *Bubble(array<int, 4> LegK, array<int, 2> InLegT,
-               array<int, 2> SubVerType, array<int, 2> SubVerLoopNum,
-               array<channel, 2> SubVerChannel, int TauIndex, int LoopIndex,
-               bool IsProjection);
+  ver4 *ChanI(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
+              int LoopIndex, vertype Type);
 
-  channel ALL = {true, true, true};
-  channel US[3] = {false, true, true};
-  channel UT[3] = {true, true, false};
-  channel ST[3] = {true, false, true};
-  channel T[3] = {true, false, false};
-  channel U[3] = {false, true, false};
-  channel S[3] = {false, false, true};
+  ver4 *ChanT(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
+              int LoopIndex, vertype Type);
+
+  ver4 *ChanU(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
+              int LoopIndex, vertype Type);
+
+  ver4 *ChanS(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
+              int LoopIndex, vertype Type);
 };
 
 } // namespace dse

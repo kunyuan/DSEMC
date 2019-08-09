@@ -24,36 +24,45 @@ using namespace std;
   Ver4.OutT[DiagNum][OUTL] = OutL;                                             \
   Ver4.OutT[DiagNum][OUTR] = OutR;
 
-ver4 *verDiag::Ver0(array<int, 4> LegK, array<int, 2> InT, bool IsBare) {
-  ver4 &Ver4 = Pool.Ver4[Pool.Ver4Index];
-  //   struct ver4 {
-  //     int Level;
-  //     int DiagNum;
-  //     int Type;
-  //     bool IsProjection;
-  //     ver4 *SubVer[2];
-  //     momentum *LegK[4];
-  //     int LegT[4];
-  //     green *Internal[MaxOrder * 2];
-  //     double Weight[MaxOrder * MaxOrder * 4];
-  //   };
-  Ver4.LoopNum = 0;
-  ////////////// bare interaction ///////////
-  Ver4.DiagNum = 1;
-  Ver4.Type[Ver4.DiagNum] = BARE;
-  SETK(Ver4, LegK);
-  SETINT(Ver4, InT);
-  SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-
-  if (IsBare == false) {
-    //////////// dressed interaction ///////////
-    Ver4.DiagNum++;
-    Ver4.Type[Ver4.DiagNum] = DYNAMIC;
+ver4 *verDiag::ChanI(array<int, 4> LegK, array<int, 2> InT, int LoopNum,
+                     int TauIndex, int LoopIndex, vertype Type) {
+  VerPool.push_back(ver4());
+  ver4 &Ver4 = VerPool.back();
+  Ver4.Channel = 0;
+  if (LoopNum == 0) {
+    Ver4.LoopNum = 0;
+    ////////////// bare interaction ///////////
+    Ver4.DiagNum = 0;
+    Ver4.Type[Ver4.DiagNum] = BARE;
+    SETK(Ver4, LegK);
+    SETINT(Ver4, InT);
     SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-
+    Ver4.Weight[Ver4.DiagNum] = 0.0;
     Ver4.DiagNum++;
-    Ver4.Type[Ver4.DiagNum] = DYNAMIC;
-    SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
+
+    if (Type == DYNAMIC) {
+      //////////// dressed interaction ///////////
+      Ver4.Type[Ver4.DiagNum] = DYNAMIC;
+      SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
+      Ver4.Weight[Ver4.DiagNum] = 0.0;
+      Ver4.DiagNum++;
+
+      Ver4.Type[Ver4.DiagNum] = DYNAMIC;
+      SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
+      Ver4.Weight[Ver4.DiagNum] = 0.0;
+      Ver4.DiagNum++;
+    }
+    return &VerPool.back();
+  } else {
+    // TODO: add envolpe diagrams
+    return nullptr;
   }
-  return &Ver4;
+}
+
+ver4 *verDiag::ChanT(array<int, 4> LegK, array<int, 2> InT, int LoopNum,
+                     int TauIndex, int LoopIndex, vertype Type) {
+  VerPool.push_back(ver4());
+  ver4 &Ver4 = VerPool.back();
+  Ver4.LoopNum = LoopNum;
+  Ver4.DiagNum = 0;
 }
