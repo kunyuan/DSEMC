@@ -22,24 +22,27 @@ struct green {
 
 const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
+enum channel { IDIR, IEX, T, U, S };
 
 struct ver4 {
-  int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
-  int Side;    // 0: left, 1: right
+  // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
+  int Side; // 0: left, 1: right
   int Level;
   int DiagNum;
   int LoopNum;
   int TauIndex;
   int LoopIndex;
-  ver4 *LVer[3]; // left vertex has three channels
-  ver4 *RVer[4]; // right vertex has four channels
+  vector<ver4 *> LVer; // left vertex has three channels
+  vector<ver4 *> RVer; // right vertex has four channels
   int LegK[4];
   int InT[2];
   momentum Internal[2];
   vector<double> GWeight;
+
+  vector<channel> Channel;
   vector<vertype> Type;
   vector<array<int, 2>> OutT;
-  vector<double> Weight;
+  array<double, 4 * MaxOrder * MaxOrder> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 
@@ -68,19 +71,11 @@ private:
       int Type // -1: DSE diagrams, 0: normal digrams, 1: renormalzied diagrams
   );
 
-  ver4 *Ver0(array<int, 4> LegK, array<int, 2> InT, bool IsBare = false);
+  ver4 *Ver0(array<int, 2> InT, int LoopNum, vertype Type);
+  ver4 *ChanI(array<int, 2> InT, int LoopNum, vertype Type);
 
-  ver4 *ChanI(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
-              int LoopIndex, vertype Type);
-
-  ver4 *ChanT(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
-              int LoopIndex, vertype Type);
-
-  ver4 *ChanU(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
-              int LoopIndex, vertype Type);
-
-  ver4 *ChanS(array<int, 4> LegK, array<int, 2> InT, int LoopNum, int TauIndex,
-              int LoopIndex, vertype Type);
+  ver4 *Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
+               vertype Type);
 };
 
 } // namespace dse
