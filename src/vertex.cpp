@@ -108,13 +108,11 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
 
   double k = Transfer.norm();
   if (VerType == 0) {
-    // return 8.0 * PI / (k * k + Para.Mass2) /
-    //        (1 + pow(Tau * 10.0, 2) * 10.0 / PI);
-    return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
+    // return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
     // return 8.0 * PI / (k * k + Para.Mass2) *
     //        (0.5 / (1 + pow(abs(Tau) * 10.0, 2) * 10.0 / PI) +
     //         0.5 / (1 + pow((Para.Beta - abs(Tau)) * 10.0, 2) * 10.0 / PI));
-    // return 1.0 / Para.Beta;
+    return 1.0 / Para.Beta;
   } else if (VerType == 1) {
     if (k < Para.MaxExtMom) {
       if (Tau < 0.0)
@@ -149,36 +147,33 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
 }
 
 void verQTheta::Measure(const momentum &InL, const momentum &InR,
-                        const int QIndex, int Order, double *Tau,
-                        double *Weight, double WeightFactor) {
+                        const int QIndex, int Order, double dTau,
+                        double WeightFactor) {
   // cout << Order << ", " << DiagNum << endl;
   if (Order == 0) {
-    Normalization += Weight[0] * WeightFactor;
+    Normalization += WeightFactor;
     // Normalization += WeightFactor;
   } else {
     double Factor = 1.0 / pow(2.0 * PI, 2 * Order);
     int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
-    for (int tIndex = 0; tIndex < (Order + 1) * 2; ++tIndex) {
-      double dTau = Tau[tIndex] - Tau[0];
-      if (dTau < 0.0)
-        dTau += Para.Beta;
-      // } else {
-      int tBin = Tau2Index(dTau);
-      // cout << AngleIndex << endl;
-      // cout << InL[0] << "," << InL[1] << endl;
-      // cout << InR[0] << "," << InR[1] << endl;
-      // cout << "angle: " << Angle2D(InL, InR) << endl;
-      DiffInter(Order, AngleIndex, QIndex, tBin) +=
-          Weight[tIndex] * WeightFactor / Para.dAngleTable[AngleIndex] /
-          (Para.Beta / TauBinSize) * Factor;
+    if (dTau < 0.0)
+      dTau += Para.Beta;
+    // } else {
+    int tBin = Tau2Index(dTau);
+    // cout << AngleIndex << endl;
+    // cout << InL[0] << "," << InL[1] << endl;
+    // cout << InR[0] << "," << InR[1] << endl;
+    // cout << "angle: " << Angle2D(InL, InR) << endl;
+    DiffInter(Order, AngleIndex, QIndex, tBin) +=
+        WeightFactor / Para.dAngleTable[AngleIndex] / (Para.Beta / TauBinSize) *
+        Factor;
 
-      // DiffInter(Order, AngleIndex, QIndex, tIndex) +=
-      //     WeightFactor / Para.dAngleTable[AngleIndex] /
-      //     (Para.Beta / TauBinSize) * Factor;
-      // }
-      DiffInter(0, AngleIndex, QIndex, tBin) +=
-          Weight[tIndex] * WeightFactor / Para.dAngleTable[AngleIndex] * Factor;
-    }
+    // DiffInter(Order, AngleIndex, QIndex, tIndex) +=
+    //     WeightFactor / Para.dAngleTable[AngleIndex] /
+    //     (Para.Beta / TauBinSize) * Factor;
+    // }
+    DiffInter(0, AngleIndex, QIndex, tBin) +=
+        WeightFactor / Para.dAngleTable[AngleIndex] * Factor;
   }
   return;
 }

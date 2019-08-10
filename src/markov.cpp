@@ -109,8 +109,8 @@ void markov::Measure() {
   Polar[Var.CurrGroup->ID][Var.CurrExtMomBin] += WeightFactor;
   PolarStatic[Var.CurrGroup->ID] += WeightFactor;
 
-  Weight.Measure(1.0 / MCWeight);
-  // Weight.Measure(WeightFactor);
+  // Weight.Measure(1.0 / MCWeight);
+  Weight.Measure(WeightFactor);
 };
 
 void markov::UpdateWeight(double Ratio) { Weight.Update(Ratio); }
@@ -223,11 +223,6 @@ void markov::ChangeGroup() {
 
 void markov::ChangeTau() {
   int TauIndex = Random.irn(0, Var.CurrGroup->TauNum);
-
-  // if TauIndex is a locked tau, skip
-  if (Var.CurrGroup->IsLockedTau[TauIndex]) {
-    return;
-  }
 
   Proposed[CHANGE_TAU][Var.CurrGroup->ID]++;
 

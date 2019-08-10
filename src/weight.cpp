@@ -47,9 +47,10 @@ void weight::Initialization() {
 
   // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
   vector<dse::channel> Chan = {dse::T};
-  auto Root = VerDiag.Build(1, Chan, dse::NORMAL);
-  cout << VerDiag.ToString(Root) << endl;
-  ABORT("end!");
+  for (int order = 1; order < 2; order++)
+    Ver4Root[order] = VerDiag.Build(order, Chan, dse::NORMAL);
+  // cout << VerDiag.ToString(Root) << endl;
+  // ABORT("end!");
 
   LOG_INFO("Initializating MC variables ...")
   // initialize momentum variables
@@ -118,7 +119,7 @@ void weight::Initialization() {
 }
 
 double weight::GetNewWeight(group &Group) {
-  Group.NewWeight = fRG(Group.Order, Group.ID);
+  Group.NewWeight = Evaluate(Group.Order, Group.ID);
   return Group.NewWeight;
 }
 
@@ -126,16 +127,6 @@ void weight::AcceptChange(group &Group) {
   Var.CurrVersion++;
   Var.CurrGroup = &Group;
   Group.Weight = Group.NewWeight; // accept group  newweight
-
-  if (Group.Order == 0) {
-    Var.CurrWeight[0] = Group.Weight;
-  } else {
-    for (int i = 0; i < Group.TauNum; ++i)
-      Var.CurrWeight[i] = 0.0;
-
-    for (int i = 0; i < _DiagIndex[0]; ++i)
-      Var.CurrWeight[_ExtTau[Group.Order][0][i][INR]] += _Weight[0][i][0];
-  }
 }
 
 void weight::RejectChange(group &Group) { return; }
@@ -143,9 +134,9 @@ void weight::RejectChange(group &Group) { return; }
 void weight::Measure(double WeightFactor) {
   if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
     // if (Var.CurrScale >= Para.ScaleTable[Var.CurrIRScaleBin])
-    VerQTheta.Measure(Var.LoopMom[1], Var.LoopMom[2], Var.CurrExtMomBin,
-                      Var.CurrGroup->Order, Var.Tau.data(), Var.CurrWeight,
-                      WeightFactor);
+    VerQTheta.Measure(
+        Var.LoopMom[1], Var.LoopMom[2], Var.CurrExtMomBin, Var.CurrGroup->Order,
+        Var.Tau[Var.CurrGroup->TauNum - 1] - Var.Tau[0], WeightFactor);
   }
 }
 

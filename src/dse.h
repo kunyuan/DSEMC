@@ -41,15 +41,16 @@ struct ver4 {
   int LoopIndex;
   int LegK[4];
   int InT[2];
-  momentum Internal[2];
-  vector<double> GWeight;
+  momentum Internal2, ExQ;
+  momentum VerLInL, VerLInR, VerLDiTran, VerRInL, VerRInR, VerRDiTran;
+  array<double, MaxTauNum> GL2R, GR2L;
 
   // vector<channel> Channel;
   vector<ver4> SubVer; // subver list
   vector<pair> Pairs;
   vector<array<int, 2>> OutT;
   // vector<int> TauTable; // OutT[LEFT]*MaxTauNum+OutT[RIGHT]
-  array<double, MaxTauNum * MaxTauNum> Weight;
+  vector<double> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 

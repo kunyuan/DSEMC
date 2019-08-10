@@ -43,8 +43,6 @@ public:
   void AcceptChange(group &);
   void RejectChange(group &);
 
-  double Evaluate(group &);
-
   void Measure(double WeightFactor);
   void Update(double Ratio);
   void ClearStatis();
@@ -95,15 +93,14 @@ private:
   verfunc VerFunc;
 
   dse::verDiag VerDiag;
+  dse::ver4 Ver4Root[MaxOrder];
 
-  double fRG(int LoopNum, int ID);
-  int Vertex4(
-      const momentum &InL, const momentum &InR, const momentum &DirTran,
-      int LoopNum, int TauIndex, int LoopIndex, int Level,
-      bool *Channel,     // three flags, calculate t, u, s or not
-      int VerType = -1,  // -1: normal, 0: left(to project), 1: right(to diff)
-      int LVerOrder = -1 // order of left vertex
-  );
+  double Evaluate(int LoopNum, int ID);
+  double Vertex4(dse::ver4 &Ver4, const momentum &InL, const momentum &InR,
+                 const momentum &DirTran, int LoopIndex);
+
+  double Vertex4_0(dse::ver4 &Ver4, const momentum &InL, const momentum &InR,
+                   const momentum &DirTran);
 
   int Bubble(
       const momentum &InL, const momentum &InR, const momentum &DirTran,

@@ -32,7 +32,6 @@ ver4 verDiag::Ver0(array<int, 2> InT, int LoopNum, vertype Type) {
   DiagNum++;
   //   Ver4.Channel = 0;
   Ver4.LoopNum = 0;
-  Ver4.Weight.fill(0.0);
   SETINT(Ver4, InT);
   ////////////// bare interaction ///////////
 
@@ -51,6 +50,8 @@ ver4 verDiag::Ver0(array<int, 2> InT, int LoopNum, vertype Type) {
   // construct possible OutT pairs
   Ver4.OutT.push_back({InT[LEFT], InT[RIGHT]});
   Ver4.OutT.push_back({InT[RIGHT], InT[LEFT]});
+  Ver4.Weight.push_back(0.0);
+  Ver4.Weight.push_back(0.0);
 
   return Ver4;
 }
@@ -66,7 +67,6 @@ ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
-  Ver4.Weight.fill(0.0);
   SETINT(Ver4, InT);
 
   ASSERT_ALLWAYS(InT[RIGHT] - InT[LEFT] == 2 * (LoopNum + 1) - 1,
@@ -115,7 +115,7 @@ ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
         RVerIndex.push_back(Ver4.SubVer.size() - 1);
       }
 
-      cout << LVer[0].ID << ", " << LVer[0].OutT.size() << endl;
+      // cout << LVer[0].ID << ", " << LVer[0].OutT.size() << endl;
 
       for (auto &i : LVerIndex)
         for (auto &j : RVerIndex)
@@ -130,8 +130,8 @@ ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
 
   // find all independent tau
   for (auto &pair : Ver4.Pairs) {
-    auto LOutTVec = VerPool[pair.LVer].OutT;
-    auto ROutTVec = VerPool[pair.RVer].OutT;
+    auto LOutTVec = Ver4.SubVer[pair.LVer].OutT;
+    auto ROutTVec = Ver4.SubVer[pair.RVer].OutT;
     for (auto &LOutT : LOutTVec)
       for (auto &ROutT : ROutTVec) {
         int OutTL = LOutT[LEFT];
@@ -140,8 +140,10 @@ ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
         for (auto outt : Ver4.OutT)
           if (outt[LEFT] == OutTL && outt[RIGHT] == OutTR)
             Flag = true;
-        if (Flag == false)
+        if (Flag == false) {
           Ver4.OutT.push_back({OutTL, OutTR});
+          Ver4.Weight.push_back(0.0);
+        }
       }
   }
   return Ver4;
