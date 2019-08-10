@@ -96,49 +96,14 @@ private:
   dse::ver4 Ver4Root[MaxOrder];
 
   double Evaluate(int LoopNum, int ID);
-  double Vertex4(dse::ver4 &Ver4, const momentum &InL, const momentum &InR,
-                 const momentum &DirTran, int LoopIndex);
+  void Vertex4(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex);
 
-  double Vertex4_0(dse::ver4 &Ver4, const momentum &InL, const momentum &InR,
-                   const momentum &DirTran);
+  void Ver0(dse::ver4 &Ver4, const momentum *LegK[4]);
 
-  int Bubble(
-      const momentum &InL, const momentum &InR, const momentum &DirTran,
-      int LoopNum, int TauIndex, int LoopIndex, int Level,
-      bool *Channel,      // three flags, calculate t, u, s or not
-      int VerType = -1,   // -1: normal, 0: left(to project), 1: right(to diff)
-      int LVerOrder = -1, // order of left vertex
-      bool IsPenguin = false);
+  void Bubble(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex,
+              dse::channel Chan);
 
-  int Ver4Loop0(const momentum &InL, const momentum &InR,
-                const momentum &DirTran, int TauIndex, int LoopIndex, int Level,
-                int Type = 0 // 0: renormalized interaction, -2: bare coupling
-  );
-
-  int OneLoop(const momentum &InL, const momentum &InR, const momentum &DirTran,
-              int LoopNum, int LVerLoopNum, int TauIndex, int LoopIndex,
-              int Level,
-              bool *Channel, // three flags, calculate t, u, s or not
-              bool IsProjected = false, bool IsPenguin = false);
-
-  int _DiagIndex[MaxLevel];
-  int _ExtTau[MaxOrder][MaxLevel][MaxDiagNum][4];
-  double _Weight[MaxLevel][MaxDiagNum][2];
-  int _DiagNum;
-  int _GlobalOrder;
-  double _GL2R[MaxTauNum][MaxTauNum];
-  double _GR2L[MaxTauNum][MaxTauNum];
-  // double Ver4Loop2();
-  // double Ver6Loop1();
-  bool ALL[3] = {true, true, true};
-  bool US[3] = {false, true, true};
-  bool UT[3] = {true, true, false};
-  bool ST[3] = {true, false, true};
-  bool T[3] = {true, false, false};
-  bool U[3] = {false, true, false};
-  bool S[3] = {false, false, true};
-  int LEFT = 0;
-  int RIGHT = 1;
+  void ChanI(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex);
 };
 
 }; // namespace diag

@@ -25,12 +25,26 @@ const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { I, T, U, S };
 
+class map {
+public:
+  map(int l, int r) {
+    LNum = l;
+    RNum = r;
+    _Index.resize(l * r);
+  }
+  int Get(int l, int r) { _Index[l * RNum + r]; }
+  int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
+
+private:
+  int LNum;
+  int RNum;
+  vector<int> _Index;
+};
+
 struct pair {
   int LVer;
   int RVer;
-  channel Chan;
-  vertype Type;
-  vector<vector<int>> Map;
+  map Map;
 };
 
 struct ver4 {
@@ -42,8 +56,7 @@ struct ver4 {
   int LoopIndex;
   vertype Type;
   vector<channel> Channel;
-  momentum Internal2, ExQ;
-  momentum VerLInL, VerLInR, VerLDiTran, VerRInL, VerRInR, VerRDiTran;
+  momentum Internal2, DirQ, ExQ;
   vector<double> GL2R, GR2L;
 
   // vector<channel> Channel;
@@ -76,10 +89,11 @@ private:
   // verQTheta VerWeight;
   int DiagNum = 0;
 
-  ver4 Ver0(int InTL, vertype Type);
-  ver4 ChanI(int InTL, int LoopNum, vertype Type);
+  ver4 Vertex(int InTL, int LoopNum, vector<channel> Channel, vertype Type);
 
-  ver4 Bubble(int InTL, int LoopNum, vector<channel> Channel, vertype Type);
+  ver4 Ver0(ver4 Ver4, int InTL, vertype Type);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type);
+  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, channel Channel, vertype Type);
 };
 
 bool verTest();

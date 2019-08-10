@@ -19,16 +19,35 @@ using namespace std;
 
 ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
-  return Bubble(0, LoopNum, Channel, Type);
+  return Vertex(0, LoopNum, Channel, Type);
 }
 
-ver4 verDiag::Ver0(int InTL, vertype Type) {
+ver4 verDiag::Vertex(int InTL, int LoopNum, vector<channel> Channel,
+                     vertype Type) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
-  //   Ver4.Channel = 0;
-  Ver4.LoopNum = 0;
+  Ver4.LoopNum = LoopNum;
   Ver4.Type = Type;
+  if (LoopNum == 0)
+    return Ver0(Ver4, InTL, Type);
+
+  Ver4.Channel = Channel;
+  for (auto &chan : Channel) {
+    if (chan == I)
+      Ver4 = ChanI(Ver4, InTL, LoopNum, Type);
+    else
+      Ver4 = Bubble(Ver4, InTL, LoopNum, chan, Type);
+  }
+}
+
+ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type) {
+  // ver4 Ver4;
+  // Ver4.ID = DiagNum;
+  // DiagNum++;
+  //   Ver4.Channel = 0;
+  // Ver4.LoopNum = 0;
+  // Ver4.Type = Type;
   ////////////// bare interaction ///////////
   Ver4.T.push_back({InTL, InTL, InTL, InTL});
   Ver4.Weight.push_back(0.0);
@@ -45,99 +64,77 @@ ver4 verDiag::Ver0(int InTL, vertype Type) {
   return Ver4;
 }
 
-ver4 verDiag::ChanI(int InTL, int LoopNum, vertype Type) {
-  if (LoopNum == 0)
-    return Ver0(InTL, Type);
+ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type) {
+  return Ver4;
 }
 
-void AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
-  bool Flag = true;
-  for (auto &t : TList) {
+int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
+  // find the T array in the list, if failed, create a new array
+  for (int i = 0; i < TList.size(); i++) {
+    auto t = TList[i];
     ASSERT_ALLWAYS(t[INL] == T[INL],
                    "left Tin must be the same for all subvertex!");
     if (t[OUTL] == T[OUTL] && t[INR] == T[INR] && t[OUTR] == T[OUTR])
-      Flag == false;
+      return i;
   }
-  if (Flag)
-    TList.push_back(T);
+  TList.push_back(T);
+  return TList.size() - 1;
 }
 
-ver4 verDiag::Bubble(int InTL, int LoopNum, vector<channel> Channel,
+ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
                      vertype Type) {
-  ver4 Ver4;
-  Ver4.ID = DiagNum;
-  DiagNum++;
-  Ver4.LoopNum = LoopNum;
-  Ver4.Type = Type;
-  Ver4.Channel = Channel;
+  // ver4 Ver4;
+  // Ver4.ID = DiagNum;
+  // DiagNum++;
+  // Ver4.LoopNum = LoopNum;
+  // Ver4.Type = Type;
+  // Ver4.Channel = Channel;
+  if (chan == I)
+    return Ver4;
 
   for (int i = 0; i < pow(2 * (LoopNum + 1), 3); i++)
     Ver4.Weight.push_back(0.0);
 
-  for (auto &chan : Channel) {
-    // bubble subroutine does not allow I channel
-    if (chan == I)
-      continue;
-    for (int ol = 0; ol < LoopNum; ol++) {
-      int LTauNum = 2 * (ol + 1);
+  for (int ol = 0; ol < LoopNum; ol++) {
+    int LTauNum = 2 * (ol + 1);
 
-      vector<ver4> LVer, RVer;
+    ver4 LVer, RVer;
 
-      ////////////////////   Left SubVer  ///////////////////
-      if (ol == 0) {
-        LVer.push_back(ChanI(InTL, ol, BARE));
-        //   cout << LVer[0]->OutT[0][LEFT] << LVer[0]->OutT[0][RIGHT] << endl;
-        //  cout << LVer[0]->ID << endl;
-        //  cout << LVer[0]->OutT.size() << endl;
-      } else {
-        LVer.push_back(ChanI(InTL, ol, RENORMALIZED));
-        if (chan == U || chan == T)
-          LVer.push_back(Bubble(InTL, ol, {U, S}, RENORMALIZED));
-        else
-          LVer.push_back(Bubble(InTL, ol, {U, T}, RENORMALIZED));
-      }
+    ////////////////////   Left SubVer  ///////////////////
+    if (chan == U || chan == T)
+      LVer = Vertex(InTL, ol, {I, U, S}, RENORMALIZED);
+    else
+      LVer = Vertex(InTL, ol, {I, U, T}, RENORMALIZED);
 
-      ////////////////////   Right SubVer  ///////////////////
-      int oR = LoopNum - 1 - ol;
-      int RInTL = InTL + LTauNum;
-      if (oR == 0) {
-        RVer.push_back(ChanI(RInTL, oR, BARE));
-      } else {
-        RVer.push_back(ChanI(RInTL, oR, RENORMALIZED));
-        RVer.push_back(Bubble(RInTL, oR, {U, S, T}, RENORMALIZED));
-      }
+    ////////////////////   Right SubVer  ///////////////////
+    int oR = LoopNum - 1 - ol;
+    int RInTL = InTL + LTauNum;
+    RVer = Vertex(RInTL, oR, {I, U, S, T}, RENORMALIZED);
 
-      ////////////////////   Merge SubVer  ///////////////////
-      vector<int> LVerIndex, RVerIndex;
-      for (auto &ver : LVer) {
-        Ver4.SubVer.push_back(ver);
-        LVerIndex.push_back(Ver4.SubVer.size() - 1);
-      }
-      for (auto &ver : RVer) {
-        Ver4.SubVer.push_back(ver);
-        RVerIndex.push_back(Ver4.SubVer.size() - 1);
-      }
+    ////////////////////   Merge SubVer  ///////////////////
+    Ver4.SubVer.push_back(LVer);
+    Ver4.SubVer.push_back(RVer);
 
-      ////////////////////   External Tau  ///////////////////
-      for (auto &i : LVerIndex)
-        for (auto &j : RVerIndex) {
-          Ver4.Pairs.push_back(pair{i, j, chan, Type});
-          auto LVerTList = Ver4.SubVer[i].T;
-          auto RVerTList = Ver4.SubVer[j].T;
-          for (auto &LVerT : LVerTList)
-            for (auto &RVerT : RVerTList) {
-              array<int, 4> LegT;
-              if (chan == T) {
-                LegT = {LVerT[INL], LVerT[OUTL], RVerT[INR], RVerT[OUTR]};
-              } else if (chan == U) {
-                LegT = {LVerT[INL], RVerT[OUTR], RVerT[INR], LVerT[OUTL]};
-              } else if (chan == S) {
-                LegT = {LVerT[INL], RVerT[OUTL], LVerT[INR], RVerT[OUTR]};
-              }
-              AddToTList(Ver4.T, LegT);
-            }
+    ////////////////////   External Tau  ///////////////////
+    map Map(LVer.T.size(), RVer.T.size());
+    for (int lt = 0; lt < LVer.T.size(); ++lt)
+      for (int rt = 0; rt < RVer.T.size(); ++rt) {
+        auto &LVerT = LVer.T[lt];
+        auto &RVerT = RVer.T[rt];
+        array<int, 4> LegT;
+        if (chan == T) {
+          LegT = {LVerT[INL], LVerT[OUTL], RVerT[INR], RVerT[OUTR]};
+        } else if (chan == U) {
+          LegT = {LVerT[INL], RVerT[OUTR], RVerT[INR], LVerT[OUTL]};
+        } else if (chan == S) {
+          LegT = {LVerT[INL], RVerT[OUTL], LVerT[INR], RVerT[OUTR]};
         }
-    }
+        int Index = AddToTList(Ver4.T, LegT);
+        Map.Set(lt, rt, Index);
+      }
+
+    Ver4.Pairs.push_back(
+        pair{Ver4.SubVer.size() - 2, Ver4.SubVer.size() - 1, Map});
   }
   return Ver4;
 }

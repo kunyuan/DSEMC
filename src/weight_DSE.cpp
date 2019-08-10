@@ -21,17 +21,18 @@ using namespace std;
 #define TIND(Shift, LTau, RTau) ((LTau - Shift) * MaxTauNum + RTau - Shift)
 
 double weight::Evaluate(int LoopNum, int ID) {
-  const momentum &DirTran = Var.LoopMom[0];
-  const momentum &InL = Var.LoopMom[1];
-  const momentum &InR = Var.LoopMom[2];
   if (LoopNum == 0) {
     // normalization
-    return VerQTheta.Interaction(InL, InR, DirTran, 0.0, -2);
+    return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2], Var.LoopMom[0],
+                                 0.0, -2);
   } else {
-    int Level = 0;
+    momentum OutL = Var.LoopMom[1] - Var.LoopMom[0];
+    momentum OutR = Var.LoopMom[2] + Var.LoopMom[0];
+    momentum *LegK[4] = {&Var.LoopMom[1], &Var.LoopMom[2], &OutL, &OutR};
+
     double Weight = 0.0;
     if (LoopNum == 1) {
-      Weight = Vertex4(Ver4Root[LoopNum], InL, InR, DirTran, 3);
+      Vertex4(Ver4Root[LoopNum], LegK, 3);
     }
     // if (Order == 2)
     //   // cout << Weight << endl;
@@ -41,42 +42,58 @@ double weight::Evaluate(int LoopNum, int ID) {
   }
 }
 
-double weight::Vertex4(dse::ver4 &Ver4, const momentum &InL,
-                       const momentum &InR, const momentum &DirQ,
-                       int LoopIndex) {
-  if (Ver4.LoopNum == 0)
-    return Vertex4_0(Ver4, InL, InR, DirQ);
+void weight::Vertex4(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex) {
+  if (Ver4.LoopNum == 0) {
+    Ver0(Ver4, LegK);
+    return;
+  }
+  for (auto &chan : Ver4.Channel) {
+    if (chan == dse::I)
+      continue;
+    else
+      Bubble(Ver4, LegK, LoopIndex, chan);
+  }
+}
 
+void weight::Ver0(dse::ver4 &Ver4, const momentum *LegK[4]) {
+  momentum DirQ = LegK[INL] - LegK[OUTL];
+  momentum ExQ = LegK[INL] - LegK[OUTR];
+  Ver4.Weight[0] = VerQTheta.Interaction(*LegK[INL], *LegK[INR], DirQ, 0.0, 0) -
+                   VerQTheta.Interaction(*LegK[INL], *LegK[INR], ExQ, 0.0, 0);
+
+  if (Ver4.Type != BARE) {
+    double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];
+    Ver4.Weight[1] =
+        VerQTheta.Interaction(*LegK[INL], *LegK[INR], DirQ, Tau, 1);
+    Ver4.Weight[2] =
+        -VerQTheta.Interaction(*LegK[INL], *LegK[INR], ExQ, Tau, 1);
+  }
+  return;
+}
+
+void weight::Bubble(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex,
+                    dse::channel Chan) {
   momentum &Internal = Var.LoopMom[LoopIndex];
+  int SymFactor;
+
+  if (Chan == dse::T) {
+    momentum Internal2 = *LegK[OUTL] + Internal - *LegK[INL];
+    const momentum *VerLK[4] = {LegK[INL], LegK[OUTL], &Internal2, &Internal};
+    const momentum *VerRK[4] = {&Internal, &Internal2, LegK[INR], LegK[OUTR]};
+    SymFactor = -1.0;
+  } else if (Chan == dse::T) {
+    // u diagram
+    SymFactor = 1.0;
+  } else if (Chan == dse::T) {
+    // projection is non-zero only for t and u channel
+    SymFactor = 0.5;
+  }
 
   // for vertex4 with one or more loops
   for (auto &pair : Ver4.Pairs) {
     dse::ver4 &LVer = Ver4.SubVer[pair.LVer];
     dse::ver4 &RVer = Ver4.SubVer[pair.RVer];
   }
-  return 0.0;
-}
-
-double weight::Vertex4_0(dse::ver4 &Ver4, const momentum &InL,
-                         const momentum &InR, const momentum &DirQ) {
-  Ver4.ExQ = InR + DirQ - InL;
-  double Tau = Var.Tau[Ver4.T[INR]] - Var.Tau[Ver4.T[INL]];
-  Ver4.Weight[0] = 0.0;
-  Ver4.Weight[1] = 0.0;
-  for (auto &pair : Ver4.Pairs) {
-    if (pair.Type == dse::BARE) {
-      if (pair.Chan == dse::IDIR)
-        Ver4.Weight[0] += VerQTheta.Interaction(InL, InR, DirQ, Tau, 0);
-      else
-        Ver4.Weight[1] += -VerQTheta.Interaction(InL, InR, Ver4.ExQ, Tau, 0);
-    } else if (pair.Type == dse::RENORMALIZED) {
-      if (pair.Chan == dse::IDIR)
-        Ver4.Weight[0] += VerQTheta.Interaction(InL, InR, DirQ, Tau, 1);
-      else
-        Ver4.Weight[1] += -VerQTheta.Interaction(InL, InR, Ver4.ExQ, Tau, 1);
-    }
-  }
-  return Ver4.Weight[0] + Ver4.Weight[1];
 }
 
 // int weight::Bubble(

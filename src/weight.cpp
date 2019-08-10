@@ -101,16 +101,6 @@ void weight::Initialization() {
 
   LOG_INFO("Calculating the weights of all objects...")
 
-  for (int i = 0; i < MaxOrder; i++) {
-    for (int j = 0; j < MaxLevel; j++) {
-      _DiagIndex[j] = 0;
-      for (int k = 0; k < MaxDiagNum; k++) {
-        for (int l = 0; l < 4; l++)
-          _ExtTau[i][j][k][l] = -1;
-      }
-    }
-  }
-
   // ChangeGroup(*Var.CurrGroup, true);
   GetNewWeight(*Var.CurrGroup);
   AcceptChange(*Var.CurrGroup);
