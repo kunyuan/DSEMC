@@ -10,101 +10,104 @@
 using namespace dse;
 using namespace std;
 
-#define SETINT(Ver4, InT)                                                      \
-  Ver4.InT[LEFT] = InT[LEFT];                                                  \
-  Ver4.InT[RIGHT] = InT[RIGHT];
-
-#define SETOUTT(Ver4, DiagNum, OutL, OutR)                                     \
-  Ver4.OutT[DiagNum][LEFT] = OutL;                                             \
-  Ver4.OutT[DiagNum][RIGHT] = OutR;
-
-#define TIND(LTau, RTau) (LTau * MaxTauNum + RTau)
+// #define TARRAY(LoopNum, InL, OutL, InR, OutR)                                  \
+//   {                                                                            \
+//     InL, OutL, InR, OutR,                                                      \
+//         (OutL - InL) * pow(2 * (LoopNum + 1), 2) +                             \
+//             (InR - InL) * 2 * (LoopNum + 1) + (OutR - InL)                     \
+//   }
 
 ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
-  array<int, 2> InT = {0, 2 * (LoopNum + 1) - 1};
-  return Bubble(InT, LoopNum, Channel, Type);
+  return Bubble(0, LoopNum, Channel, Type);
 }
 
-ver4 verDiag::Ver0(array<int, 2> InT, int LoopNum, vertype Type) {
+ver4 verDiag::Ver0(int InTL, vertype Type) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   //   Ver4.Channel = 0;
   Ver4.LoopNum = 0;
-  SETINT(Ver4, InT);
+  Ver4.Type = Type;
   ////////////// bare interaction ///////////
-
-  Ver4.Pairs.push_back(pair{-1, -1, IDIR, BARE});
-
-  Ver4.Pairs.push_back(pair{-1, -1, IEX, BARE});
+  Ver4.T.push_back({InTL, InTL, InTL, InTL});
+  Ver4.Weight.push_back(0.0);
 
   if (Type == RENORMALIZED) {
     //////////// dressed interaction ///////////
-    Ver4.Pairs.push_back(pair{-1, -1, IDIR, RENORMALIZED});
-
-    Ver4.Pairs.push_back(pair{-1, -1, IEX, RENORMALIZED});
+    // construct possible OutT pairs
+    Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
+    Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
+    Ver4.Weight.push_back(0.0);
+    Ver4.Weight.push_back(0.0);
   }
-
-  //   cout << Ver4.ID << ", " << InT[LEFT] << ", " << InT[RIGHT] << endl;
-  // construct possible OutT pairs
-  Ver4.OutT.push_back({InT[LEFT], InT[RIGHT]});
-  Ver4.OutT.push_back({InT[RIGHT], InT[LEFT]});
-  Ver4.Weight.push_back(0.0);
-  Ver4.Weight.push_back(0.0);
 
   return Ver4;
 }
 
-ver4 verDiag::ChanI(array<int, 2> InT, int LoopNum, vertype Type) {
+ver4 verDiag::ChanI(int InTL, int LoopNum, vertype Type) {
   if (LoopNum == 0)
-    return Ver0(InT, LoopNum, Type);
+    return Ver0(InTL, Type);
 }
 
-ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
+void AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
+  bool Flag = true;
+  for (auto &t : TList) {
+    ASSERT_ALLWAYS(t[INL] == T[INL],
+                   "left Tin must be the same for all subvertex!");
+    if (t[OUTL] == T[OUTL] && t[INR] == T[INR] && t[OUTR] == T[OUTR])
+      Flag == false;
+  }
+  if (Flag)
+    TList.push_back(T);
+}
+
+ver4 verDiag::Bubble(int InTL, int LoopNum, vector<channel> Channel,
                      vertype Type) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
-  SETINT(Ver4, InT);
+  Ver4.Type = Type;
+  Ver4.Channel = Channel;
 
-  ASSERT_ALLWAYS(InT[RIGHT] - InT[LEFT] == 2 * (LoopNum + 1) - 1,
-                 fmt::format("Tau Number must be 2*(loopNum+1), InT: {0}, {1}",
-                             InT[LEFT], InT[RIGHT]));
+  for (int i = 0; i < pow(2 * (LoopNum + 1), 3); i++)
+    Ver4.Weight.push_back(0.0);
 
   for (auto &chan : Channel) {
+    // bubble subroutine does not allow I channel
+    if (chan == I)
+      continue;
     for (int ol = 0; ol < LoopNum; ol++) {
-      int LTauNum = 2 * (ol + 1); //-2 because left and right InT are known
-      array<int, 2> LInT = {InT[LEFT], InT[LEFT] + LTauNum - 1};
+      int LTauNum = 2 * (ol + 1);
 
       vector<ver4> LVer, RVer;
 
+      ////////////////////   Left SubVer  ///////////////////
       if (ol == 0) {
-        LVer.push_back(ChanI(LInT, ol, BARE));
+        LVer.push_back(ChanI(InTL, ol, BARE));
         //   cout << LVer[0]->OutT[0][LEFT] << LVer[0]->OutT[0][RIGHT] << endl;
         //  cout << LVer[0]->ID << endl;
         //  cout << LVer[0]->OutT.size() << endl;
       } else {
-        LVer.push_back(ChanI(LInT, ol, RENORMALIZED));
+        LVer.push_back(ChanI(InTL, ol, RENORMALIZED));
         if (chan == U || chan == T)
-          LVer.push_back(Bubble(LInT, ol, {U, S}, RENORMALIZED));
+          LVer.push_back(Bubble(InTL, ol, {U, S}, RENORMALIZED));
         else
-          LVer.push_back(Bubble(LInT, ol, {U, T}, RENORMALIZED));
+          LVer.push_back(Bubble(InTL, ol, {U, T}, RENORMALIZED));
       }
 
+      ////////////////////   Right SubVer  ///////////////////
       int oR = LoopNum - 1 - ol;
-      array<int, 2> RInT = {InT[LEFT] + LTauNum, InT[RIGHT]};
-
+      int RInTL = InTL + LTauNum;
       if (oR == 0) {
-        RVer.push_back(ChanI(RInT, oR, BARE));
+        RVer.push_back(ChanI(RInTL, oR, BARE));
       } else {
-        RVer.push_back(ChanI(RInT, oR, RENORMALIZED));
-        RVer.push_back(Bubble(RInT, oR, {U, S, T}, RENORMALIZED));
+        RVer.push_back(ChanI(RInTL, oR, RENORMALIZED));
+        RVer.push_back(Bubble(RInTL, oR, {U, S, T}, RENORMALIZED));
       }
 
-      //       cout << LVer[0] << ", " << RVer[0] << endl;
-
+      ////////////////////   Merge SubVer  ///////////////////
       vector<int> LVerIndex, RVerIndex;
       for (auto &ver : LVer) {
         Ver4.SubVer.push_back(ver);
@@ -115,52 +118,42 @@ ver4 verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
         RVerIndex.push_back(Ver4.SubVer.size() - 1);
       }
 
-      // cout << LVer[0].ID << ", " << LVer[0].OutT.size() << endl;
-
+      ////////////////////   External Tau  ///////////////////
       for (auto &i : LVerIndex)
-        for (auto &j : RVerIndex)
-          //      cout << LVer[i]->ID << ", " << RVer[j]->ID << endl;
-          //      cout << LVer[i]->OutT.size() << ", " << RVer[j]->OutT.size()
-          //           << endl;
+        for (auto &j : RVerIndex) {
           Ver4.Pairs.push_back(pair{i, j, chan, Type});
-    }
-  }
-
-  //   cout << Ver4.Pairs.size() << endl;
-
-  // find all independent tau
-  for (auto &pair : Ver4.Pairs) {
-    auto LOutTVec = Ver4.SubVer[pair.LVer].OutT;
-    auto ROutTVec = Ver4.SubVer[pair.RVer].OutT;
-    for (auto &LOutT : LOutTVec)
-      for (auto &ROutT : ROutTVec) {
-        int OutTL = LOutT[LEFT];
-        int OutTR = ROutT[RIGHT];
-        bool Flag = false;
-        for (auto outt : Ver4.OutT)
-          if (outt[LEFT] == OutTL && outt[RIGHT] == OutTR)
-            Flag = true;
-        if (Flag == false) {
-          Ver4.OutT.push_back({OutTL, OutTR});
-          Ver4.Weight.push_back(0.0);
+          auto LVerTList = Ver4.SubVer[i].T;
+          auto RVerTList = Ver4.SubVer[j].T;
+          for (auto &LVerT : LVerTList)
+            for (auto &RVerT : RVerTList) {
+              array<int, 4> LegT;
+              if (chan == T) {
+                LegT = {LVerT[INL], LVerT[OUTL], RVerT[INR], RVerT[OUTR]};
+              } else if (chan == U) {
+                LegT = {LVerT[INL], RVerT[OUTR], RVerT[INR], LVerT[OUTL]};
+              } else if (chan == S) {
+                LegT = {LVerT[INL], RVerT[OUTL], LVerT[INR], RVerT[OUTR]};
+              }
+              AddToTList(Ver4.T, LegT);
+            }
         }
-      }
+    }
   }
   return Ver4;
 }
 
 string verDiag::ToString(const ver4 &Ver4) {
-  string Info =
-      fmt::format("Root: \n  ID: {0}; InT: ({1}, {2}); OutT: ", Ver4.ID,
-                  Ver4.InT[LEFT], Ver4.InT[RIGHT]);
-  for (auto &outt : Ver4.OutT)
-    Info += fmt::format("({0}, {1}), ", outt[LEFT], outt[RIGHT]);
+  string Info = fmt::format("Root: \n  ID: {0}; OutT: ", Ver4.ID);
+  for (auto &t : Ver4.T)
+    Info +=
+        fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
   Info += "\n";
   Info += "SubVer: \n";
   for (auto &sub : Ver4.SubVer) {
     Info += fmt::format("  Sub ID: {0}, OutT: ", sub.ID);
-    for (auto &outt : sub.OutT)
-      Info += fmt::format("({0}, {1}), ", outt[LEFT], outt[RIGHT]);
+    for (auto &t : sub.T)
+      Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
+                          t[OUTR]);
     Info += "\n";
   }
   return Info;

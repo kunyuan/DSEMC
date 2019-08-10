@@ -23,13 +23,14 @@ struct green {
 
 const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
-enum channel { IDIR, IEX, T, U, S };
+enum channel { I, T, U, S };
 
 struct pair {
   int LVer;
   int RVer;
   channel Chan;
   vertype Type;
+  vector<vector<int>> Map;
 };
 
 struct ver4 {
@@ -39,17 +40,16 @@ struct ver4 {
   int LoopNum;
   int TauIndex;
   int LoopIndex;
-  int LegK[4];
-  int InT[2];
+  vertype Type;
+  vector<channel> Channel;
   momentum Internal2, ExQ;
   momentum VerLInL, VerLInR, VerLDiTran, VerRInL, VerRInR, VerRDiTran;
-  array<double, MaxTauNum> GL2R, GR2L;
+  vector<double> GL2R, GR2L;
 
   // vector<channel> Channel;
   vector<ver4> SubVer; // subver list
   vector<pair> Pairs;
-  vector<array<int, 2>> OutT;
-  // vector<int> TauTable; // OutT[LEFT]*MaxTauNum+OutT[RIGHT]
+  vector<array<int, 4>> T;
   vector<double> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
@@ -76,11 +76,10 @@ private:
   // verQTheta VerWeight;
   int DiagNum = 0;
 
-  ver4 Ver0(array<int, 2> InT, int LoopNum, vertype Type);
-  ver4 ChanI(array<int, 2> InT, int LoopNum, vertype Type);
+  ver4 Ver0(int InTL, vertype Type);
+  ver4 ChanI(int InTL, int LoopNum, vertype Type);
 
-  ver4 Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
-              vertype Type);
+  ver4 Bubble(int InTL, int LoopNum, vector<channel> Channel, vertype Type);
 };
 
 bool verTest();

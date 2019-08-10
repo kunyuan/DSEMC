@@ -60,7 +60,7 @@ double weight::Vertex4(dse::ver4 &Ver4, const momentum &InL,
 double weight::Vertex4_0(dse::ver4 &Ver4, const momentum &InL,
                          const momentum &InR, const momentum &DirQ) {
   Ver4.ExQ = InR + DirQ - InL;
-  double Tau = Var.Tau[Ver4.InT[RIGHT]] - Var.Tau[Ver4.InT[LEFT]];
+  double Tau = Var.Tau[Ver4.T[INR]] - Var.Tau[Ver4.T[INL]];
   Ver4.Weight[0] = 0.0;
   Ver4.Weight[1] = 0.0;
   for (auto &pair : Ver4.Pairs) {
