@@ -26,15 +26,15 @@ enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { IDIR, IEX, T, U, S };
 
 struct pair {
-  ver4 *LVer;
-  ver4 *RVer;
+  int LVer;
+  int RVer;
   channel Chan;
   vertype Type;
 };
 
 struct ver4 {
   // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
-  int Side; // 0: left, 1: right
+  int ID;
   int Level;
   int LoopNum;
   int TauIndex;
@@ -45,7 +45,7 @@ struct ver4 {
   vector<double> GWeight;
 
   // vector<channel> Channel;
-  vector<ver4 *> SubVer; // subver list
+  vector<ver4> SubVer; // subver list
   vector<pair> Pairs;
   vector<array<int, 2>> OutT;
   // vector<int> TauTable; // OutT[LEFT]*MaxTauNum+OutT[RIGHT]
@@ -63,8 +63,9 @@ public:
   // verDiag(array<momentum, MaxLoopNum> &loopmom, array<double, MaxTauNum>
   // &tau)
   //     : LoopMom(loopmom), Tau(tau){};
-  void Build(int LoopNum);
+  ver4 Build(int LoopNum, vector<channel> Channel, vertype Type);
   vector<ver4> VerPool;
+  string ToString(const ver4 &Vertex);
   // pool Pool;
 
 private:
@@ -72,18 +73,16 @@ private:
   // array<double, MaxTauNum> &Tau;        // all tau variables
 
   // verQTheta VerWeight;
+  int DiagNum = 0;
 
-  ver4 *Ver4AtOrder(
-      array<int, 4> LegK, array<int, 2> InLegT,
-      int Type // -1: DSE diagrams, 0: normal digrams, 1: renormalzied diagrams
-  );
+  ver4 Ver0(array<int, 2> InT, int LoopNum, vertype Type);
+  ver4 ChanI(array<int, 2> InT, int LoopNum, vertype Type);
 
-  ver4 *Ver0(array<int, 2> InT, int LoopNum, vertype Type);
-  ver4 *ChanI(array<int, 2> InT, int LoopNum, vertype Type);
-
-  ver4 *Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
-               vertype Type);
+  ver4 Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
+              vertype Type);
 };
+
+bool verTest();
 
 } // namespace dse
 #endif

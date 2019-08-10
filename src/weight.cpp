@@ -45,6 +45,12 @@ void weight::Initialization() {
     group.ReWeight = 1.0;
   }
 
+  // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
+  vector<dse::channel> Chan = {dse::T};
+  auto Root = VerDiag.Build(1, Chan, dse::NORMAL);
+  cout << VerDiag.ToString(Root) << endl;
+  ABORT("end!");
+
   LOG_INFO("Initializating MC variables ...")
   // initialize momentum variables
   for (auto &mom : Var.LoopMom)

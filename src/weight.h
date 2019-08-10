@@ -94,6 +94,8 @@ private:
   verQTheta VerQTheta;
   verfunc VerFunc;
 
+  dse::verDiag VerDiag;
+
   double fRG(int LoopNum, int ID);
   int Vertex4(
       const momentum &InL, const momentum &InR, const momentum &DirTran,
