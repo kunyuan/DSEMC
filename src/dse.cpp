@@ -18,38 +18,32 @@ using namespace std;
   Ver4.OutT[DiagNum][OUTL] = OutL;                                             \
   Ver4.OutT[DiagNum][OUTR] = OutR;
 
+#define TIND(LTau, RTau) (LTau * MaxTauNum + RTau)
+
 ver4 *verDiag::Ver0(array<int, 2> InT, int LoopNum, vertype Type) {
   VerPool.push_back(ver4());
   ver4 &Ver4 = VerPool.back();
   //   Ver4.Channel = 0;
   Ver4.Weight.fill(0.0);
-  Ver4.DiagNum = 0;
   SETINT(Ver4, InT);
   Ver4.LoopNum = 0;
   ////////////// bare interaction ///////////
 
-  Ver4.Channel[Ver4.DiagNum] = IDIR;
-  Ver4.Type[Ver4.DiagNum] = BARE;
-  SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-  Ver4.DiagNum++;
+  Ver4.Pairs.push_back(pair{nullptr, nullptr, IDIR, BARE});
 
-  Ver4.Channel[Ver4.DiagNum] = IEX;
-  Ver4.Type[Ver4.DiagNum] = BARE;
-  SETOUTT(Ver4, Ver4.DiagNum, InT[INR], InT[INL]);
-  Ver4.DiagNum++;
+  Ver4.Pairs.push_back(pair{nullptr, nullptr, IEX, BARE});
 
   if (Type == RENORMALIZED) {
     //////////// dressed interaction ///////////
-    Ver4.Channel[Ver4.DiagNum] = IDIR;
-    Ver4.Type[Ver4.DiagNum] = RENORMALIZED;
-    SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-    Ver4.DiagNum++;
+    Ver4.Pairs.push_back(pair{nullptr, nullptr, IDIR, RENORMALIZED});
 
-    Ver4.Channel[Ver4.DiagNum] = IEX;
-    Ver4.Type[Ver4.DiagNum] = RENORMALIZED;
-    SETOUTT(Ver4, Ver4.DiagNum, InT[INL], InT[INR]);
-    Ver4.DiagNum++;
+    Ver4.Pairs.push_back(pair{nullptr, nullptr, IEX, RENORMALIZED});
   }
+
+  // construct possible OutT pairs
+  Ver4.OutT.push_back({InT[LEFT], InT[RIGHT]});
+  Ver4.OutT.push_back({InT[RIGHT], InT[LEFT]});
+
   return &VerPool.back();
 }
 
@@ -63,7 +57,6 @@ ver4 *verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
   VerPool.push_back(ver4());
   ver4 &Ver4 = VerPool.back();
   Ver4.LoopNum = LoopNum;
-  Ver4.DiagNum = 0;
   Ver4.Weight.fill(0.0);
 
   ASSERT_ALLWAYS(InT[RIGHT] - InT[LEFT] == 2 * (LoopNum + 1),
@@ -74,25 +67,58 @@ ver4 *verDiag::Bubble(array<int, 2> InT, int LoopNum, vector<channel> Channel,
       int LTauNum = 2 * (ol + 1); //-2 because left and right InT are known
       array<int, 2> LInT = {InT[LEFT], InT[LEFT] + LTauNum};
 
-      if (ol == 0)
-        Ver4.LVer.push_back(ChanI(LInT, ol, BARE));
-      else
-        Ver4.LVer.push_back(ChanI(LInT, ol, RENORMALIZED));
+      ver4 *LVer[2] = {nullptr, nullptr};
+      ver4 *RVer[2] = {nullptr, nullptr};
 
-      if (chan == U || chan == T)
-        Ver4.LVer.push_back(Bubble(LInT, ol, {U, S}, RENORMALIZED));
-      else
-        Ver4.LVer.push_back(Bubble(LInT, ol, {U, T}, RENORMALIZED));
+      if (ol == 0) {
+        LVer[0] = ChanI(LInT, ol, BARE);
+      } else {
+        LVer[0] = ChanI(LInT, ol, RENORMALIZED);
+        if (chan == U || chan == T)
+          LVer[1] = Bubble(LInT, ol, {U, S}, RENORMALIZED);
+        else
+          LVer[1] = Bubble(LInT, ol, {U, T}, RENORMALIZED);
+      }
 
       int oR = LoopNum - 1 - ol;
       array<int, 2> RInT = {InT[LEFT] + LTauNum + 1, InT[RIGHT]};
 
-      if (oR == 0)
-        Ver4.RVer.push_back(ChanI(RInT, oR, BARE));
-      else
-        Ver4.RVer.push_back(ChanI(RInT, oR, RENORMALIZED));
+      if (oR == 0) {
+        RVer[0] = ChanI(RInT, oR, BARE);
+      } else {
+        RVer[0] = ChanI(RInT, oR, RENORMALIZED);
+        RVer[1] = Bubble(RInT, oR, {U, S, T}, RENORMALIZED);
+      }
 
-      Ver4.RVer.push_back(Bubble(RInT, oR, {U, S, T}, RENORMALIZED));
+      for (int i = 0; i < 2; i++) {
+        if (LVer[i] != nullptr)
+          Ver4.SubVer.push_back(LVer[i]);
+        if (RVer[i] != nullptr)
+          Ver4.SubVer.push_back(RVer[i]);
+      }
+
+      for (int i = 0; i < 2; i++)
+        for (int j = 0; j < 2; j++)
+          if ((LVer[i] != nullptr) && (RVer[j] != nullptr))
+            Ver4.Pairs.push_back(pair{LVer[i], RVer[j], chan, Type});
     }
   }
+
+  // find all independent tau
+  for (auto &pair : Ver4.Pairs) {
+    auto LOutTVec = pair.LVer->OutT;
+    auto ROutTVec = pair.RVer->OutT;
+    for (auto &LOutT : LOutTVec)
+      for (auto &ROutT : ROutTVec) {
+        int OutTL = LOutT[LEFT];
+        int OutTR = ROutT[RIGHT];
+        bool Flag = false;
+        for (auto outt : Ver4.OutT)
+          if (outt[LEFT] == OutTL && outt[RIGHT] == OutTR)
+            Flag = true;
+        if (Flag == false)
+          Ver4.OutT.push_back({OutTL, OutTR});
+      }
+  }
+  return &VerPool.back();
 }

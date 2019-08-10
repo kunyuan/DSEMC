@@ -6,6 +6,7 @@
 #include "vertex.h"
 #include <array>
 #include <string>
+#include <tuple>
 #include <vector>
 
 extern parameter Para;
@@ -24,25 +25,31 @@ const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { IDIR, IEX, T, U, S };
 
+struct pair {
+  ver4 *LVer;
+  ver4 *RVer;
+  channel Chan;
+  vertype Type;
+};
+
 struct ver4 {
   // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
   int Side; // 0: left, 1: right
   int Level;
-  int DiagNum;
   int LoopNum;
   int TauIndex;
   int LoopIndex;
-  vector<ver4 *> LVer; // left vertex has three channels
-  vector<ver4 *> RVer; // right vertex has four channels
   int LegK[4];
   int InT[2];
   momentum Internal[2];
   vector<double> GWeight;
 
-  vector<channel> Channel;
-  vector<vertype> Type;
+  // vector<channel> Channel;
+  vector<ver4 *> SubVer; // subver list
+  vector<pair> Pairs;
   vector<array<int, 2>> OutT;
-  array<double, 4 * MaxOrder * MaxOrder> Weight;
+  // vector<int> TauTable; // OutT[LEFT]*MaxTauNum+OutT[RIGHT]
+  array<double, MaxTauNum * MaxTauNum> Weight;
   // double Weight[MaxOrder * MaxOrder * 4];
 };
 
