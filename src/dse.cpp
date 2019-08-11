@@ -34,31 +34,42 @@ int Sym(channel chan) {
     return 1.0;
 }
 
-ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
-  ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
-  return Vertex(0, LoopNum, 3, Channel, Type, LEFT);
+int verDiag::NextMom() {
+  MomNum += 1;
+  return MomNum - 1;
 }
 
-ver4 verDiag::Vertex(int InTL, int LoopNum, int LoopIndex,
+ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
+  ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
+  DiagNum = 0;
+  MomNum = MaxLoopNum;
+  array<int, 4> LegK = {1, NextMom(), 2, NextMom()};
+  return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
+}
+
+ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
                      vector<channel> Channel, vertype Type, int Side) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
-  Ver4.LoopIndex = LoopIndex;
   Ver4.TauNum = 2 * (LoopNum + 1);
   Ver4.Type = Type;
+  Ver4.LegK = LegK;
 
-  if (LoopNum == 0)
+  if (LoopNum == 0) {
+    ASSERT_ALLWAYS(Channel[0] == I, "Only I channel has zero loop vertex!");
     Ver4 = Ver0(Ver4, InTL, Type, Side);
-  else {
+  } else {
 
     Ver4.Channel = Channel;
+    Ver4.K1 = LoopIndex;
+
     for (auto &chan : Channel) {
       if (chan == I)
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Type, Side);
       else
-        Ver4 = Bubble(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
+        Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
     }
   }
   Ver4.G1.resize(pow(Ver4.TauNum - 2, 2));
@@ -89,30 +100,38 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   return Ver4;
 }
 
-ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
-                     channel chan, vertype Type, int Side) {
-  if (chan == I)
-    return Ver4;
-
-  for (int i = 0; i < pow(2 * (LoopNum + 1), 3); i++)
-    Ver4.Weight.push_back(0.0);
+ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
+                      channel chan, vertype Type, int Side) {
+  ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
+  ver4 LVer, RVer;
+  array<int, 4> LLegK, RLegK;
+  if (chan == T) {
+    Ver4.K2t = NextMom();
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2t, Ver4.K1};
+    RLegK = {Ver4.K1, Ver4.K2t, Ver4.LegK[INR], Ver4.LegK[OUTR]};
+  } else if (chan == U) {
+    Ver4.K2u = NextMom();
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K2u, Ver4.K1};
+    RLegK = {Ver4.K1, Ver4.K2u, Ver4.LegK[INR], Ver4.LegK[OUTL]};
+  } else if (chan == S) {
+    Ver4.K2s = NextMom();
+    LLegK = {Ver4.LegK[INL], Ver4.K1, Ver4.LegK[INR], Ver4.K2s};
+    RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2s, Ver4.LegK[OUTR]};
+  }
 
   for (int ol = 0; ol < LoopNum; ol++) {
-    int LTauNum = 2 * (ol + 1);
-
-    ver4 LVer, RVer;
 
     ////////////////////   Left SubVer  ///////////////////
     if (chan == U || chan == T)
-      LVer = Vertex(InTL, ol, LoopIndex + 1, {I, U, S}, RENORMALIZED, LEFT);
+      LVer = Vertex(LLegK, InTL, ol, LoopIndex + 1, {I, U, S}, Type, LEFT);
     else
-      LVer = Vertex(InTL, ol, LoopIndex + 1, {I, U, T}, RENORMALIZED, LEFT);
+      LVer = Vertex(LLegK, InTL, ol, LoopIndex + 1, {I, U, T}, Type, LEFT);
 
     ////////////////////   Right SubVer  ///////////////////
     int oR = LoopNum - 1 - ol;
-    int RInTL = InTL + LTauNum;
-    RVer = Vertex(RInTL, oR, LoopIndex + 1 + ol, {I, U, S, T}, RENORMALIZED,
-                  RIGHT);
+    int RInTL = InTL + 2 * (ol + 1);
+    int RLoopNum = LoopIndex + 1 + ol;
+    RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Type, RIGHT);
 
     ////////////////////   External Tau  ///////////////////
     map Map(LVer.T.size(), RVer.T.size());

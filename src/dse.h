@@ -23,7 +23,7 @@ struct green {
 
 const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
-enum channel { I, T, U, S };
+enum channel { I = 0, T, U, S };
 
 class map {
 public:
@@ -49,17 +49,14 @@ struct ver4 {
   int Level;
   int LoopNum;
   int TauNum;
-  int LoopIndex;
   vertype Type;
   vector<channel> Channel;
 
   vector<pair> Pairs;
   vector<array<int, 4>> T;
 
-  momentum K2, DirQ, ExQ;
-  momentum *K1;         // internal K1
-  momentum *LegK[4];    // legK pointer
-  momentum ProjLegK[4]; // legK projected
+  int K1 = -1, K2t = -1, K2u = -1, K2s = -1; // internal K index for t, u, s
+  array<int, 4> LegK;                        // legK index
 
   vector<double> G1, G2; // size: TauNum*TauNum
   vector<double> Weight; // size: equal to T.size()
@@ -89,15 +86,17 @@ private:
 
   // verQTheta VerWeight;
   int DiagNum = 0;
+  int MomNum = MaxLoopNum;
 
-  ver4 Vertex(int InTL, int LoopNum, int LoopIndex, vector<channel> Channel,
-              vertype Type, int Side);
+  ver4 Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
+              vector<channel> Channel, vertype Type, int Side);
 
   ver4 Ver0(ver4 Ver4, int InTL, vertype Type, int Side);
   ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, vertype Type,
              int Side);
-  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
-              vertype Type, int Side);
+  ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
+               vertype Type, int Side);
+  int NextMom();
 };
 
 bool verTest();

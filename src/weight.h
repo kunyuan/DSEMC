@@ -4,6 +4,7 @@
 #include "diagram.h"
 #include "dse.h"
 #include "utility/rng.h"
+#include "utility/utility.h"
 #include "vertex.h"
 #include <vector>
 extern parameter Para;
@@ -11,6 +12,9 @@ extern RandomFactory Random;
 
 namespace diag {
 using namespace std;
+
+#define MAXMOMNUM get_power<2, MaxOrder + 1>::value * 4
+
 struct variable {
   group *CurrGroup;
   long int CurrVersion;
@@ -19,9 +23,9 @@ struct variable {
   double CurrScale;  // Current (Reference) Scale: Index=1, ..., ScaleBinSize
   int CurrIRScaleBin;
   double CurrWeight[MaxTauNum];
-  array<momentum, MaxLoopNum> LoopMom; // all momentum loop variables
-  array<double, MaxTauNum> Tau;        // all tau variables
-  array<int, MaxLoopNum> LoopSpin;     // all spin variables
+  array<momentum, MaxMomNum> LoopMom; // all momentum loop variables
+  array<double, MaxTauNum> Tau;       // all tau variables
+  array<int, MaxLoopNum> LoopSpin;    // all spin variables
 };
 
 class weight {
@@ -96,14 +100,14 @@ private:
   dse::ver4 Ver4Root[MaxOrder];
 
   double Evaluate(int LoopNum, int ID);
-  void Vertex4(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex);
 
-  void Ver0(dse::ver4 &Ver4, const momentum *LegK[4]);
+  void Vertex4(dse::ver4 &Ver4);
 
-  void Bubble(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex,
-              dse::channel Chan);
+  void Ver0(dse::ver4 &Ver4);
 
-  void ChanI(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex);
+  void Bubble(dse::ver4 &Ver4);
+
+  void ChanI(dse::ver4 &Ver4);
 };
 
 }; // namespace diag
