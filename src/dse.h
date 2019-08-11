@@ -41,30 +41,35 @@ private:
   vector<int> _Index;
 };
 
-struct pair {
-  int LVer;
-  int RVer;
-  map Map;
-};
+struct pair;
 
 struct ver4 {
   // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
   int ID;
   int Level;
   int LoopNum;
-  int TauIndex;
+  int TauNum;
   int LoopIndex;
   vertype Type;
   vector<channel> Channel;
-  momentum Internal2, DirQ, ExQ;
-  vector<double> GL2R, GR2L;
 
-  // vector<channel> Channel;
-  vector<ver4> SubVer; // subver list
   vector<pair> Pairs;
   vector<array<int, 4>> T;
   vector<double> Weight;
-  // double Weight[MaxOrder * MaxOrder * 4];
+
+  // momentum *LegK[4];
+  momentum *Internal;
+  momentum Internal2, DirQ, ExQ;
+  momentum ProjLegK[4]; // legK projected
+  vector<double> GL2R, GR2L;
+};
+
+struct pair {
+  ver4 LVer;
+  ver4 RVer;
+  map Map;
+  channel Chan;
+  int SymFactor;
 };
 
 // struct pool {

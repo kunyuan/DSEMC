@@ -10,14 +10,6 @@
 using namespace diag;
 using namespace std;
 
-#define SETTAU(Order, Level, Index, tInL, tOUTL, tINR, tOUTR)                  \
-  if (_ExtTau[Order][Level][Index][INL] == -1) {                               \
-    _ExtTau[Order][Level][Index][INL] = tInL;                                  \
-    _ExtTau[Order][Level][Index][OUTL] = tOUTL;                                \
-    _ExtTau[Order][Level][Index][INR] = tINR;                                  \
-    _ExtTau[Order][Level][Index][OUTR] = tOUTR;                                \
-  }
-
 #define TIND(Shift, LTau, RTau) ((LTau - Shift) * MaxTauNum + RTau - Shift)
 
 double weight::Evaluate(int LoopNum, int ID) {
@@ -91,8 +83,8 @@ void weight::Bubble(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex,
 
   // for vertex4 with one or more loops
   for (auto &pair : Ver4.Pairs) {
-    dse::ver4 &LVer = Ver4.SubVer[pair.LVer];
-    dse::ver4 &RVer = Ver4.SubVer[pair.RVer];
+    dse::ver4 &LVer = pair.LVer;
+    dse::ver4 &RVer = pair.RVer;
   }
 }
 

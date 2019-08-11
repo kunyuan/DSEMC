@@ -28,11 +28,15 @@ ver4 verDiag::Vertex(int InTL, int LoopNum, vector<channel> Channel,
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
+  Ver4.TauNum = 2 * (LoopNum + 1);
   Ver4.Type = Type;
+
   if (LoopNum == 0)
     return Ver0(Ver4, InTL, Type);
 
   Ver4.Channel = Channel;
+  Ver4.GL2R.resize(pow(Ver4.TauNum, 2));
+  Ver4.GR2L.resize(pow(Ver4.TauNum, 2));
   for (auto &chan : Channel) {
     if (chan == I)
       Ver4 = ChanI(Ver4, InTL, LoopNum, Type);
@@ -42,12 +46,6 @@ ver4 verDiag::Vertex(int InTL, int LoopNum, vector<channel> Channel,
 }
 
 ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type) {
-  // ver4 Ver4;
-  // Ver4.ID = DiagNum;
-  // DiagNum++;
-  //   Ver4.Channel = 0;
-  // Ver4.LoopNum = 0;
-  // Ver4.Type = Type;
   ////////////// bare interaction ///////////
   Ver4.T.push_back({InTL, InTL, InTL, InTL});
   Ver4.Weight.push_back(0.0);
@@ -81,14 +79,19 @@ int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   return TList.size() - 1;
 }
 
+int Sym(channel chan) {
+  if (chan == T)
+    return -1.0;
+  else if (chan == U)
+    return 1.0;
+  else if (chan == S)
+    return 0.5;
+  else
+    return 1.0;
+}
+
 ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
                      vertype Type) {
-  // ver4 Ver4;
-  // Ver4.ID = DiagNum;
-  // DiagNum++;
-  // Ver4.LoopNum = LoopNum;
-  // Ver4.Type = Type;
-  // Ver4.Channel = Channel;
   if (chan == I)
     return Ver4;
 
@@ -111,10 +114,6 @@ ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
     int RInTL = InTL + LTauNum;
     RVer = Vertex(RInTL, oR, {I, U, S, T}, RENORMALIZED);
 
-    ////////////////////   Merge SubVer  ///////////////////
-    Ver4.SubVer.push_back(LVer);
-    Ver4.SubVer.push_back(RVer);
-
     ////////////////////   External Tau  ///////////////////
     map Map(LVer.T.size(), RVer.T.size());
     for (int lt = 0; lt < LVer.T.size(); ++lt)
@@ -133,8 +132,7 @@ ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
         Map.Set(lt, rt, Index);
       }
 
-    Ver4.Pairs.push_back(
-        pair{Ver4.SubVer.size() - 2, Ver4.SubVer.size() - 1, Map});
+    Ver4.Pairs.push_back(pair{LVer, RVer, Map, chan, Sym(chan)});
   }
   return Ver4;
 }
@@ -146,9 +144,15 @@ string verDiag::ToString(const ver4 &Ver4) {
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
   Info += "\n";
   Info += "SubVer: \n";
-  for (auto &sub : Ver4.SubVer) {
-    Info += fmt::format("  Sub ID: {0}, OutT: ", sub.ID);
-    for (auto &t : sub.T)
+  for (auto &pair : Ver4.Pairs) {
+    Info += fmt::format("  LVer ID: {0}, OutT: ", pair.LVer.ID);
+    for (auto &t : pair.LVer.T)
+      Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
+                          t[OUTR]);
+    Info += "\n";
+
+    Info += fmt::format("  RVer ID: {0}, OutT: ", pair.RVer.ID);
+    for (auto &t : pair.RVer.T)
       Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
                           t[OUTR]);
     Info += "\n";
