@@ -32,7 +32,7 @@ public:
     RNum = r;
     _Index.resize(l * r);
   }
-  int Get(int l, int r) { _Index[l * RNum + r]; }
+  const int Get(int l, int r) { return _Index[l * RNum + r]; }
   int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
 
 private:
@@ -79,13 +79,8 @@ struct pair {
 
 class verDiag {
 public:
-  // verDiag(array<momentum, MaxLoopNum> &loopmom, array<double, MaxTauNum>
-  // &tau)
-  //     : LoopMom(loopmom), Tau(tau){};
   ver4 Build(int LoopNum, vector<channel> Channel, vertype Type);
-  vector<ver4> VerPool;
   string ToString(const ver4 &Vertex);
-  // pool Pool;
 
 private:
   // array<momentum, MaxLoopNum> &LoopMom; // all momentum loop variables
@@ -94,11 +89,13 @@ private:
   // verQTheta VerWeight;
   int DiagNum = 0;
 
-  ver4 Vertex(int InTL, int LoopNum, vector<channel> Channel, vertype Type);
+  ver4 Vertex(int InTL, int LoopNum, vector<channel> Channel, vertype Type,
+              int Side);
 
-  ver4 Ver0(ver4 Ver4, int InTL, vertype Type);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type);
-  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, channel Channel, vertype Type);
+  ver4 Ver0(ver4 Ver4, int InTL, vertype Type, int Side);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type, int Side);
+  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, channel Channel, vertype Type,
+              int Side);
 };
 
 bool verTest();

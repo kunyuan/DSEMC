@@ -20,7 +20,7 @@ double weight::Evaluate(int LoopNum, int ID) {
   } else {
     momentum OutL = Var.LoopMom[1] - Var.LoopMom[0];
     momentum OutR = Var.LoopMom[2] + Var.LoopMom[0];
-    momentum *LegK[4] = {&Var.LoopMom[1], &Var.LoopMom[2], &OutL, &OutR};
+    const momentum *LegK[4] = {&Var.LoopMom[1], &Var.LoopMom[2], &OutL, &OutR};
 
     double Weight = 0.0;
     if (LoopNum == 1) {
@@ -53,7 +53,7 @@ void weight::Ver0(dse::ver4 &Ver4, const momentum *LegK[4]) {
   Ver4.Weight[0] = VerQTheta.Interaction(*LegK[INL], *LegK[INR], DirQ, 0.0, 0) -
                    VerQTheta.Interaction(*LegK[INL], *LegK[INR], ExQ, 0.0, 0);
 
-  if (Ver4.Type != BARE) {
+  if (Ver4.Type != dse::BARE) {
     double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];
     Ver4.Weight[1] =
         VerQTheta.Interaction(*LegK[INL], *LegK[INR], DirQ, Tau, 1);
@@ -66,19 +66,15 @@ void weight::Ver0(dse::ver4 &Ver4, const momentum *LegK[4]) {
 void weight::Bubble(dse::ver4 &Ver4, const momentum *LegK[4], int LoopIndex,
                     dse::channel Chan) {
   momentum &Internal = Var.LoopMom[LoopIndex];
-  int SymFactor;
 
   if (Chan == dse::T) {
     momentum Internal2 = *LegK[OUTL] + Internal - *LegK[INL];
     const momentum *VerLK[4] = {LegK[INL], LegK[OUTL], &Internal2, &Internal};
     const momentum *VerRK[4] = {&Internal, &Internal2, LegK[INR], LegK[OUTR]};
-    SymFactor = -1.0;
-  } else if (Chan == dse::T) {
+  } else if (Chan == dse::U) {
     // u diagram
-    SymFactor = 1.0;
-  } else if (Chan == dse::T) {
+  } else if (Chan == dse::S) {
     // projection is non-zero only for t and u channel
-    SymFactor = 0.5;
   }
 
   // for vertex4 with one or more loops

@@ -10,62 +10,6 @@
 using namespace dse;
 using namespace std;
 
-// #define TARRAY(LoopNum, InL, OutL, InR, OutR)                                  \
-//   {                                                                            \
-//     InL, OutL, InR, OutR,                                                      \
-//         (OutL - InL) * pow(2 * (LoopNum + 1), 2) +                             \
-//             (InR - InL) * 2 * (LoopNum + 1) + (OutR - InL)                     \
-//   }
-
-ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
-  ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
-  return Vertex(0, LoopNum, Channel, Type);
-}
-
-ver4 verDiag::Vertex(int InTL, int LoopNum, vector<channel> Channel,
-                     vertype Type) {
-  ver4 Ver4;
-  Ver4.ID = DiagNum;
-  DiagNum++;
-  Ver4.LoopNum = LoopNum;
-  Ver4.TauNum = 2 * (LoopNum + 1);
-  Ver4.Type = Type;
-
-  if (LoopNum == 0)
-    return Ver0(Ver4, InTL, Type);
-
-  Ver4.Channel = Channel;
-  Ver4.GL2R.resize(pow(Ver4.TauNum, 2));
-  Ver4.GR2L.resize(pow(Ver4.TauNum, 2));
-  for (auto &chan : Channel) {
-    if (chan == I)
-      Ver4 = ChanI(Ver4, InTL, LoopNum, Type);
-    else
-      Ver4 = Bubble(Ver4, InTL, LoopNum, chan, Type);
-  }
-}
-
-ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type) {
-  ////////////// bare interaction ///////////
-  Ver4.T.push_back({InTL, InTL, InTL, InTL});
-  Ver4.Weight.push_back(0.0);
-
-  if (Type == RENORMALIZED) {
-    //////////// dressed interaction ///////////
-    // construct possible OutT pairs
-    Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
-    Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
-    Ver4.Weight.push_back(0.0);
-    Ver4.Weight.push_back(0.0);
-  }
-
-  return Ver4;
-}
-
-ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type) {
-  return Ver4;
-}
-
 int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   // find the T array in the list, if failed, create a new array
   for (int i = 0; i < TList.size(); i++) {
@@ -90,8 +34,60 @@ int Sym(channel chan) {
     return 1.0;
 }
 
+ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
+  ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
+  return Vertex(0, LoopNum, Channel, Type, LEFT);
+}
+
+ver4 verDiag::Vertex(int InTL, int LoopNum, vector<channel> Channel,
+                     vertype Type, int Side) {
+  ver4 Ver4;
+  Ver4.ID = DiagNum;
+  DiagNum++;
+  Ver4.LoopNum = LoopNum;
+  Ver4.TauNum = 2 * (LoopNum + 1);
+  Ver4.Type = Type;
+
+  if (LoopNum == 0)
+    Ver4 = Ver0(Ver4, InTL, Type, Side);
+  else {
+    Ver4.Channel = Channel;
+    Ver4.GL2R.resize(pow(Ver4.TauNum, 2));
+    Ver4.GR2L.resize(pow(Ver4.TauNum, 2));
+    for (auto &chan : Channel) {
+      if (chan == I)
+        Ver4 = ChanI(Ver4, InTL, LoopNum, Type, Side);
+      else
+        Ver4 = Bubble(Ver4, InTL, LoopNum, chan, Type, Side);
+    }
+  }
+  Ver4.Weight.resize(Ver4.T.size());
+  return Ver4;
+}
+
+ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type, int Side) {
+  ////////////// bare interaction ///////////
+  if (Side == LEFT)
+    // Side==left, then make sure INL Tau are the last TauIndex
+    Ver4.T.push_back({InTL, InTL, InTL, InTL});
+  else
+    // Side==right, then make sure INR Tau are the last TauIndex
+    Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
+
+  if (Type == RENORMALIZED) {
+    //////////// dressed interaction ///////////
+    Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
+    Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
+  }
+  return Ver4;
+}
+
+ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type, int Side) {
+  return Ver4;
+}
+
 ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
-                     vertype Type) {
+                     vertype Type, int Side) {
   if (chan == I)
     return Ver4;
 
@@ -105,14 +101,14 @@ ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
 
     ////////////////////   Left SubVer  ///////////////////
     if (chan == U || chan == T)
-      LVer = Vertex(InTL, ol, {I, U, S}, RENORMALIZED);
+      LVer = Vertex(InTL, ol, {I, U, S}, RENORMALIZED, LEFT);
     else
-      LVer = Vertex(InTL, ol, {I, U, T}, RENORMALIZED);
+      LVer = Vertex(InTL, ol, {I, U, T}, RENORMALIZED, LEFT);
 
     ////////////////////   Right SubVer  ///////////////////
     int oR = LoopNum - 1 - ol;
     int RInTL = InTL + LTauNum;
-    RVer = Vertex(RInTL, oR, {I, U, S, T}, RENORMALIZED);
+    RVer = Vertex(RInTL, oR, {I, U, S, T}, RENORMALIZED, RIGHT);
 
     ////////////////////   External Tau  ///////////////////
     map Map(LVer.T.size(), RVer.T.size());
@@ -138,23 +134,30 @@ ver4 verDiag::Bubble(ver4 Ver4, int InTL, int LoopNum, channel chan,
 }
 
 string verDiag::ToString(const ver4 &Ver4) {
-  string Info = fmt::format("Root: \n  ID: {0}; OutT: ", Ver4.ID);
+  string Info = fmt::format("Root: \n  ID: {0}; T: ", Ver4.ID);
   for (auto &t : Ver4.T)
     Info +=
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
   Info += "\n";
   Info += "SubVer: \n";
-  for (auto &pair : Ver4.Pairs) {
-    Info += fmt::format("  LVer ID: {0}, OutT: ", pair.LVer.ID);
-    for (auto &t : pair.LVer.T)
+  for (int p = 0; p < Ver4.Pairs.size(); p++) {
+    pair pp = Ver4.Pairs[p];
+    Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer.ID);
+    for (auto &t : pp.LVer.T)
       Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
                           t[OUTR]);
     Info += "\n";
 
-    Info += fmt::format("  RVer ID: {0}, OutT: ", pair.RVer.ID);
-    for (auto &t : pair.RVer.T)
+    Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer.ID);
+    for (auto &t : pp.RVer.T)
       Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
                           t[OUTR]);
+    Info += "\n";
+
+    Info += fmt::format("  Map: ");
+    for (int i = 0; i < pp.LVer.T.size(); i++)
+      for (int j = 0; j < pp.RVer.T.size(); j++)
+        Info += fmt::format("({0}, {1})>{2}, ", i, j, pp.Map.Get(i, j));
     Info += "\n";
   }
   return Info;
