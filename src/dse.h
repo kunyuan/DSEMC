@@ -55,19 +55,20 @@ struct ver4 {
 
   vector<pair> Pairs;
   vector<array<int, 4>> T;
-  vector<double> Weight;
 
-  // momentum *LegK[4];
-  momentum *Internal;
-  momentum Internal2, DirQ, ExQ;
+  momentum K2, DirQ, ExQ;
+  momentum *K1;         // internal K1
+  momentum *LegK[4];    // legK pointer
   momentum ProjLegK[4]; // legK projected
-  vector<double> GL2R, GR2L;
+
+  vector<double> G1, G2; // size: TauNum*TauNum
+  vector<double> Weight; // size: equal to T.size()
 };
 
 struct pair {
   ver4 LVer;
   ver4 RVer;
-  map Map;
+  map Map; // map LVer T index and RVer T index to merged T index
   channel Chan;
   int SymFactor;
 };
@@ -89,13 +90,14 @@ private:
   // verQTheta VerWeight;
   int DiagNum = 0;
 
-  ver4 Vertex(int InTL, int LoopNum, vector<channel> Channel, vertype Type,
-              int Side);
+  ver4 Vertex(int InTL, int LoopNum, int LoopIndex, vector<channel> Channel,
+              vertype Type, int Side);
 
   ver4 Ver0(ver4 Ver4, int InTL, vertype Type, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, vertype Type, int Side);
-  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, channel Channel, vertype Type,
-              int Side);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, vertype Type,
+             int Side);
+  ver4 Bubble(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
+              vertype Type, int Side);
 };
 
 bool verTest();
