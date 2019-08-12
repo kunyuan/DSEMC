@@ -10,6 +10,17 @@
 using namespace dse;
 using namespace std;
 
+double Sym(channel chan) {
+  if (chan == T)
+    return -1.0;
+  else if (chan == U)
+    return 1.0;
+  else if (chan == S)
+    return 0.5;
+  else
+    return 1.0;
+}
+
 int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   // find the T array in the list, if failed, create a new array
   for (int i = 0; i < TList.size(); i++) {
@@ -23,19 +34,9 @@ int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   return TList.size() - 1;
 }
 
-int Sym(channel chan) {
-  if (chan == T)
-    return -1.0;
-  else if (chan == U)
-    return 1.0;
-  else if (chan == S)
-    return 0.5;
-  else
-    return 1.0;
-}
-
-int verDiag::NextMom() {
+int verDiag::NewMom() {
   MomNum += 1;
+  ASSERT_ALLWAYS(MomNum < MaxMomNum, "Too many momentum variables! " << MomNum);
   return MomNum - 1;
 }
 
@@ -43,7 +44,7 @@ ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
   DiagNum = 0;
   MomNum = MaxLoopNum;
-  array<int, 4> LegK = {1, NextMom(), 2, NextMom()};
+  array<int, 4> LegK = {1, NewMom(), 2, NewMom()};
   return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
 }
 
@@ -64,15 +65,13 @@ ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
 
     Ver4.Channel = Channel;
     Ver4.K1 = LoopIndex;
-    //     Ver4.G1.resize(pow(Ver4.TauNum - 2, 2));
+    Ver4.G1 = gMatrix(Ver4.TauNum, InTL);
 
     for (auto &chan : Channel) {
       if (chan == I)
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Type, Side);
       else {
         Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
-        Ver4.K2[chan] = NextMom();
-        //  Ver4.G2[chan].resize(pow(Ver4.TauNum - 2, 2));
       }
     }
   }
@@ -108,9 +107,13 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
 ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
                       channel chan, vertype Type, int Side) {
+
   ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
-  ver4 LVer, RVer;
-  array<int, 4> LLegK, RLegK;
+
+  Ver4.K2[chan] = NewMom();
+  Ver4.G2[chan] = gMatrix(Ver4.TauNum, InTL);
+
+  array<int, 4> LLegK, RLegK; // left and right vertex external LegK
   if (chan == T) {
 
     LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.K1};
@@ -127,6 +130,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.LegK[OUTR]};
   }
 
+  ver4 LVer, RVer;
   for (int ol = 0; ol < LoopNum; ol++) {
 
     ////////////////////   Left SubVer  ///////////////////
@@ -142,9 +146,9 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Type, RIGHT);
 
     ///////////   External and Internal Tau  ////////////////
-    map Map(LVer.T.size(), RVer.T.size());
-    vector<array<int, 4>> InterTList;
-    InterTList.resize(LVer.T.size() * RVer.T.size());
+    map<int> Map(LVer.T.size(), RVer.T.size());
+    map<array<int, 2>> Int1(LVer.T.size(), RVer.T.size());
+    map<array<int, 2>> Int2(LVer.T.size(), RVer.T.size());
 
     for (int lt = 0; lt < LVer.T.size(); ++lt)
       for (int rt = 0; rt < RVer.T.size(); ++rt) {
@@ -156,25 +160,28 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
         if (chan == T) {
 
           LegT = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-          InterT = {LvT[OUTR], RvT[INL], RvT[OUTL], LvT[INR]};
+          Int1 = {LvT[OUTR], RvT[INL]};
+          Int2 = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == U) {
 
           LegT = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-          InterT = {LvT[OUTR], RvT[INL], RvT[OUTL], LvT[INR]};
+          Int1 = {LvT[OUTR], RvT[INL]};
+          Int2 = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == S) {
 
           LegT = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
-          InterT = {LvT[OUTL], RvT[INL], LvT[OUTR], RvT[INR]};
+          Int1 = {LvT[OUTL], RvT[INL]};
+          Int2 = {LvT[OUTR], RvT[INR]};
         }
 
-        InterTList[lt * RVer.T.size() + rt] = InterT;
+        // add T array into the T pool of the vertex
         int Index = AddToTList(Ver4.T, LegT);
-        Map.Set(lt, rt, Index);
+        Map(lt, rt) = Index;
       }
 
-    Ver4.Pairs.push_back(pair{LVer, RVer, InterTList, Map, chan, Sym(chan)});
+    Ver4.Pairs.push_back(pair{LVer, RVer, Int1, Int2, Map, chan, Sym(chan)});
   }
   return Ver4;
 }
@@ -203,7 +210,7 @@ string verDiag::ToString(const ver4 &Ver4) {
     Info += fmt::format("  Map: ");
     for (int i = 0; i < pp.LVer.T.size(); i++)
       for (int j = 0; j < pp.RVer.T.size(); j++)
-        Info += fmt::format("({0}, {1})>{2}, ", i, j, pp.Map.Get(i, j));
+        Info += fmt::format("({0}, {1})>{2}, ", i, j, pp.Map(i, j));
     Info += "\n";
   }
   return Info;

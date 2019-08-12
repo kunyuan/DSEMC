@@ -14,69 +14,84 @@ extern parameter Para;
 namespace dse {
 using namespace std;
 
-struct green {
-  momentum *Mom;
-  int Type;
-  int Tau[2];
-  double Weight;
-};
-
-const int MAXDIAG = MaxOrder * MaxOrder * 4;
 enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
-class map {
+struct pair;
+class gMatrix {
+public:
+  gMatrix() {
+    _TauNum = 0;
+    _InTL = 0;
+  }
+  gMatrix(int TauNum, int InTL) {
+    _TauNum = TauNum;
+    _InTL = InTL;
+    _G.resize(TauNum * TauNum);
+    for (auto &g : _G)
+      g = 0.0;
+  }
+  double &operator()(int l, int r) {
+    return _G[(l - _InTL) * _TauNum + r - _InTL];
+  }
+
+private:
+  int _TauNum;
+  int _InTL;
+  vector<double> _G;
+};
+
+template <typename T> class map {
+  // IMPORTANT: please make sure all elements are initialized!
 public:
   map(int l, int r) {
     LNum = l;
     RNum = r;
     _Index.resize(l * r);
   }
-  const int Get(int l, int r) { return _Index[l * RNum + r]; }
-  int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
+  T &operator()(int l, int r) { return _Index[l * RNum + r]; }
+  // int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
 
 private:
   int LNum;
   int RNum;
-  vector<int> _Index;
+  vector<T> _Index;
 };
-
-struct pair;
 
 struct ver4 {
   // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
   int ID;
-  int Level;
   int LoopNum;
+  int InTL;
   int TauNum;
   vertype Type;
   vector<channel> Channel;
-
-  vector<pair> Pairs;
+  array<int, 4> LegK; // legK index
   vector<array<int, 4>> T;
 
-  int K1 = -1; // internal K index for t, u, s
-  array<int, 4> K2;
-  array<int, 4> LegK; // legK index
+  // bubble diagram
+  vector<pair> Pairs;
+  int K1; // internal K index for t, u, s
+  gMatrix G1;
+  array<int, 4> K2; // internal K2 for four different channel
+  array<gMatrix, 4> G2;
 
-  array<int, MaxTauNum * MaxTauNum> G1; // size: TauNum*TauNum
-  array<array<int, MaxTauNum * MaxTauNum>, 4> G2;
+  // TODO: envelope diagram
+
   vector<double> Weight; // size: equal to T.size()
 };
 
 struct pair {
   ver4 LVer;
   ver4 RVer;
-  vector<array<int, 4>> InterT; // G1Start, G1End, G2Start, G2End
-  map Map; // map LVer T index and RVer T index to merged T index
+  // map LVer T index and RVer T index to Internal T for G1 and G2
+  map<array<int, 2>> IntT1;
+  map<array<int, 2>> IntT2;
+  // map LVer T index and RVer T index to merged T index
+  map<int> Map;
   channel Chan;
-  int SymFactor;
+  double SymFactor;
 };
-
-// struct pool {
-//   vector<momentum> Mom;
-//   vector<ver4> Ver4;
-// };
 
 class verDiag {
 public:
@@ -84,10 +99,6 @@ public:
   string ToString(const ver4 &Vertex);
 
 private:
-  // array<momentum, MaxLoopNum> &LoopMom; // all momentum loop variables
-  // array<double, MaxTauNum> &Tau;        // all tau variables
-
-  // verQTheta VerWeight;
   int DiagNum = 0;
   int MomNum = MaxLoopNum;
 
@@ -99,7 +110,7 @@ private:
              int Side);
   ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
                vertype Type, int Side);
-  int NextMom();
+  int NewMom();
 };
 
 bool verTest();

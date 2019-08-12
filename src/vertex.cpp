@@ -28,8 +28,8 @@ double verQ::Interaction(double Tau, const momentum &Mom, int VerType,
       interaction *=
           pow(Para.Mass2 / (Mom.squaredNorm() + Para.Mass2), VerType);
       interaction *= pow(-1, VerType);
-      return interaction;
     }
+    return interaction;
   } else if (VerType == -1) {
     return 1.0;
   } else if (VerType == -2) {
@@ -114,6 +114,7 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
     //         0.5 / (1 + pow((Para.Beta - abs(Tau)) * 10.0, 2) * 10.0 / PI));
     return 1.0 / Para.Beta;
   } else if (VerType == 1) {
+    return 0.0;
     if (k < Para.MaxExtMom) {
       if (Tau < 0.0)
         Tau += Para.Beta;
