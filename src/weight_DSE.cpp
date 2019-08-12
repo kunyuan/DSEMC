@@ -36,37 +36,6 @@ double weight::Evaluate(int LoopNum, int ID) {
   }
 }
 
-void weight::Vertex4(dse::ver4 &Ver4) {
-  if (Ver4.LoopNum == 0) {
-    Ver0(Ver4);
-    return;
-  }
-  const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
-  const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
-  const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
-  const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
-  const momentum &K1 = Var.LoopMom[Ver4.K1];
-
-  for (auto &chan : Ver4.Channel) {
-    if (chan == T) {
-      Var.LoopMom[Ver4.K2t] = OutL + K1 - InL;
-    } else if (chan == U) {
-      Var.LoopMom[Ver4.K2u] = OutR + K1 - InL;
-    } else if (chan == S) {
-      Var.LoopMom[Ver4.K2u] = InL + InR - K1;
-    }
-
-    // for vertex4 with one or more loops
-    for (auto &pair : Ver4.Pairs) {
-      ver4 &LVer = pair.LVer;
-      Bubble(LVer);
-
-      ver4 &RVer = pair.RVer;
-      Bubble(RVer);
-    }
-  }
-}
-
 void weight::Ver0(ver4 &Ver4) {
   auto &K = Ver4.LegK;
   const momentum &InL = Var.LoopMom[K[INL]];
@@ -82,6 +51,66 @@ void weight::Ver0(ver4 &Ver4) {
     Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);
   }
   return;
+}
+
+#define GIDX(i, j) i *MaxTauNum + j
+
+void weight::Vertex4(dse::ver4 &Ver4) {
+  if (Ver4.LoopNum == 0) {
+    Ver0(Ver4);
+    return;
+  }
+  const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
+  const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
+  const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
+  const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
+  const momentum &K1 = Var.LoopMom[Ver4.K1];
+
+  for (auto &chan : Ver4.Channel) {
+    // construct internal momentum
+    if (chan == T) {
+      Var.LoopMom[Ver4.K2[chan]] = OutL + K1 - InL;
+    } else if (chan == U) {
+      Var.LoopMom[Ver4.K2[chan]] = OutR + K1 - InL;
+    } else if (chan == S) {
+      Var.LoopMom[Ver4.K2[chan]] = InL + InR - K1;
+    }
+
+    // construct Green's function weight
+    const momentum &K2 = Var.LoopMom[Ver4.K2[chan]];
+    for (int lt = Ver4.T[0][INL]; lt < Ver4.TauNum - 2; ++lt)
+      for (int rt = Ver4.T[0][INL] + 2; rt < Ver4.TauNum; ++rt) {
+        double dTau = Var.Tau[rt] - Var.Tau[lt];
+        Ver4.G1[GIDX(lt, rt)] = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
+        Ver4.G2[chan][GIDX(lt, rt)] =
+            Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
+      }
+  }
+
+  // for vertex4 with one or more loops
+  for (auto &pair : Ver4.Pairs) {
+
+    ver4 &LVer = pair.LVer;
+    ver4 &RVer = pair.RVer;
+
+    Vertex4(LVer);
+    Vertex4(RVer);
+
+    auto &LT = LVer.T;
+    auto &RT = RVer.T;
+    int LTNum = LT.size();
+    int RTNum = RT.size();
+
+    for (int l = 0; l < LTNum; ++l)
+      for (int r = 0; r < RTNum; ++r) {
+        auto &InterT = pair.InterT[l * RTNum + r];
+        double Weight = pair.SymFactor;
+        Weight *= Ver4.G1[GIDX(InterT[0], InterT[1])];
+        Weight *= Ver4.G2[pair.Chan][GIDX(InterT[2], InterT[3])];
+        Weight *= LVer.Weight[l] * RVer.Weight[r];
+        Ver4.Weight[pair.Map.Get(l, r)] += Weight;
+      }
+  }
 }
 
 // int weight::Bubble(

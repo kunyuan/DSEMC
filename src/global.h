@@ -1,6 +1,7 @@
 #ifndef FeynCalc_global_h
 #define FeynCalc_global_h
 
+#include "utility/utility.h"
 #include "utility/vector.h"
 #include <array>
 #include <math.h>

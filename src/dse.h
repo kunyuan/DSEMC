@@ -55,16 +55,19 @@ struct ver4 {
   vector<pair> Pairs;
   vector<array<int, 4>> T;
 
-  int K1 = -1, K2t = -1, K2u = -1, K2s = -1; // internal K index for t, u, s
-  array<int, 4> LegK;                        // legK index
+  int K1 = -1; // internal K index for t, u, s
+  array<int, 4> K2;
+  array<int, 4> LegK; // legK index
 
-  vector<double> G1, G2; // size: TauNum*TauNum
+  array<int, MaxTauNum * MaxTauNum> G1; // size: TauNum*TauNum
+  array<array<int, MaxTauNum * MaxTauNum>, 4> G2;
   vector<double> Weight; // size: equal to T.size()
 };
 
 struct pair {
   ver4 LVer;
   ver4 RVer;
+  vector<array<int, 4>> InterT; // G1Start, G1End, G2Start, G2End
   map Map; // map LVer T index and RVer T index to merged T index
   channel Chan;
   int SymFactor;

@@ -64,17 +64,23 @@ ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
 
     Ver4.Channel = Channel;
     Ver4.K1 = LoopIndex;
+    //     Ver4.G1.resize(pow(Ver4.TauNum - 2, 2));
 
     for (auto &chan : Channel) {
       if (chan == I)
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Type, Side);
-      else
+      else {
         Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
+        Ver4.K2[chan] = NextMom();
+        //  Ver4.G2[chan].resize(pow(Ver4.TauNum - 2, 2));
+      }
     }
   }
-  Ver4.G1.resize(pow(Ver4.TauNum - 2, 2));
-  Ver4.G2.resize(pow(Ver4.TauNum - 2, 2));
+
   Ver4.Weight.resize(Ver4.T.size());
+  for (auto &d : Ver4.Weight)
+    d = 0.0;
+
   return Ver4;
 }
 
@@ -87,7 +93,7 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type, int Side) {
     // Side==right, then make sure INR Tau are the last TauIndex
     Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
 
-  if (Type == RENORMALIZED) {
+  if (Type != BARE) {
     //////////// dressed interaction ///////////
     Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
     Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
@@ -106,17 +112,14 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   ver4 LVer, RVer;
   array<int, 4> LLegK, RLegK;
   if (chan == T) {
-    Ver4.K2t = NextMom();
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2t, Ver4.K1};
-    RLegK = {Ver4.K1, Ver4.K2t, Ver4.LegK[INR], Ver4.LegK[OUTR]};
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.K1};
+    RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTR]};
   } else if (chan == U) {
-    Ver4.K2u = NextMom();
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K2u, Ver4.K1};
-    RLegK = {Ver4.K1, Ver4.K2u, Ver4.LegK[INR], Ver4.LegK[OUTL]};
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K2[chan], Ver4.K1};
+    RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTL]};
   } else if (chan == S) {
-    Ver4.K2s = NextMom();
-    LLegK = {Ver4.LegK[INL], Ver4.K1, Ver4.LegK[INR], Ver4.K2s};
-    RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2s, Ver4.LegK[OUTR]};
+    LLegK = {Ver4.LegK[INL], Ver4.K1, Ver4.LegK[INR], Ver4.K2[chan]};
+    RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.LegK[OUTR]};
   }
 
   for (int ol = 0; ol < LoopNum; ol++) {
@@ -135,23 +138,29 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
     ////////////////////   External Tau  ///////////////////
     map Map(LVer.T.size(), RVer.T.size());
+    vector<array<int, 4>> InterTList;
+    InterTList.resize(LVer.T.size() * RVer.T.size());
     for (int lt = 0; lt < LVer.T.size(); ++lt)
       for (int rt = 0; rt < RVer.T.size(); ++rt) {
         auto &LVerT = LVer.T[lt];
         auto &RVerT = RVer.T[rt];
-        array<int, 4> LegT;
+        array<int, 4> LegT, InterT;
         if (chan == T) {
           LegT = {LVerT[INL], LVerT[OUTL], RVerT[INR], RVerT[OUTR]};
+          InterT = {LVerT[OUTR], RVerT[INL], RVerT[OUTL], LVerT[INR]};
         } else if (chan == U) {
           LegT = {LVerT[INL], RVerT[OUTR], RVerT[INR], LVerT[OUTL]};
+          InterT = {LVerT[OUTR], RVerT[INL], RVerT[OUTL], LVerT[INR]};
         } else if (chan == S) {
           LegT = {LVerT[INL], RVerT[OUTL], LVerT[INR], RVerT[OUTR]};
+          InterT = {LVerT[OUTL], RVerT[INL], LVerT[OUTR], RVerT[INR]};
         }
+        InterTList[lt * RVer.T.size() + rt] = InterT;
         int Index = AddToTList(Ver4.T, LegT);
         Map.Set(lt, rt, Index);
       }
 
-    Ver4.Pairs.push_back(pair{LVer, RVer, Map, chan, Sym(chan)});
+    Ver4.Pairs.push_back(pair{LVer, RVer, InterTList, Map, chan, Sym(chan)});
   }
   return Ver4;
 }
