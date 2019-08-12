@@ -112,12 +112,17 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   ver4 LVer, RVer;
   array<int, 4> LLegK, RLegK;
   if (chan == T) {
+
     LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.K1};
     RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTR]};
+
   } else if (chan == U) {
+
     LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K2[chan], Ver4.K1};
     RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTL]};
+
   } else if (chan == S) {
+
     LLegK = {Ver4.LegK[INL], Ver4.K1, Ver4.LegK[INR], Ver4.K2[chan]};
     RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.LegK[OUTR]};
   }
@@ -140,21 +145,30 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     map Map(LVer.T.size(), RVer.T.size());
     vector<array<int, 4>> InterTList;
     InterTList.resize(LVer.T.size() * RVer.T.size());
+
     for (int lt = 0; lt < LVer.T.size(); ++lt)
       for (int rt = 0; rt < RVer.T.size(); ++rt) {
-        auto &LVerT = LVer.T[lt];
-        auto &RVerT = RVer.T[rt];
+
+        auto &LvT = LVer.T[lt];
+        auto &RvT = RVer.T[rt];
         array<int, 4> LegT, InterT;
+
         if (chan == T) {
-          LegT = {LVerT[INL], LVerT[OUTL], RVerT[INR], RVerT[OUTR]};
-          InterT = {LVerT[OUTR], RVerT[INL], RVerT[OUTL], LVerT[INR]};
+
+          LegT = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
+          InterT = {LvT[OUTR], RvT[INL], RvT[OUTL], LvT[INR]};
+
         } else if (chan == U) {
-          LegT = {LVerT[INL], RVerT[OUTR], RVerT[INR], LVerT[OUTL]};
-          InterT = {LVerT[OUTR], RVerT[INL], RVerT[OUTL], LVerT[INR]};
+
+          LegT = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
+          InterT = {LvT[OUTR], RvT[INL], RvT[OUTL], LvT[INR]};
+
         } else if (chan == S) {
-          LegT = {LVerT[INL], RVerT[OUTL], LVerT[INR], RVerT[OUTR]};
-          InterT = {LVerT[OUTL], RVerT[INL], LVerT[OUTR], RVerT[INR]};
+
+          LegT = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
+          InterT = {LvT[OUTL], RvT[INL], LvT[OUTR], RvT[INR]};
         }
+
         InterTList[lt * RVer.T.size() + rt] = InterT;
         int Index = AddToTList(Ver4.T, LegT);
         Map.Set(lt, rt, Index);
