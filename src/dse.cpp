@@ -155,25 +155,25 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
         auto &LvT = LVer.T[lt];
         auto &RvT = RVer.T[rt];
-        array<int, 4> LegT, InterT;
+        array<int, 4> LegT;
 
         if (chan == T) {
 
           LegT = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-          Int1 = {LvT[OUTR], RvT[INL]};
-          Int2 = {RvT[OUTL], LvT[INR]};
+          Int1(lt, rt) = {LvT[OUTR], RvT[INL]};
+          Int2(lt, rt) = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == U) {
 
           LegT = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-          Int1 = {LvT[OUTR], RvT[INL]};
-          Int2 = {RvT[OUTL], LvT[INR]};
+          Int1(lt, rt) = {LvT[OUTR], RvT[INL]};
+          Int2(lt, rt) = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == S) {
 
           LegT = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
-          Int1 = {LvT[OUTL], RvT[INL]};
-          Int2 = {LvT[OUTR], RvT[INR]};
+          Int1(lt, rt) = {LvT[OUTL], RvT[INL]};
+          Int2(lt, rt) = {LvT[OUTR], RvT[INR]};
         }
 
         // add T array into the T pool of the vertex
@@ -207,10 +207,24 @@ string verDiag::ToString(const ver4 &Ver4) {
                           t[OUTR]);
     Info += "\n";
 
-    Info += fmt::format("  Map: ");
+    Info += fmt::format("  G1 Internal T Map: ");
     for (int i = 0; i < pp.LVer.T.size(); i++)
       for (int j = 0; j < pp.RVer.T.size(); j++)
-        Info += fmt::format("({0}, {1})>{2}, ", i, j, pp.Map(i, j));
+        Info += fmt::format("({0}, {1}): {2}-{3}, ", i, j, pp.IntT1(i, j)[0],
+                            pp.IntT1(i, j)[1]);
+    Info += "\n";
+
+    Info += fmt::format("  G2 Internal T Map: ");
+    for (int i = 0; i < pp.LVer.T.size(); i++)
+      for (int j = 0; j < pp.RVer.T.size(); j++)
+        Info += fmt::format("({0}, {1}): {2}-{3}, ", i, j, pp.IntT2(i, j)[0],
+                            pp.IntT2(i, j)[1]);
+    Info += "\n";
+
+    Info += fmt::format("         Map:        ");
+    for (int i = 0; i < pp.LVer.T.size(); i++)
+      for (int j = 0; j < pp.RVer.T.size(); j++)
+        Info += fmt::format("({0}, {1}) => {2}, ", i, j, pp.Map(i, j));
     Info += "\n";
   }
   return Info;

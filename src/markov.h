@@ -26,8 +26,6 @@ public:
   // MC updates
   void ChangeTau();
   void ChangeMomentum();
-  void IncreaseOrder();
-  void DecreaseOrder();
   void ChangeGroup();
   void ChangeScale();
 

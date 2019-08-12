@@ -44,10 +44,10 @@ void weight::Ver0(ver4 &Ver4) {
   const momentum &InL = Var.LoopMom[K[INL]];
   const momentum &InR = Var.LoopMom[K[INR]];
   momentum DiQ = InL - Var.LoopMom[K[OUTL]];
-  momentum ExQ = InR - Var.LoopMom[K[OUTR]];
+  momentum ExQ = InL - Var.LoopMom[K[OUTR]];
   Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
                    VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
-
+  // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
   if (Ver4.Type != dse::BARE) {
     double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];
     Ver4.Weight[1] = VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
@@ -81,13 +81,18 @@ void weight::Vertex4(dse::ver4 &Ver4) {
       Var.LoopMom[Ver4.K2[chan]] = InL + InR - K1;
     }
 
-    // construct Green's function weight
+    // construct Green's function weight table
     const momentum &K2 = Var.LoopMom[Ver4.K2[chan]];
     for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
-      for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++lt) {
+      for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
         Ver4.G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
-        Ver4.G2[chan](lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
+        if (chan == S)
+          // LVer to RVer
+          Ver4.G2[chan](lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
+        else
+          // RVer to LVer
+          Ver4.G2[chan](rt, lt) = Fermi.Green(-dTau, K2, UP, 0, Var.CurrScale);
       }
   }
 
@@ -110,7 +115,6 @@ void weight::Vertex4(dse::ver4 &Ver4) {
         Weight *= Ver4.G1(Int1[IN], Int1[OUT]);
         Weight *= Ver4.G2[pair.Chan](Int2[IN], Int2[OUT]);
         Weight *= LVer.Weight[l] * RVer.Weight[r];
-
         Ver4.Weight[pair.Map(l, r)] += Weight;
       }
   }

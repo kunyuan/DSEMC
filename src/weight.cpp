@@ -11,9 +11,6 @@ using namespace diag;
 using namespace std;
 
 void weight::ReadDiagrams() {
-  Pool.GPoolSize = 0;
-  Pool.Ver4PoolSize = 0;
-
   int ID = 0;
   for (auto &name : Para.GroupName) {
     // construct filename based on format string and group id
@@ -25,13 +22,11 @@ void weight::ReadDiagrams() {
     LOG_INFO("Find " << FileName << "\n");
     // vector<green> GList;
     istream &DiagFileStream = DiagFile;
-    Groups.push_back(ReadOneGroup(DiagFileStream, Pool));
+    Groups.push_back(ReadOneGroup(DiagFileStream));
     Groups.back().Name = name;
     Groups.back().ID = ID;
     ID++;
   }
-  LOG_INFO("Find " << Pool.GPoolSize << " indepdent green's function.");
-  LOG_INFO("Find " << Pool.Ver4PoolSize << " indepdent 4-vertex.");
 
   // cout << "After read" << endl;
   // cout << ToString(*(GroupList[0].DiagList[0].GIndex[0])) << endl;
@@ -51,7 +46,7 @@ void weight::Initialization() {
     Ver4Root[order] = VerDiag.Build(order, Chan, dse::NORMAL);
 
   cout << VerDiag.ToString(Ver4Root[1]) << endl;
-  ABORT("end!");
+  // ABORT("end!");
 
   LOG_INFO("Initializating MC variables ...")
   // initialize momentum variables
@@ -148,48 +143,3 @@ void weight::ClearStatis() {
     VerQTheta.ClearStatis();
   }
 }
-
-void weight::GetMom(const loop &LoopBasis, const int &LoopNum, momentum &Mom) {
-  // In C++11, because of the move semantics, there is no additional cost by
-  // returning an array
-
-  auto &loopmom = Var.LoopMom;
-  for (int d = 0; d < D; ++d)
-    Mom[d] = loopmom[0][d] * LoopBasis[0];
-
-  for (int i = 1; i < LoopNum; ++i)
-    for (int d = 0; d < D; ++d)
-      Mom[d] += loopmom[i][d] * LoopBasis[i];
-}
-
-bool weight::IsInteractionReducible(loop &LoopBasisVer, int LoopNum) {
-  // check if an interaction is reducible
-  if ((!Equal(LoopBasisVer[0], 1.0)) && (!Equal(LoopBasisVer[0], -1.0)))
-    return false;
-
-  bool Flag = true;
-  for (int i = 1; i < LoopNum; i++) {
-    if (!Equal(LoopBasisVer[i], 0.0)) {
-      Flag = false;
-      break;
-    }
-  }
-  return Flag;
-};
-
-bool weight::IsInteractionReducible(loop &LoopBasisG1, loop &LoopBasisG2,
-                                    int LoopNum) {
-  // check if an interaction is reducible
-  if ((!Equal(LoopBasisG1[0] - LoopBasisG2[0], 1.0)) &&
-      (!Equal(LoopBasisG1[0] - LoopBasisG2[0], -1.0)))
-    return false;
-
-  bool Flag = true;
-  for (int i = 1; i < LoopNum; i++) {
-    if (!Equal(LoopBasisG1[i] - LoopBasisG2[i], 0.0)) {
-      Flag = false;
-      break;
-    }
-  }
-  return Flag;
-};

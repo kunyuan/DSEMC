@@ -52,9 +52,9 @@ void InitPara() {
   // Para.GroupName = {"0", "1", "2", "3"};
   // Para.GroupName = {"1", "2"};
   Para.GroupName = {
-      "0",
-      "1",
-      "2",
+      "0", // 0 loop
+      "1", // 1 loop
+           // "2", // 2 loop
   };
   Para.ReWeight = {1, 5.0, 3.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
@@ -86,50 +86,6 @@ void InitPara() {
     Para.ScaleTable[i] = i * dScale;
     Para.dScaleTable[i] = dScale;
   }
-  // double R = 1.5;
-  // Para.ScaleTable[0] = 0.0;
-  // Para.ScaleTable[1] = 0.4;
-  // Para.dScaleTable[0] = Para.ScaleTable[1] - Para.ScaleTable[0];
-  // for (int i = 2; i < ScaleBinSize + 1; i++) {
-  //   Para.ScaleTable[i] = Para.ScaleTable[i - 1] * R;
-  //   Para.dScaleTable[i - 1] = Para.ScaleTable[i] - Para.ScaleTable[i - 1];
-  // }
-
-  // double deltaScale = Para.Kf / 16.0;
-  // double Start = 0;
-  // double End = ScaleBinSize / 2;
-  // double dScale = deltaScale / (End - Start);
-  // for (int i = Start; i < End; i++) {
-  //   Para.ScaleTable[i] = i * dScale;
-  // }
-
-  // deltaScale = Para.Kf * 7.0 / 16.0;
-  // Start = End;
-  // End = ScaleBinSize * 3 / 4;
-  // dScale = deltaScale / (End - Start);
-  // for (int i = Start; i < End; i++) {
-  //   Para.ScaleTable[i] = Para.ScaleTable[i - 1] + dScale;
-  // }
-
-  // deltaScale = Para.Kf / 2.0;
-  // Start = End;
-  // End = ScaleBinSize * 7 / 8;
-  // dScale = deltaScale / (End - Start);
-  // for (int i = Start; i < End; i++) {
-  //   Para.ScaleTable[i] = Para.ScaleTable[i - 1] + dScale;
-  // }
-
-  // deltaScale = Para.UVScale - Para.Kf;
-  // Start = End;
-  // End = ScaleBinSize + 1;
-  // dScale = deltaScale / (End - Start);
-  // for (int i = Start; i < End; i++) {
-  //   Para.ScaleTable[i] = Para.ScaleTable[i - 1] + dScale;
-  // }
-
-  // Para.ScaleTable = {0, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 8.0};
-  // Para.ScaleTable = {0,   0.005, 0.01, 0.02, 0.04, 0.08, 0.12, 0.16, 0.2,
-  //                    0.3, 0.5,   0.8,  1.0,  1.2,  1.5,  2.0,  8.0};
 
   Para.ScaleTable[0] = 1.0e-6;
   for (int i = 0; i < ScaleBinSize + 1; i++) {
