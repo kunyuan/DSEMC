@@ -67,32 +67,34 @@ void weight::Vertex4(dse::ver4 &Ver4) {
   const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
   const momentum &K1 = Var.LoopMom[Ver4.K1];
   int InTL = Ver4.T[0][INL];
+  double Weight;
   // set all weight element to be zero
   for (auto &w : Ver4.Weight)
     w = 0.0;
 
   for (auto &chan : Ver4.Channel) {
     // construct internal momentum
+    momentum &K2 = Var.LoopMom[Ver4.K2[chan]];
+    gMatrix &G2 = Ver4.G2[chan];
     if (chan == T) {
-      Var.LoopMom[Ver4.K2[chan]] = OutL + K1 - InL;
+      K2 = OutL + K1 - InL;
     } else if (chan == U) {
-      Var.LoopMom[Ver4.K2[chan]] = OutR + K1 - InL;
+      K2 = OutR + K1 - InL;
     } else if (chan == S) {
-      Var.LoopMom[Ver4.K2[chan]] = InL + InR - K1;
+      K2 = InL + InR - K1;
     }
 
     // construct Green's function weight table
-    const momentum &K2 = Var.LoopMom[Ver4.K2[chan]];
     for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
       for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
         Ver4.G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
         if (chan == S)
           // LVer to RVer
-          Ver4.G2[chan](lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
+          G2(lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
         else
           // RVer to LVer
-          Ver4.G2[chan](rt, lt) = Fermi.Green(-dTau, K2, UP, 0, Var.CurrScale);
+          G2(rt, lt) = Fermi.Green(-dTau, K2, UP, 0, Var.CurrScale);
       }
   }
 
@@ -105,17 +107,12 @@ void weight::Vertex4(dse::ver4 &Ver4) {
     Vertex4(LVer);
     Vertex4(RVer);
 
-    for (int l = 0; l < LVer.T.size(); ++l)
-      for (int r = 0; r < RVer.T.size(); ++r) {
-
-        double Weight = pair.SymFactor;
-        auto &Int1 = pair.IntT1(l, r);
-        auto &Int2 = pair.IntT2(l, r);
-
-        Weight *= Ver4.G1(Int1[IN], Int1[OUT]);
-        Weight *= Ver4.G2[pair.Chan](Int2[IN], Int2[OUT]);
-        Weight *= LVer.Weight[l] * RVer.Weight[r];
-        Ver4.Weight[pair.Map(l, r)] += Weight;
-      }
+    for (auto &m : pair.Map) {
+      Weight = pair.SymFactor;
+      Weight *= Ver4.G1(m.G1T[IN], m.G1T[OUT]);
+      Weight *= Ver4.G2[pair.Chan](m.G2T[IN], m.G2T[OUT]);
+      Weight *= LVer.Weight[m.LVerT] * RVer.Weight[m.RVerT];
+      Ver4.Weight[m.T] += Weight;
+    }
   }
 }

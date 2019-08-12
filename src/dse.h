@@ -41,22 +41,22 @@ private:
   vector<double> _G;
 };
 
-template <typename T> class map {
-  // IMPORTANT: please make sure all elements are initialized!
-public:
-  map(int l, int r) {
-    LNum = l;
-    RNum = r;
-    _Index.resize(l * r);
-  }
-  T &operator()(int l, int r) { return _Index[l * RNum + r]; }
-  // int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
+// template <typename T> class map {
+//   // IMPORTANT: please make sure all elements are initialized!
+// public:
+//   map(int l, int r) {
+//     LNum = l;
+//     RNum = r;
+//     _Index.resize(l * r);
+//   }
+//   T &operator()(int l, int r) { return _Index[l * RNum + r]; }
+//   // int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
 
-private:
-  int LNum;
-  int RNum;
-  vector<T> _Index;
-};
+// private:
+//   int LNum;
+//   int RNum;
+//   vector<T> _Index;
+// };
 
 struct ver4 {
   // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
@@ -81,16 +81,22 @@ struct ver4 {
   vector<double> Weight; // size: equal to T.size()
 };
 
+struct mapT {
+  int LVerT;
+  int RVerT;
+  // LVer T index and RVer T index to Internal T for G1 and G2
+  array<int, 2> G1T;
+  array<int, 2> G2T;
+  // map LVer T index and RVer T index to merged T index
+  int T;
+};
+
 struct pair {
   ver4 LVer;
   ver4 RVer;
-  // map LVer T index and RVer T index to Internal T for G1 and G2
-  map<array<int, 2>> IntT1;
-  map<array<int, 2>> IntT2;
-  // map LVer T index and RVer T index to merged T index
-  map<int> Map;
   channel Chan;
   double SymFactor;
+  vector<mapT> Map;
 };
 
 class verDiag {

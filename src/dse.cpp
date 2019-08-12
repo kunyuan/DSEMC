@@ -146,9 +146,8 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Type, RIGHT);
 
     ///////////   External and Internal Tau  ////////////////
-    map<int> Map(LVer.T.size(), RVer.T.size());
-    map<array<int, 2>> Int1(LVer.T.size(), RVer.T.size());
-    map<array<int, 2>> Int2(LVer.T.size(), RVer.T.size());
+    array<int, 2> G1T, G2T;
+    vector<mapT> Map;
 
     for (int lt = 0; lt < LVer.T.size(); ++lt)
       for (int rt = 0; rt < RVer.T.size(); ++rt) {
@@ -160,28 +159,28 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
         if (chan == T) {
 
           LegT = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-          Int1(lt, rt) = {LvT[OUTR], RvT[INL]};
-          Int2(lt, rt) = {RvT[OUTL], LvT[INR]};
+          G1T = {LvT[OUTR], RvT[INL]};
+          G2T = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == U) {
 
           LegT = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-          Int1(lt, rt) = {LvT[OUTR], RvT[INL]};
-          Int2(lt, rt) = {RvT[OUTL], LvT[INR]};
+          G1T = {LvT[OUTR], RvT[INL]};
+          G2T = {RvT[OUTL], LvT[INR]};
 
         } else if (chan == S) {
 
           LegT = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
-          Int1(lt, rt) = {LvT[OUTL], RvT[INL]};
-          Int2(lt, rt) = {LvT[OUTR], RvT[INR]};
+          G1T = {LvT[OUTL], RvT[INL]};
+          G2T = {LvT[OUTR], RvT[INR]};
         }
 
         // add T array into the T pool of the vertex
         int Index = AddToTList(Ver4.T, LegT);
-        Map(lt, rt) = Index;
+        Map.push_back(mapT{lt, rt, G1T, G2T, Index});
       }
 
-    Ver4.Pairs.push_back(pair{LVer, RVer, Int1, Int2, Map, chan, Sym(chan)});
+    Ver4.Pairs.push_back(pair{LVer, RVer, chan, Sym(chan), Map});
   }
   return Ver4;
 }
@@ -208,23 +207,20 @@ string verDiag::ToString(const ver4 &Ver4) {
     Info += "\n";
 
     Info += fmt::format("  G1 Internal T Map: ");
-    for (int i = 0; i < pp.LVer.T.size(); i++)
-      for (int j = 0; j < pp.RVer.T.size(); j++)
-        Info += fmt::format("({0}, {1}): {2}-{3}, ", i, j, pp.IntT1(i, j)[0],
-                            pp.IntT1(i, j)[1]);
+    for (auto &m : pp.Map)
+      Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT, m.G1T[0],
+                          m.G1T[1]);
     Info += "\n";
 
     Info += fmt::format("  G2 Internal T Map: ");
-    for (int i = 0; i < pp.LVer.T.size(); i++)
-      for (int j = 0; j < pp.RVer.T.size(); j++)
-        Info += fmt::format("({0}, {1}): {2}-{3}, ", i, j, pp.IntT2(i, j)[0],
-                            pp.IntT2(i, j)[1]);
+    for (auto &m : pp.Map)
+      Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT, m.G2T[0],
+                          m.G2T[1]);
     Info += "\n";
 
     Info += fmt::format("         Map:        ");
-    for (int i = 0; i < pp.LVer.T.size(); i++)
-      for (int j = 0; j < pp.RVer.T.size(); j++)
-        Info += fmt::format("({0}, {1}) => {2}, ", i, j, pp.Map(i, j));
+    for (auto &m : pp.Map)
+      Info += fmt::format("({0}, {1}) => {2}, ", m.LVerT, m.RVerT, m.T);
     Info += "\n";
   }
   return Info;
