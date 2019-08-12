@@ -141,7 +141,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     int RLoopNum = LoopIndex + 1 + ol;
     RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Type, RIGHT);
 
-    ////////////////////   External Tau  ///////////////////
+    ///////////   External and Internal Tau  ////////////////
     map Map(LVer.T.size(), RVer.T.size());
     vector<array<int, 4>> InterTList;
     InterTList.resize(LVer.T.size() * RVer.T.size());
