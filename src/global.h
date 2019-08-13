@@ -75,7 +75,7 @@ struct parameter {
 };
 
 //////////   Diagram  ////////////////////////////
-const int MaxOrder = 4;            // Max diagram order
+const int MaxOrder = 5;            // Max diagram order
 const int MaxLevel = MaxOrder + 1; // Max diagram order
 const int MaxMomNum = get_power<2, MaxOrder + 1>::value * 4;
 const int MaxGroupNum = 8;     // Max number of diagram groups
