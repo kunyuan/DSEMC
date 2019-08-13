@@ -77,17 +77,33 @@ for f in files:
             Data += d
 
 print "Found {0} files.".format(Num)
+
+Data3 = None
+for f in files:
+    if re.match("vertex3"+"_pid[0-9]+.dat", f):
+        print f
+        d = np.loadtxt(folder+f)
+        if Data3 is None:
+            Data3 = d
+        else:
+            Data3 += d
+
+print "Found {0} files.".format(Num)
 Data /= Num
 Data0 /= Num
+Data3 /= Num
 
 Data = Data.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
 Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
+Data3 = Data3.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
 
 qData = np.array(Data)
 qData0 = np.array(Data0)
+qData3 = np.array(Data3)
 # qData = np.sum(qData, axis=1)/AngleBinSize*2.0*np.pi
 qData = np.mean(qData, axis=0)
 qData0 = np.mean(qData0, axis=0)
+qData3 = np.mean(qData3, axis=0)
 # qData = np.mean(qData, axis=1)*2
 
 # verData=np.zeros(len(ExtMomBin))
@@ -137,6 +153,7 @@ elif (XType == "Mom"):
     # qData0 = np.sum(qData0, axis=1)*Beta/kF**2/TauBinSize/40.65
     qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
     qData0 = np.sum(qData0, axis=1)*Beta/kF**2/TauBinSize
+    qData3 = np.sum(qData3, axis=1)*Beta/kF**2/TauBinSize
     # qData0 = qData0/qData0[0]*12.50
     # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
     # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
@@ -146,6 +163,9 @@ elif (XType == "Mom"):
 
     ErrorPlot(ax, ExtMomBin, qData[:],
               ColorList[2], 's', "Loop 2")
+
+    ErrorPlot(ax, ExtMomBin, qData3[:],
+              ColorList[3], 's', "Loop 3")
     # for i in range(ScaleBinSize/32):
     #     # print i, index
     #     # print ScaleBin[index]
