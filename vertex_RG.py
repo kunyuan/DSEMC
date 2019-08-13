@@ -44,7 +44,7 @@ ExtMomBin = None
 AngleBin = None
 TauBin = None
 for f in files:
-    if re.match("vertex"+"_pid[0-9]+.dat", f):
+    if re.match("vertex1"+"_pid[0-9]+.dat", f):
         print f
         with open(folder+f, "r") as file:
             line1 = file.readline()
@@ -68,7 +68,7 @@ ExtMomBin /= kF
 
 Data = None
 for f in files:
-    if re.match("vertex1"+"_pid[0-9]+.dat", f):
+    if re.match("vertex2"+"_pid[0-9]+.dat", f):
         print f
         d = np.loadtxt(folder+f)
         if Data is None:
@@ -142,10 +142,10 @@ elif (XType == "Mom"):
     # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
 
     ErrorPlot(ax, ExtMomBin, qData0[:],
-              ColorList[1], 's', "Order 2")
+              ColorList[1], 's', "Loop 1")
 
     ErrorPlot(ax, ExtMomBin, qData[:],
-              ColorList[2], 's', "Order 3")
+              ColorList[2], 's', "Loop 2")
     # for i in range(ScaleBinSize/32):
     #     # print i, index
     #     # print ScaleBin[index]

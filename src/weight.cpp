@@ -42,11 +42,10 @@ void weight::Initialization() {
 
   // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
   vector<dse::channel> Chan = {dse::T};
-  for (int order = 1; order < 2; order++)
+  for (int order = 1; order <= Groups.back().Order; order++) {
     Ver4Root[order] = VerDiag.Build(order, Chan, dse::NORMAL);
-
-  cout << VerDiag.ToString(Ver4Root[1]) << endl;
-  // ABORT("end!");
+    LOG_INFO(VerDiag.ToString(Ver4Root[order]));
+  }
 
   LOG_INFO("Initializating MC variables ...")
   // initialize momentum variables

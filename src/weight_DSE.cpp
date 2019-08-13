@@ -24,9 +24,7 @@ double weight::Evaluate(int LoopNum, int ID) {
     Var.LoopMom[Root.LegK[OUTL]] = Var.LoopMom[1] - Var.LoopMom[0];
     Var.LoopMom[Root.LegK[OUTR]] = Var.LoopMom[2] + Var.LoopMom[0];
 
-    if (LoopNum == 1) {
-      Vertex4(Root);
-    }
+    Vertex4(Root);
 
     double Weight = 0.0;
     for (auto &w : Root.Weight)
@@ -82,6 +80,9 @@ void weight::Vertex4(dse::ver4 &Ver4) {
       K2 = OutR + K1 - InL;
     } else if (chan == S) {
       K2 = InL + InR - K1;
+    } else if (chan == I) {
+      // TODO: add envelope diagram
+      continue;
     }
 
     // construct Green's function weight table

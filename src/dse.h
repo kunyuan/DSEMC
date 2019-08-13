@@ -41,28 +41,10 @@ private:
   vector<double> _G;
 };
 
-// template <typename T> class map {
-//   // IMPORTANT: please make sure all elements are initialized!
-// public:
-//   map(int l, int r) {
-//     LNum = l;
-//     RNum = r;
-//     _Index.resize(l * r);
-//   }
-//   T &operator()(int l, int r) { return _Index[l * RNum + r]; }
-//   // int Set(int l, int r, int index) { _Index[l * RNum + r] = index; }
-
-// private:
-//   int LNum;
-//   int RNum;
-//   vector<T> _Index;
-// };
-
 struct ver4 {
-  // int Channel; // 0: I, 1: T, 2: U, 3: S, 23: IUS, 123: ITUS
   int ID;
-  int LoopNum;
   int InTL;
+  int LoopNum;
   int TauNum;
   vertype Type;
   vector<channel> Channel;

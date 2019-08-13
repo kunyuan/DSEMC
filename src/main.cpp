@@ -49,12 +49,10 @@ void InitPara() {
   // diagram file path: groups/DiagPolar1.dat
   // Para.DiagFileFormat = "groups/DiagPolar{}.txt";
   Para.DiagFileFormat = "groups/DiagLoop{}.txt";
-  // Para.GroupName = {"0", "1", "2", "3"};
-  // Para.GroupName = {"1", "2"};
   Para.GroupName = {
       "0", // 0 loop
       "1", // 1 loop
-           // "2", // 2 loop
+      "2", // 2 loop
   };
   Para.ReWeight = {1, 5.0, 3.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
