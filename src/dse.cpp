@@ -64,8 +64,8 @@ ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
   } else {
 
     Ver4.Channel = Channel;
-    Ver4.K1 = LoopIndex;
-    Ver4.G1 = gMatrix(Ver4.TauNum, InTL);
+    Ver4.K[0] = LoopIndex;
+    Ver4.G[0] = gMatrix(Ver4.TauNum, InTL);
 
     for (auto &chan : Channel) {
       if (chan == I)
@@ -110,24 +110,24 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
   ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
 
-  Ver4.K2[chan] = NewMom();
-  Ver4.G2[chan] = gMatrix(Ver4.TauNum, InTL);
+  Ver4.K[chan] = NewMom();
+  Ver4.G[chan] = gMatrix(Ver4.TauNum, InTL);
 
   array<int, 4> LLegK, RLegK; // left and right vertex external LegK
   if (chan == T) {
 
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.K1};
-    RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTR]};
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K[chan], Ver4.K[0]};
+    RLegK = {Ver4.K[0], Ver4.K[chan], Ver4.LegK[INR], Ver4.LegK[OUTR]};
 
   } else if (chan == U) {
 
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K2[chan], Ver4.K1};
-    RLegK = {Ver4.K1, Ver4.K2[chan], Ver4.LegK[INR], Ver4.LegK[OUTL]};
+    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.K[chan], Ver4.K[0]};
+    RLegK = {Ver4.K[0], Ver4.K[chan], Ver4.LegK[INR], Ver4.LegK[OUTL]};
 
   } else if (chan == S) {
 
-    LLegK = {Ver4.LegK[INL], Ver4.K1, Ver4.LegK[INR], Ver4.K2[chan]};
-    RLegK = {Ver4.K1, Ver4.LegK[OUTL], Ver4.K2[chan], Ver4.LegK[OUTR]};
+    LLegK = {Ver4.LegK[INL], Ver4.K[0], Ver4.LegK[INR], Ver4.K[chan]};
+    RLegK = {Ver4.K[0], Ver4.LegK[OUTL], Ver4.K[chan], Ver4.LegK[OUTR]};
   }
 
   ver4 LVer, RVer;

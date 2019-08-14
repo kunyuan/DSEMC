@@ -63,8 +63,9 @@ void weight::Vertex4(dse::ver4 &Ver4) {
   const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
   const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
   const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
-  const momentum &K1 = Var.LoopMom[Ver4.K1];
+  const momentum &K1 = Var.LoopMom[Ver4.K[0]];
   int InTL = Ver4.T[0][INL];
+  gMatrix &G1 = Ver4.G[0];
   double Weight;
   // set all weight element to be zero
   for (auto &w : Ver4.Weight)
@@ -72,8 +73,8 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 
   for (auto &chan : Ver4.Channel) {
     // construct internal momentum
-    momentum &K2 = Var.LoopMom[Ver4.K2[chan]];
-    gMatrix &G2 = Ver4.G2[chan];
+    momentum &K2 = Var.LoopMom[Ver4.K[chan]];
+    gMatrix &G2 = Ver4.G[chan];
     if (chan == T) {
       K2 = OutL + K1 - InL;
     } else if (chan == U) {
@@ -89,7 +90,7 @@ void weight::Vertex4(dse::ver4 &Ver4) {
     for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
       for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
-        Ver4.G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
+        G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
         if (chan == S)
           // LVer to RVer
           G2(lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
@@ -110,8 +111,8 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 
     for (auto &m : pair.Map) {
       Weight = pair.SymFactor;
-      Weight *= Ver4.G1(m.G1T[IN], m.G1T[OUT]);
-      Weight *= Ver4.G2[pair.Chan](m.G2T[IN], m.G2T[OUT]);
+      Weight *= G1(m.G1T[IN], m.G1T[OUT]);
+      Weight *= Ver4.G[pair.Chan](m.G2T[IN], m.G2T[OUT]);
       Weight *= LVer.Weight[m.LVerT] * RVer.Weight[m.RVerT];
       Ver4.Weight[m.T] += Weight;
     }

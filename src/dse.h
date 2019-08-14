@@ -18,6 +18,7 @@ enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
 struct pair;
+struct pair4;
 class gMatrix {
 public:
   gMatrix() {
@@ -52,11 +53,12 @@ struct ver4 {
   vector<array<int, 4>> T;
 
   // bubble diagram
-  vector<pair> Pairs;
-  int K1; // internal K index for t, u, s
-  gMatrix G1;
-  array<int, 4> K2; // internal K2 for four different channel
-  array<gMatrix, 4> G2;
+  vector<pair> Pairs;   // all two-particle reducible diagrams
+  vector<pair4> Pair4s; // envelop diagrams at order 4
+  // int K1;               // internal K index for t, u, s
+  // gMatrix G1;
+  array<int, 4> K; // internal K2 for four different channel
+  array<gMatrix, 4> G;
 
   // TODO: envelope diagram
 
@@ -79,6 +81,26 @@ struct pair {
   channel Chan;
   double SymFactor;
   vector<mapT> Map;
+};
+
+struct mapT4 {
+  int LDVerT;
+  int RDVerT;
+  int LUVerT;
+  int RUVerT;
+  // LVer T index and RVer T index to Internal T for G1 and G2
+  array<array<int, 2>, 6> GT;
+  // map LVer T index and RVer T index to merged T index
+  int T;
+};
+
+struct pair4 {
+  ver4 LDVer;
+  ver4 RDVer;
+  ver4 LUVer;
+  ver4 RUVer;
+  double SymFactor;
+  vector<mapT4> Map;
 };
 
 class verDiag {
