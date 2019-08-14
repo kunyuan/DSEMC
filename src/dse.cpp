@@ -70,9 +70,8 @@ ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
     for (auto &chan : Channel) {
       if (chan == I)
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Type, Side);
-      else {
+      else
         Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
-      }
     }
   }
 
@@ -97,11 +96,6 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, vertype Type, int Side) {
     Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
     Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
   }
-  return Ver4;
-}
-
-ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
-                    vertype Type, int Side) {
   return Ver4;
 }
 
@@ -182,6 +176,32 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
     Ver4.Pairs.push_back(pair{LVer, RVer, chan, Sym(chan), Map});
   }
+  return Ver4;
+}
+
+ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
+                    vertype Type, int Side) {
+
+  if (LoopNum != 3)
+    return;
+  for (int i = 0; i < 6; i++) {
+    // there are 14 independent G
+    Ver4.Kip.push_back(NewMom());
+    Ver4.Kin.push_back(NewMom());
+    Ver4.Gi.push_back(gMatrix(Ver4.TauNum, InTL));
+  }
+
+  int InL = Ver4.LegK[INL];
+  int OutL = Ver4.LegK[OUTL];
+  int InR = Ver4.LegK[INR];
+  int OutR = Ver4.LegK[OUTR];
+
+  array<int, 4> LDLegK[3], LULegK[3], RDLegK[3], RULegK[3];
+
+  LDLegK[0] = {InL, Ver4.Kip[1], Ver4.Kip[2], Ver4.Kip[0]};
+  LDLegK[1] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
+  LDLegK[2] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
+
   return Ver4;
 }
 

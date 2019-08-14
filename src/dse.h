@@ -55,12 +55,15 @@ struct ver4 {
   // bubble diagram
   vector<pair> Pairs;   // all two-particle reducible diagrams
   vector<pair4> Pair4s; // envelop diagrams at order 4
-  // int K1;               // internal K index for t, u, s
-  // gMatrix G1;
-  array<int, 4> K; // internal K2 for four different channel
+  // internal K and G for bubble diagram
+  // 0: K1, G1, 1-3: K2, G2 for channel t, u, s
+  array<int, 4> K;
   array<gMatrix, 4> G;
 
-  // TODO: envelope diagram
+  // internal K and G for I diagrams
+  vector<int> Kip;
+  vector<int> Kin;
+  vector<gMatrix> Gi; // Gi with positive/negative Ki
 
   vector<double> Weight; // size: equal to T.size()
 };
@@ -99,7 +102,6 @@ struct pair4 {
   ver4 RDVer;
   ver4 LUVer;
   ver4 RUVer;
-  double SymFactor;
   vector<mapT4> Map;
 };
 
