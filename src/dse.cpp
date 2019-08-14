@@ -200,7 +200,19 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
   LDLegK[0] = {InL, Ver4.Kip[1], Ver4.Kip[2], Ver4.Kip[0]};
   LDLegK[1] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
-  LDLegK[2] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
+  LDLegK[2] = {InL, Ver4.Kip[0], Ver4.Kin[1], Ver4.Kin[2]};
+
+  LULegK[0] = {Ver4.Kip[1], OutL, Ver4.Kin[3], Ver4.Kip[4]};
+  LULegK[1] = {Ver4.Kip[1], OutL, Ver4.Kin[4], Ver4.Kip[3]};
+  LULegK[2] = {Ver4.Kin[4], OutL, Ver4.Kin[1], Ver4.Kin[3]};
+
+  RDLegK[0] = {Ver4.Kip[0], Ver4.Kin[3], InR, Ver4.Kip[5]};
+  RDLegK[1] = {Ver4.Kin[5], Ver4.Kin[3], InR, Ver4.Kin[0]};
+  RDLegK[2] = {Ver4.Kip[3], Ver4.Kip[5], InR, Ver4.Kin[0]};
+
+  RULegK[0] = {Ver4.Kin[2], Ver4.Kin[4], Ver4.Kip[5], OutL};
+  RULegK[1] = {Ver4.Kip[4], Ver4.Kip[2], Ver4.Kip[5], OutL};
+  RULegK[2] = {Ver4.Kip[4], Ver4.Kin[5], Ver4.Kin[2], OutL};
 
   return Ver4;
 }
