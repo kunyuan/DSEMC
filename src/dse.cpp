@@ -179,6 +179,39 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   return Ver4;
 }
 
+void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
+                int Index) {
+  vector<mapT4> Map;
+
+  for (int ldt = 0; ldt < LDVer.T.size(); ldt++)
+    for (int lut = 0; lut < LUVer.T.size(); lut++)
+      for (int rdt = 0; rdt < RDVer.T.size(); rdt++)
+        for (int rut = 0; rut < RUVer.T.size(); rut++) {
+          auto &LDvT = LDVer.T[ldt];
+          auto &LUvT = LUVer.T[lut];
+          auto &RDvT = RDVer.T[rdt];
+          auto &RUvT = RUVer.T[rut];
+          array<int, 4> LegT = {LDvT[INL], LUvT[OUTL], RDvT[INR], RUvT[OUTR]};
+          array<array<int, 2>, 6> GT;
+          if (Index == 0) {
+            // LD: 1, LU: 0, RD: 0, RU: 1
+            GT[0] = {};
+          } else if (Index == 1) {
+            // LD: 0, LU: 0, RD: 1, RU: 2
+          } else if (Index == 2) {
+            // LD: 0, LU: 1, RD: 2, RU: 0
+          } else if (Index == 3) {
+            // LD: 2, LU: 2, RD: 0, RU: 0
+          }
+
+          int TIndex = AddToTList(Ver4.T, LegT);
+          Map.push_back(mapT4{ldt, lut, rdt, rut, GT, TIndex});
+        }
+  Ver4.Pair4s.push_back(pair4{LDVer, LUVer, RDVer, RUVer, Map});
+}
+
+#define GETREF(ld, lu, rd, ru)
+
 ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
                     vertype Type, int Side) {
 
@@ -214,6 +247,32 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   RULegK[1] = {Ver4.Kip[4], Ver4.Kip[2], Ver4.Kip[5], OutL};
   RULegK[2] = {Ver4.Kip[4], Ver4.Kin[5], Ver4.Kin[2], OutL};
 
+  vector<channel> ALL = {I, U, S, T};
+
+  array<ver4, 3> LDVer, LUVer, RDVer, RUVer;
+  for (int ld = 0; ld <= LoopNum - 3; ld++)
+    for (int lu = 0; lu <= LoopNum - 3; lu++)
+      for (int rd = 0; rd <= LoopNum - 3; rd++)
+        for (int ru = 0; ru <= LoopNum - 3; ru++) {
+          int ldloopidx = LoopIndex + 3;
+          int luloopidx = LoopIndex + 3 + ld;
+          int rdloopidx = LoopIndex + 3 + ld + lu;
+          int ruloopidx = LoopIndex + 3 + ld + lu + rd;
+          int ldTL = InTL;
+          int luTL = InTL + 2 * (ld + 1);
+          int rdTL = InTL + 2 * (ld + lu + 1);
+          int ruTL = InTL + 2 * (ld + lu + ru + 1);
+          for (int t = 0; t < 3; t++) {
+            LDVer[t] = Vertex(LDLegK[t], ldTL, ld, ldloopidx, ALL, Type, LEFT);
+            LUVer[t] = Vertex(LULegK[t], luTL, lu, luloopidx, ALL, Type, LEFT);
+            RDVer[t] = Vertex(RDLegK[t], rdTL, rd, rdloopidx, ALL, Type, RIGHT);
+            RUVer[t] = Vertex(RULegK[t], ruTL, ru, ruloopidx, ALL, Type, RIGHT);
+          }
+          CreateMapT(Ver4, LDVer[1], LUVer[0], RDVer[0], RUVer[1], 0);
+          CreateMapT(Ver4, LDVer[0], LUVer[0], RDVer[1], RUVer[2], 1);
+          CreateMapT(Ver4, LDVer[0], LUVer[1], RDVer[2], RUVer[0], 2);
+          CreateMapT(Ver4, LDVer[2], LUVer[2], RDVer[0], RUVer[0], 3);
+        }
   return Ver4;
 }
 
