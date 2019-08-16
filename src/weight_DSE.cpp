@@ -128,12 +128,19 @@ void weight::ChanI(dse::ver4 &Ver4) {
     return;
   if (Ver4.Channel[0] != I)
     return;
+  const envelope &Env = Ver4.Envelope[0];
+
   const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
   const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
   const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
   const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
-  const momentum &K0p = Var.LoopMom[Ver4.Kip[0]];
-  const momentum &K2p = Var.LoopMom[Ver4.Kip[2]];
+
+  momentum *K[9];
+  for (int i = 0; i < 9; i++)
+    K[i] = &Var.LoopMom[Env.K[i]];
+
+  const momentum &K0 = Var.LoopMom[Env.K[0]];
+  const momentum &K1 = Var.LoopMom[Env.K[1]];
   const momentum &K3p = Var.LoopMom[Ver4.Kip[3]];
   momentum &K1p = Var.LoopMom[Ver4.Kip[1]];
   momentum &K4p = Var.LoopMom[Ver4.Kip[4]];
