@@ -194,7 +194,6 @@ void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
           array<int, 4> LegT = {LDvT[INL], LUvT[OUTL], RDvT[INR], RUvT[OUTR]};
           array<array<int, 2>, 6> GT;
           if (Index == 0) {
-            // LD: 1, LU: 0, RD: 0, RU: 1
             GT[0] = {LDvT[OUTR], RDvT[INL]};
             GT[1] = {LDvT[OUTL], LUvT[INL]};
             GT[2] = {RUvT[OUTL], LDvT[INR]};
@@ -202,23 +201,20 @@ void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
             GT[4] = {LUvT[OUTR], RUvT[INL]};
             GT[5] = {RDvT[OUTR], RUvT[INR]};
           } else if (Index == 1) {
-            // LD: 0, LU: 0, RD: 1, RU: 2
-            GT[0] = {RDvT[OUTR], LDvT[INR]};
+            GT[0] = {RDvT[OUTL], LDvT[INR]};
             GT[1] = {LDvT[OUTL], LUvT[INL]};
             GT[2] = {LDvT[OUTR], RUvT[INR]};
-            GT[3] = {RDvT[OUTL], LUvT[INR]};
+            GT[3] = {RDvT[OUTR], LUvT[INR]};
             GT[4] = {LUvT[OUTR], RUvT[INL]};
             GT[5] = {RUvT[OUTL], RDvT[INL]};
           } else if (Index == 2) {
-            // LD: 0, LU: 1, RD: 2, RU: 0
-            GT[0] = {RDvT[OUTR], LDvT[INR]};
+            GT[0] = {RDvT[OUTL], LDvT[INR]};
             GT[1] = {LDvT[OUTL], LUvT[INL]};
             GT[2] = {LDvT[OUTR], RUvT[INL]};
             GT[3] = {LUvT[OUTR], RDvT[INL]};
             GT[4] = {LUvT[OUTR], RUvT[INL]};
-            GT[5] = {RDvT[OUTL], RUvT[INR]};
+            GT[5] = {RDvT[OUTR], RUvT[INR]};
           } else if (Index == 3) {
-            // LD: 2, LU: 2, RD: 0, RU: 0
             GT[0] = {LDvT[OUTR], RDvT[INL]};
             GT[1] = {LUvT[OUTR], LDvT[INR]};
             GT[2] = {LDvT[OUTL], RUvT[INL]};
@@ -265,8 +261,8 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   LULegK[3] = {Ver4.Kin[3], OutL, Ver4.Kin[4], Ver4.Kin[1]};
 
   RDLegK[0] = {Ver4.Kip[0], Ver4.Kin[3], InR, Ver4.Kip[5]};
-  RDLegK[1] = {Ver4.Kin[5], Ver4.Kin[3], InR, Ver4.Kin[0]};
-  RDLegK[2] = {Ver4.Kip[3], Ver4.Kip[5], InR, Ver4.Kin[0]};
+  RDLegK[1] = {Ver4.Kin[5], Ver4.Kin[0], InR, Ver4.Kin[3]};
+  RDLegK[2] = {Ver4.Kip[3], Ver4.Kin[0], InR, Ver4.Kip[5]};
   RDLegK[3] = {Ver4.Kip[0], Ver4.Kin[3], InR, Ver4.Kip[5]};
 
   RULegK[0] = {Ver4.Kip[4], Ver4.Kip[2], Ver4.Kip[5], OutL};
