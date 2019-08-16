@@ -195,13 +195,36 @@ void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
           array<array<int, 2>, 6> GT;
           if (Index == 0) {
             // LD: 1, LU: 0, RD: 0, RU: 1
-            GT[0] = {};
+            GT[0] = {LDvT[OUTR], RDvT[INL]};
+            GT[1] = {LDvT[OUTL], LUvT[INL]};
+            GT[2] = {RUvT[OUTL], LDvT[INR]};
+            GT[3] = {RDvT[OUTL], LUvT[INR]};
+            GT[4] = {LUvT[OUTR], RUvT[INL]};
+            GT[5] = {RDvT[OUTR], RUvT[INR]};
           } else if (Index == 1) {
             // LD: 0, LU: 0, RD: 1, RU: 2
+            GT[0] = {RDvT[OUTR], LDvT[INR]};
+            GT[1] = {LDvT[OUTL], LUvT[INL]};
+            GT[2] = {LDvT[OUTR], RUvT[INR]};
+            GT[3] = {RDvT[OUTL], LUvT[INR]};
+            GT[4] = {LUvT[OUTR], RUvT[INL]};
+            GT[5] = {RUvT[OUTL], RDvT[INL]};
           } else if (Index == 2) {
             // LD: 0, LU: 1, RD: 2, RU: 0
+            GT[0] = {RDvT[OUTR], LDvT[INR]};
+            GT[1] = {LDvT[OUTL], LUvT[INL]};
+            GT[2] = {LDvT[OUTR], RUvT[INL]};
+            GT[3] = {LUvT[OUTR], RDvT[INL]};
+            GT[4] = {LUvT[OUTR], RUvT[INL]};
+            GT[5] = {RDvT[OUTL], RUvT[INR]};
           } else if (Index == 3) {
             // LD: 2, LU: 2, RD: 0, RU: 0
+            GT[0] = {LDvT[OUTR], RDvT[INL]};
+            GT[1] = {LUvT[OUTR], LDvT[INR]};
+            GT[2] = {LDvT[OUTL], RUvT[INL]};
+            GT[3] = {RDvT[OUTL], LUvT[INL]};
+            GT[4] = {RUvT[OUTL], LUvT[INR]};
+            GT[5] = {RDvT[OUTR], RUvT[INR]};
           }
 
           int TIndex = AddToTList(Ver4.T, LegT);
@@ -229,27 +252,31 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   int InR = Ver4.LegK[INR];
   int OutR = Ver4.LegK[OUTR];
 
-  array<int, 4> LDLegK[3], LULegK[3], RDLegK[3], RULegK[3];
+  array<int, 4> LDLegK[4], LULegK[4], RDLegK[4], RULegK[4];
 
-  LDLegK[0] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
-  LDLegK[1] = {InL, Ver4.Kip[1], Ver4.Kip[2], Ver4.Kip[0]};
-  LDLegK[2] = {InL, Ver4.Kin[2], Ver4.Kin[1], Ver4.Kip[0]};
+  LDLegK[0] = {InL, Ver4.Kip[1], Ver4.Kip[2], Ver4.Kip[0]};
+  LDLegK[1] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
+  LDLegK[2] = {InL, Ver4.Kip[1], Ver4.Kin[0], Ver4.Kin[2]};
+  LDLegK[3] = {InL, Ver4.Kin[2], Ver4.Kin[1], Ver4.Kip[0]};
 
   LULegK[0] = {Ver4.Kip[1], OutL, Ver4.Kin[3], Ver4.Kip[4]};
-  LULegK[1] = {Ver4.Kip[1], OutL, Ver4.Kin[4], Ver4.Kip[3]};
-  LULegK[2] = {Ver4.Kin[3], OutL, Ver4.Kin[4], Ver4.Kin[1]};
+  LULegK[1] = {Ver4.Kip[1], OutL, Ver4.Kin[3], Ver4.Kip[4]};
+  LULegK[2] = {Ver4.Kip[1], OutL, Ver4.Kin[4], Ver4.Kip[3]};
+  LULegK[3] = {Ver4.Kin[3], OutL, Ver4.Kin[4], Ver4.Kin[1]};
 
   RDLegK[0] = {Ver4.Kip[0], Ver4.Kin[3], InR, Ver4.Kip[5]};
   RDLegK[1] = {Ver4.Kin[5], Ver4.Kin[3], InR, Ver4.Kin[0]};
   RDLegK[2] = {Ver4.Kip[3], Ver4.Kip[5], InR, Ver4.Kin[0]};
+  RDLegK[3] = {Ver4.Kip[0], Ver4.Kin[3], InR, Ver4.Kip[5]};
 
-  RULegK[0] = {Ver4.Kin[2], Ver4.Kin[4], Ver4.Kip[5], OutL};
-  RULegK[1] = {Ver4.Kip[4], Ver4.Kip[2], Ver4.Kip[5], OutL};
-  RULegK[2] = {Ver4.Kip[4], Ver4.Kin[5], Ver4.Kin[2], OutL};
+  RULegK[0] = {Ver4.Kip[4], Ver4.Kip[2], Ver4.Kip[5], OutL};
+  RULegK[1] = {Ver4.Kip[4], Ver4.Kin[5], Ver4.Kin[2], OutL};
+  RULegK[2] = {Ver4.Kin[2], Ver4.Kin[4], Ver4.Kip[5], OutL};
+  RULegK[3] = {Ver4.Kin[2], Ver4.Kin[4], Ver4.Kip[5], OutL};
 
   vector<channel> ALL = {I, U, S, T};
 
-  array<ver4, 3> LDVer, LUVer, RDVer, RUVer;
+  ver4 LDVer, LUVer, RDVer, RUVer;
   for (int ld = 0; ld <= LoopNum - 3; ld++)
     for (int lu = 0; lu <= LoopNum - 3; lu++)
       for (int rd = 0; rd <= LoopNum - 3; rd++)
@@ -262,16 +289,13 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
           int luTL = InTL + 2 * (ld + 1);
           int rdTL = InTL + 2 * (ld + lu + 1);
           int ruTL = InTL + 2 * (ld + lu + ru + 1);
-          for (int t = 0; t < 3; t++) {
-            LDVer[t] = Vertex(LDLegK[t], ldTL, ld, ldloopidx, ALL, Type, LEFT);
-            LUVer[t] = Vertex(LULegK[t], luTL, lu, luloopidx, ALL, Type, LEFT);
-            RDVer[t] = Vertex(RDLegK[t], rdTL, rd, rdloopidx, ALL, Type, RIGHT);
-            RUVer[t] = Vertex(RULegK[t], ruTL, ru, ruloopidx, ALL, Type, RIGHT);
+          for (int t = 0; t < 4; t++) {
+            LDVer = Vertex(LDLegK[t], ldTL, ld, ldloopidx, ALL, Type, LEFT);
+            LUVer = Vertex(LULegK[t], luTL, lu, luloopidx, ALL, Type, LEFT);
+            RDVer = Vertex(RDLegK[t], rdTL, rd, rdloopidx, ALL, Type, RIGHT);
+            RUVer = Vertex(RULegK[t], ruTL, ru, ruloopidx, ALL, Type, RIGHT);
+            CreateMapT(Ver4, LDVer, LUVer, RDVer, RUVer, t);
           }
-          CreateMapT(Ver4, LDVer[1], LUVer[0], RDVer[0], RUVer[1], 0);
-          CreateMapT(Ver4, LDVer[0], LUVer[0], RDVer[1], RUVer[2], 1);
-          CreateMapT(Ver4, LDVer[0], LUVer[1], RDVer[2], RUVer[0], 2);
-          CreateMapT(Ver4, LDVer[2], LUVer[2], RDVer[0], RUVer[0], 3);
         }
   return Ver4;
 }
