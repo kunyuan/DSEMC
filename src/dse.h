@@ -98,15 +98,12 @@ struct mapT4 {
 };
 
 struct pair4 {
-  // array<ver4, 3> LDVer;
-  // array<ver4, 3> RDVer;
-  // array<ver4, 3> LUVer;
-  // array<ver4, 3> RUVer;
   ver4 LDVer;
   ver4 RDVer;
   ver4 LUVer;
   ver4 RUVer;
   vector<mapT4> Map;
+  double SymFactor;
 };
 
 class verDiag {

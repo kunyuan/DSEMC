@@ -53,12 +53,17 @@ void weight::Ver0(ver4 &Ver4) {
   }
   return;
 }
-
 void weight::Vertex4(dse::ver4 &Ver4) {
   if (Ver4.LoopNum == 0) {
     Ver0(Ver4);
     return;
   }
+  ChanUST(Ver4);
+  if (Ver4.LoopNum >= 3)
+    ChanI(Ver4);
+}
+
+void weight::ChanUST(dse::ver4 &Ver4) {
   const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
   const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
   const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
@@ -82,7 +87,6 @@ void weight::Vertex4(dse::ver4 &Ver4) {
     } else if (chan == S) {
       K2 = InL + InR - K1;
     } else if (chan == I) {
-      // TODO: add envelope diagram
       continue;
     }
 
@@ -117,4 +121,46 @@ void weight::Vertex4(dse::ver4 &Ver4) {
       Ver4.Weight[m.T] += Weight;
     }
   }
+}
+
+void weight::ChanI(dse::ver4 &Ver4) {
+  if (Ver4.LoopNum != 3)
+    return;
+  if (Ver4.Channel[0] != I)
+    return;
+  const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
+  const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
+  const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
+  const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
+  const momentum &K0p = Var.LoopMom[Ver4.Kip[0]];
+  const momentum &K2p = Var.LoopMom[Ver4.Kip[2]];
+  const momentum &K3p = Var.LoopMom[Ver4.Kip[3]];
+  momentum &K1p = Var.LoopMom[Ver4.Kip[1]];
+  momentum &K4p = Var.LoopMom[Ver4.Kip[4]];
+  momentum &K5p = Var.LoopMom[Ver4.Kip[5]];
+  K1p = InL + K2p - K0p;
+  K4p = K1p - K3p - OutL;
+  K5p = K0p + K3p + InR;
+  const momentum &K0n = Var.LoopMom[Ver4.Kin[0]];
+  const momentum &K1n = Var.LoopMom[Ver4.Kin[1]];
+  const momentum &K2n = Var.LoopMom[Ver4.Kin[2]];
+  const momentum &K3n = Var.LoopMom[Ver4.Kin[3]];
+  const momentum &K4n = Var.LoopMom[Ver4.Kin[4]];
+  const momentum &K5n = Var.LoopMom[Ver4.Kin[5]];
+  for (int i = 0; i < 6; i++)
+    Var.LoopMom[Ver4.Kin[i]] = Var.LoopMom[Ver4.Kip[i]] * (-1.0);
+
+  int LDTInL = Ver4.T[0][INL];
+  int LUTInL = LDTInL + 2;
+  int RDTInL = LDTInL + 4;
+  int RUTInL = LDTInL + 6;
+  for (int ld = LDTInL; ld < LDTInL + 2; ld++) {
+    for (int lu = LUTInL; lu < LUTInL + 2; lu++) {
+      double dTau = Var.Tau[lu] - Var.Tau[ld];
+      Ver4.Gi[1](ld, lu) = Fermi.Green(dTau, K1p, UP, 0, Var.CurrScale);
+      Ver4.Gi[1](lu, ld) = Fermi.Green(-dTau, K1n, UP, 0, Var.CurrScale);
+    }
+  }
+
+  return;
 }

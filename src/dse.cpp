@@ -181,6 +181,18 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
 void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
                 int Index) {
+  double SymFactor;
+  if (Index == 0)
+    SymFactor = -1.0;
+  else if (Index == 1)
+    SymFactor = 1.0;
+  else if (Index == 2)
+    SymFactor = -1.0;
+  else if (Index == 3)
+    SymFactor = 1.0;
+  else
+    ABORT("There are only four envelop diagram!");
+
   vector<mapT4> Map;
 
   for (int ldt = 0; ldt < LDVer.T.size(); ldt++)
@@ -226,19 +238,22 @@ void CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer, ver4 RUVer,
           int TIndex = AddToTList(Ver4.T, LegT);
           Map.push_back(mapT4{ldt, lut, rdt, rut, GT, TIndex});
         }
-  Ver4.Pair4s.push_back(pair4{LDVer, LUVer, RDVer, RUVer, Map});
+  Ver4.Pair4s.push_back(pair4{LDVer, LUVer, RDVer, RUVer, Map, SymFactor});
 }
-
-#define GETREF(ld, lu, rd, ru)
 
 ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
                     vertype Type, int Side) {
 
   if (LoopNum != 3)
     return;
+  Ver4.Kip[0] = LoopIndex;
+  Ver4.Kip[1] = NewMom();
+  Ver4.Kip[2] = LoopIndex + 1;
+  Ver4.Kip[3] = LoopIndex + 2;
+  Ver4.Kip[4] = NewMom();
+  Ver4.Kip[5] = NewMom();
   for (int i = 0; i < 6; i++) {
     // there are 14 independent G
-    Ver4.Kip.push_back(NewMom());
     Ver4.Kin.push_back(NewMom());
     Ver4.Gi.push_back(gMatrix(Ver4.TauNum, InTL));
   }
@@ -271,28 +286,27 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   RULegK[3] = {Ver4.Kin[2], Ver4.Kin[4], Ver4.Kip[5], OutL};
 
   vector<channel> ALL = {I, U, S, T};
-
   ver4 LDVer, LUVer, RDVer, RUVer;
-  for (int ld = 0; ld <= LoopNum - 3; ld++)
-    for (int lu = 0; lu <= LoopNum - 3; lu++)
-      for (int rd = 0; rd <= LoopNum - 3; rd++)
-        for (int ru = 0; ru <= LoopNum - 3; ru++) {
-          int ldloopidx = LoopIndex + 3;
-          int luloopidx = LoopIndex + 3 + ld;
-          int rdloopidx = LoopIndex + 3 + ld + lu;
-          int ruloopidx = LoopIndex + 3 + ld + lu + rd;
-          int ldTL = InTL;
-          int luTL = InTL + 2 * (ld + 1);
-          int rdTL = InTL + 2 * (ld + lu + 1);
-          int ruTL = InTL + 2 * (ld + lu + ru + 1);
-          for (int t = 0; t < 4; t++) {
-            LDVer = Vertex(LDLegK[t], ldTL, ld, ldloopidx, ALL, Type, LEFT);
-            LUVer = Vertex(LULegK[t], luTL, lu, luloopidx, ALL, Type, LEFT);
-            RDVer = Vertex(RDLegK[t], rdTL, rd, rdloopidx, ALL, Type, RIGHT);
-            RUVer = Vertex(RULegK[t], ruTL, ru, ruloopidx, ALL, Type, RIGHT);
-            CreateMapT(Ver4, LDVer, LUVer, RDVer, RUVer, t);
-          }
-        }
+  // for (int ld = 0; ld <= LoopNum - 3; ld++)
+  //   for (int lu = 0; lu <= LoopNum - 3; lu++)
+  //     for (int rd = 0; rd <= LoopNum - 3; rd++)
+  //       for (int ru = 0; ru <= LoopNum - 3; ru++) {
+  // int ldloopidx = LoopIndex + 3;
+  // int luloopidx = LoopIndex + 3 + ld;
+  // int rdloopidx = LoopIndex + 3 + ld + lu;
+  // int ruloopidx = LoopIndex + 3 + ld + lu + rd;
+  // int ldTL = InTL;
+  // int luTL = InTL + 2;
+  // int rdTL = InTL + 2 * (ld + lu + 1);
+  // int ruTL = InTL + 2 * (ld + lu + ru + 1);
+  for (int t = 0; t < 4; t++) {
+    LDVer = Vertex(LDLegK[t], InTL, 0, LoopIndex, ALL, Type, LEFT);
+    LUVer = Vertex(LULegK[t], InTL + 2, 0, LoopIndex, ALL, Type, LEFT);
+    RDVer = Vertex(RDLegK[t], InTL + 4, 0, LoopIndex, ALL, Type, RIGHT);
+    RUVer = Vertex(RULegK[t], InTL + 6, 0, LoopIndex, ALL, Type, RIGHT);
+    CreateMapT(Ver4, LDVer, LUVer, RDVer, RUVer, t);
+  }
+  // }
   return Ver4;
 }
 
