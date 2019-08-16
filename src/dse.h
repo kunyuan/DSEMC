@@ -18,7 +18,8 @@ enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
 struct pair;
-struct pair4;
+struct envelope;
+
 class gMatrix {
 public:
   gMatrix() {
@@ -53,17 +54,12 @@ struct ver4 {
   vector<array<int, 4>> T;
 
   // bubble diagram
-  vector<pair> Pairs;   // all two-particle reducible diagrams
-  vector<pair4> Pair4s; // envelop diagrams at order 4
+  vector<pair> Pairs;        // all two-particle reducible diagrams
+  vector<envelope> Envelope; // envelop diagrams at order 4
   // internal K and G for bubble diagram
   // 0: K1, G1, 1-3: K2, G2 for channel t, u, s
   array<int, 4> K;
   array<gMatrix, 4> G;
-
-  // internal K and G for I diagrams
-  vector<int> Kip;
-  vector<int> Kin;
-  vector<gMatrix> Gi; // Gi with positive/negative Ki
 
   vector<double> Weight; // size: equal to T.size()
 };
@@ -86,24 +82,46 @@ struct pair {
   vector<mapT> Map;
 };
 
+class g2Matrix {
+public:
+  g2Matrix() {
+    _LShift = 0;
+    _RShift = 0;
+  }
+  g2Matrix(int LShift, int RShift) {
+    _LShift = LShift;
+    _RShift = RShift;
+    _G.resize(2 * 2);
+    for (auto &g : _G)
+      g = 0.0;
+  }
+  double &operator()(int l, int r) {
+    return _G[(l - _LShift) * 2 + r - _RShift];
+  }
+
+private:
+  int _LShift;
+  int _RShift;
+  vector<double> _G;
+};
+
 struct mapT4 {
   int LDVerT;
   int RDVerT;
   int LUVerT;
   int RUVerT;
   // LVer T index and RVer T index to Internal T for G1 and G2
-  array<array<int, 2>, 6> GT;
+  array<array<int, 2>, 9> GT;
   // map LVer T index and RVer T index to merged T index
-  int T;
+  array<int, 4> T; // external T for four envelop diagrams
 };
 
-struct pair4 {
-  ver4 LDVer;
-  ver4 RDVer;
-  ver4 LUVer;
-  ver4 RUVer;
+struct envelope {
+  array<ver4, 10> Ver;
+  array<int, 9> K;
+  array<g2Matrix, 9> G;
   vector<mapT4> Map;
-  double SymFactor;
+  array<double, 4> SymFactor;
 };
 
 class verDiag {
