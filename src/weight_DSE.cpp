@@ -21,8 +21,8 @@ double weight::Evaluate(int LoopNum, int ID) {
                                  0.0, -2);
   } else {
     ver4 &Root = Ver4Root[LoopNum];
-    Var.LoopMom[Root.LegK[OUTL]] = Var.LoopMom[1] - Var.LoopMom[0];
-    Var.LoopMom[Root.LegK[OUTR]] = Var.LoopMom[2] + Var.LoopMom[0];
+    *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
+    *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
 
     Vertex4(Root);
 
@@ -39,10 +39,10 @@ double weight::Evaluate(int LoopNum, int ID) {
 
 void weight::Ver0(ver4 &Ver4) {
   auto &K = Ver4.LegK;
-  const momentum &InL = Var.LoopMom[K[INL]];
-  const momentum &InR = Var.LoopMom[K[INR]];
-  momentum DiQ = InL - Var.LoopMom[K[OUTL]];
-  momentum ExQ = InL - Var.LoopMom[K[OUTR]];
+  const momentum &InL = *K[INL];
+  const momentum &InR = *K[INR];
+  momentum DiQ = InL - *K[OUTL];
+  momentum ExQ = InL - *K[OUTR];
   Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
                    VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
   // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
@@ -64,11 +64,11 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 }
 
 void weight::ChanUST(dse::ver4 &Ver4) {
-  const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
-  const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
-  const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
-  const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
-  const momentum &K1 = Var.LoopMom[Ver4.K[0]];
+  const momentum &InL = *Ver4.LegK[INL];
+  const momentum &OutL = *Ver4.LegK[OUTL];
+  const momentum &InR = *Ver4.LegK[INR];
+  const momentum &OutR = *Ver4.LegK[OUTR];
+  const momentum &K1 = *Ver4.K[0];
   int InTL = Ver4.T[0][INL];
   gMatrix &G1 = Ver4.G[0];
   double Weight;
@@ -78,7 +78,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
 
   for (auto &chan : Ver4.Channel) {
     // construct internal momentum
-    momentum &K2 = Var.LoopMom[Ver4.K[chan]];
+    momentum &K2 = *Ver4.K[chan];
     gMatrix &G2 = Ver4.G[chan];
     if (chan == T) {
       K2 = OutL + K1 - InL;
@@ -128,45 +128,67 @@ void weight::ChanI(dse::ver4 &Ver4) {
     return;
   if (Ver4.Channel[0] != I)
     return;
-  const envelope &Env = Ver4.Envelope[0];
+  envelope &Env = Ver4.Envelope[0];
 
-  const momentum &InL = Var.LoopMom[Ver4.LegK[INL]];
-  const momentum &OutL = Var.LoopMom[Ver4.LegK[OUTL]];
-  const momentum &InR = Var.LoopMom[Ver4.LegK[INR]];
-  const momentum &OutR = Var.LoopMom[Ver4.LegK[OUTR]];
+  const momentum &InL = *Ver4.LegK[INL];
+  const momentum &OutL = *Ver4.LegK[OUTL];
+  const momentum &InR = *Ver4.LegK[INR];
+  const momentum &OutR = *Ver4.LegK[OUTR];
 
-  momentum *K[9];
-  for (int i = 0; i < 9; i++)
-    K[i] = &Var.LoopMom[Env.K[i]];
+  auto &G = Env.G;
 
-  const momentum &K0 = Var.LoopMom[Env.K[0]];
-  const momentum &K1 = Var.LoopMom[Env.K[1]];
-  const momentum &K3p = Var.LoopMom[Ver4.Kip[3]];
-  momentum &K1p = Var.LoopMom[Ver4.Kip[1]];
-  momentum &K4p = Var.LoopMom[Ver4.Kip[4]];
-  momentum &K5p = Var.LoopMom[Ver4.Kip[5]];
-  K1p = InL + K2p - K0p;
-  K4p = K1p - K3p - OutL;
-  K5p = K0p + K3p + InR;
-  const momentum &K0n = Var.LoopMom[Ver4.Kin[0]];
-  const momentum &K1n = Var.LoopMom[Ver4.Kin[1]];
-  const momentum &K2n = Var.LoopMom[Ver4.Kin[2]];
-  const momentum &K3n = Var.LoopMom[Ver4.Kin[3]];
-  const momentum &K4n = Var.LoopMom[Ver4.Kin[4]];
-  const momentum &K5n = Var.LoopMom[Ver4.Kin[5]];
-  for (int i = 0; i < 6; i++)
-    Var.LoopMom[Ver4.Kin[i]] = Var.LoopMom[Ver4.Kip[i]] * (-1.0);
+  *G[3].K = *G[0].K + *G[1].K - InL;
+  *G[4].K = *G[1].K + *G[2].K - OutL;
+  *G[5].K = *G[0].K + InR - *G[2].K;
+  *G[6].K = *G[1].K + *G[2].K - OutR;
+  *G[7].K = *G[2].K + OutR - *G[0].K;
+  *G[8].K = *G[2].K + OutL - *G[0].K;
 
-  int LDTInL = Ver4.T[0][INL];
-  int LUTInL = LDTInL + 2;
-  int RDTInL = LDTInL + 4;
-  int RUTInL = LDTInL + 6;
-  for (int ld = LDTInL; ld < LDTInL + 2; ld++) {
-    for (int lu = LUTInL; lu < LUTInL + 2; lu++) {
-      double dTau = Var.Tau[lu] - Var.Tau[ld];
-      Ver4.Gi[1](ld, lu) = Fermi.Green(dTau, K1p, UP, 0, Var.CurrScale);
-      Ver4.Gi[1](lu, ld) = Fermi.Green(-dTau, K1n, UP, 0, Var.CurrScale);
-    }
+  for (auto &g : Env.G)
+    for (auto &in : g.InT)
+      for (auto &out : g.OutT)
+        g(in, out) = Fermi.Green(Var.Tau[out] - Var.Tau[in], *(g.K), UP, 0,
+                                 Var.CurrScale);
+
+  for (auto &subVer : Env.Ver)
+    Vertex4(subVer);
+
+  double Weight = 0.0;
+  double ComWeight = 0.0;
+  for (auto &map : Env.Map) {
+    auto &SubVer = Env.Ver;
+    auto &GT = map.GT;
+    auto &G = Env.G;
+    ComWeight = G[0](GT[0]) * G[1](GT[1]) * G[2](GT[2]) * G[3](GT[3]);
+    ComWeight *= SubVer[0].Weight[map.LDVerT];
+
+    Weight = Env.SymFactor[0] * ComWeight;
+    Weight *= SubVer[1].Weight[map.LUVerT];
+    Weight *= SubVer[3].Weight[map.RDVerT];
+    Weight *= SubVer[6].Weight[map.RUVerT];
+    Weight *= G[4](GT[4]) * G[5](GT[5]);
+    Ver4.Weight[map.T[0]] = Weight;
+
+    Weight = Env.SymFactor[1] * ComWeight;
+    Weight *= SubVer[2].Weight[map.LUVerT];
+    Weight *= SubVer[3].Weight[map.RDVerT];
+    Weight *= SubVer[7].Weight[map.RUVerT];
+    Weight *= G[6](GT[6]) * G[5](GT[5]);
+    Ver4.Weight[map.T[1]] = Weight;
+
+    Weight = Env.SymFactor[2] * ComWeight;
+    Weight *= SubVer[1].Weight[map.LUVerT];
+    Weight *= SubVer[4].Weight[map.RDVerT];
+    Weight *= SubVer[8].Weight[map.RUVerT];
+    Weight *= G[4](GT[4]) * G[7](GT[7]);
+    Ver4.Weight[map.T[2]] = Weight;
+
+    Weight = Env.SymFactor[3] * ComWeight;
+    Weight *= SubVer[2].Weight[map.LUVerT];
+    Weight *= SubVer[5].Weight[map.RDVerT];
+    Weight *= SubVer[9].Weight[map.RUVerT];
+    Weight *= G[6](GT[6]) * G[8](GT[8]);
+    Ver4.Weight[map.T[3]] = Weight;
   }
 
   return;

@@ -37,6 +37,10 @@ public:
     return _G[(l - _InTL) * _TauNum + r - _InTL];
   }
 
+  double &operator()(const array<int, 2> &t) {
+    return _G[(t[IN] - _InTL) * _TauNum + t[OUT] - _InTL];
+  }
+
 private:
   int _TauNum;
   int _InTL;
@@ -50,7 +54,7 @@ struct ver4 {
   int TauNum;
   vertype Type;
   vector<channel> Channel;
-  array<int, 4> LegK; // legK index
+  array<momentum *, 4> LegK; // legK index
   vector<array<int, 4>> T;
 
   // bubble diagram
@@ -58,7 +62,7 @@ struct ver4 {
   vector<envelope> Envelope; // envelop diagrams at order 4
   // internal K and G for bubble diagram
   // 0: K1, G1, 1-3: K2, G2 for channel t, u, s
-  array<int, 4> K;
+  array<momentum *, 4> K;
   array<gMatrix, 4> G;
 
   vector<double> Weight; // size: equal to T.size()
@@ -85,23 +89,34 @@ struct pair {
 class g2Matrix {
 public:
   g2Matrix() {
-    _LShift = 0;
-    _RShift = 0;
+    _InShift = 0;
+    _OutShift = 0;
   }
-  g2Matrix(int LShift, int RShift) {
-    _LShift = LShift;
-    _RShift = RShift;
+  g2Matrix(int InShift, int OutShift, momentum *k) {
+    _InShift = InShift;
+    _OutShift = OutShift;
+    K = k;
     _G.resize(2 * 2);
     for (auto &g : _G)
       g = 0.0;
-  }
-  double &operator()(int l, int r) {
-    return _G[(l - _LShift) * 2 + r - _RShift];
+    InT = {_InShift, _InShift + 1};
+    OutT = {_OutShift, _OutShift + 1};
   }
 
+  double &operator()(int in, int out) {
+    return _G[(in - _InShift) * 2 + out - _OutShift];
+  }
+
+  double &operator()(const array<int, 2> &t) {
+    return _G[(t[IN] - _InShift) * 2 + t[OUT] - _OutShift];
+  }
+
+  array<int, 2> InT, OutT; // possible InT and OutT
+  momentum *K;             // momentum on G
+
 private:
-  int _LShift;
-  int _RShift;
+  int _InShift;
+  int _OutShift;
   vector<double> _G;
 };
 
@@ -118,7 +133,6 @@ struct mapT4 {
 
 struct envelope {
   array<ver4, 10> Ver;
-  array<int, 9> K;
   array<g2Matrix, 9> G;
   vector<mapT4> Map;
   array<double, 4> SymFactor;
@@ -126,14 +140,16 @@ struct envelope {
 
 class verDiag {
 public:
-  ver4 Build(int LoopNum, vector<channel> Channel, vertype Type);
+  ver4 Build(array<momentum, MaxMomNum> &loopmom, int LoopNum,
+             vector<channel> Channel, vertype Type);
   string ToString(const ver4 &Vertex);
 
 private:
   int DiagNum = 0;
   int MomNum = MaxLoopNum;
+  array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
-  ver4 Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
+  ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
               vector<channel> Channel, vertype Type, int Side);
 
   ver4 Ver0(ver4 Ver4, int InTL, vertype Type, int Side);
@@ -141,7 +157,7 @@ private:
              int Side);
   ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
                vertype Type, int Side);
-  int NewMom();
+  momentum *NextMom();
 };
 
 bool verTest();

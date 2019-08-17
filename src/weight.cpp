@@ -43,7 +43,7 @@ void weight::Initialization() {
   // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
   vector<dse::channel> Chan = {dse::T};
   for (int order = 1; order <= Groups.back().Order; order++) {
-    Ver4Root[order] = VerDiag.Build(order, Chan, dse::NORMAL);
+    Ver4Root[order] = VerDiag.Build(Var.LoopMom, order, Chan, dse::NORMAL);
     LOG_INFO(VerDiag.ToString(Ver4Root[order]));
   }
 

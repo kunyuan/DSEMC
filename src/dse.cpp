@@ -34,22 +34,26 @@ int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   return TList.size() - 1;
 }
 
-int verDiag::NewMom() {
+momentum *verDiag::NextMom() {
   MomNum += 1;
   ASSERT_ALLWAYS(MomNum < MaxMomNum, "Too many momentum variables! " << MomNum);
-  return MomNum - 1;
+  return &(*LoopMom)[MomNum - 1];
 }
 
-ver4 verDiag::Build(int LoopNum, vector<channel> Channel, vertype Type) {
+ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
+                    vector<channel> Channel, vertype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
   DiagNum = 0;
   MomNum = MaxLoopNum;
-  array<int, 4> LegK = {1, NewMom(), 2, NewMom()};
+  LoopMom = &loopMom;
+  array<momentum *, 4> LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2],
+                               NextMom()};
   return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
 }
 
-ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-                     vector<channel> Channel, vertype Type, int Side) {
+ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
+                     int LoopIndex, vector<channel> Channel, vertype Type,
+                     int Side) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
@@ -64,7 +68,7 @@ ver4 verDiag::Vertex(array<int, 4> LegK, int InTL, int LoopNum, int LoopIndex,
   } else {
 
     Ver4.Channel = Channel;
-    Ver4.K[0] = LoopIndex;
+    Ver4.K[0] = &(*LoopMom)[LoopIndex];
     Ver4.G[0] = gMatrix(Ver4.TauNum, InTL);
 
     for (auto &chan : Channel) {
@@ -104,10 +108,10 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
   ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
 
-  Ver4.K[chan] = NewMom();
+  Ver4.K[chan] = NextMom();
   Ver4.G[chan] = gMatrix(Ver4.TauNum, InTL);
 
-  array<int, 4> LLegK, RLegK; // left and right vertex external LegK
+  array<momentum *, 4> LLegK, RLegK; // left and right vertex external LegK
   if (chan == T) {
 
     LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.K[chan], Ver4.K[0]};
@@ -222,48 +226,62 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   if (LoopNum != 3)
     return;
   envelope Env;
-  Env.K[0] = LoopIndex;
-  Env.K[1] = LoopIndex + 1;
-  Env.K[2] = LoopIndex + 2;
-  for (int i = 3; i < 9; i++)
-    Env.K[i] = NewMom();
+  int LDInTL = InTL;
+  int LUInTL = InTL + 2;
+  int RDInTL = InTL + 4;
+  int RUInTL = InTL + 6;
 
-  int InL = Ver4.LegK[INL];
-  int OutL = Ver4.LegK[OUTL];
-  int InR = Ver4.LegK[INR];
-  int OutR = Ver4.LegK[OUTR];
+  auto &G = Env.G;
 
-  array<int, 4> LegK[10];
+  // Initialize G Table
+  G[0] = g2Matrix(LDInTL, RDInTL, &(*LoopMom)[LoopIndex]);
+  G[1] = g2Matrix(LDInTL, LUInTL, &(*LoopMom)[LoopIndex + 1]);
+  G[2] = g2Matrix(RDInTL, LUInTL, &(*LoopMom)[LoopIndex + 2]);
+  G[3] = g2Matrix(RUInTL, LDInTL, NextMom());
+  G[4] = g2Matrix(LUInTL, RUInTL, NextMom());
+  G[5] = g2Matrix(RDInTL, RUInTL, NextMom());
+  G[6] = g2Matrix(LUInTL, RUInTL, NextMom());
+  G[7] = g2Matrix(RUInTL, RDInTL, NextMom());
+  G[8] = g2Matrix(RUInTL, RDInTL, NextMom());
+
+  momentum *InL = Ver4.LegK[INL];
+  momentum *OutL = Ver4.LegK[OUTL];
+  momentum *InR = Ver4.LegK[INR];
+  momentum *OutR = Ver4.LegK[OUTR];
+
+  array<momentum *, 4> LegK[10];
   vector<channel> ALL = {I, U, S, T};
 
+  // set vertex
   // LD Vertex
-  LegK[0] = {InL, Env.K[1], Env.K[2], Env.K[0]};
-  Env.Ver[0] = Vertex(LegK[0], InTL, 0, LoopIndex, ALL, Type, LEFT);
+  LegK[0] = {InL, G[1].K, G[3].K, G[0].K};
+  Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, Type, LEFT);
 
   // LU Vertex
-  LegK[1] = {Env.K[1], OutL, Env.K[3], Env.K[4]};
-  LegK[2] = {Env.K[1], OutR, Env.K[3], Env.K[6]};
-  Env.Ver[1] = Vertex(LegK[1], InTL + 2, 0, LoopIndex, ALL, Type, LEFT);
-  Env.Ver[2] = Vertex(LegK[2], InTL + 2, 0, LoopIndex, ALL, Type, LEFT);
+  LegK[1] = {G[1].K, OutL, G[2].K, G[4].K};
+  LegK[2] = {G[1].K, OutR, G[2].K, G[6].K};
+  Env.Ver[1] = Vertex(LegK[1], LUInTL, 0, LoopIndex, ALL, Type, LEFT);
+  Env.Ver[2] = Vertex(LegK[2], LUInTL, 0, LoopIndex, ALL, Type, LEFT);
 
   // RD Vertex
-  LegK[3] = {Env.K[0], Env.K[3], InR, Env.K[5]};
-  LegK[4] = {Env.K[0], Env.K[3], Env.K[7], OutR};
-  LegK[5] = {Env.K[0], Env.K[3], Env.K[8], OutL};
+  LegK[3] = {G[0].K, G[2].K, InR, G[5].K};
+  LegK[4] = {G[0].K, G[2].K, G[7].K, OutR};
+  LegK[5] = {G[0].K, G[2].K, G[8].K, OutL};
   for (int i = 3; i <= 5; i++)
-    Env.Ver[i] = Vertex(LegK[i], InTL + 4, 0, LoopIndex, ALL, Type, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RDInTL, 0, LoopIndex, ALL, Type, RIGHT);
 
   // RU Vertex
-  LegK[6] = {Env.K[4], Env.K[2], Env.K[5], OutR};
-  LegK[7] = {Env.K[6], Env.K[2], Env.K[5], OutL};
-  LegK[8] = {Env.K[4], Env.K[2], InR, Env.K[7]};
-  LegK[9] = {Env.K[6], Env.K[2], InR, Env.K[8]};
+  LegK[6] = {G[4].K, G[3].K, G[5].K, OutR};
+  LegK[7] = {G[6].K, G[3].K, G[5].K, OutL};
+  LegK[8] = {G[4].K, G[3].K, InR, G[7].K};
+  LegK[9] = {G[6].K, G[3].K, InR, G[8].K};
   for (int i = 6; i <= 7; i++)
-    Env.Ver[i] = Vertex(LegK[i], InTL + 6, 0, LoopIndex, ALL, Type, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, Type, RIGHT);
 
-  //T map
+  // T map
   Env.Map = CreateMapT(Ver4, Env.Ver[0], Env.Ver[1], Env.Ver[3], Env.Ver[6]);
 
+  Env.SymFactor = {-1.0, 1.0, -1.0, 1.0};
   Ver4.Envelope.push_back(Env);
   return Ver4;
 }
