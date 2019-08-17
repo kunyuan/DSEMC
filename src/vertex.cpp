@@ -65,10 +65,18 @@ verQTheta::verQTheta() {
   AngleIndex = TauBinSize * ExtMomBinSize;
   OrderIndex = TauBinSize * ExtMomBinSize * AngBinSize;
 
-  EffInteraction = new double[AngBinSize * ExtMomBinSize * TauBinSize];
+  AngleIndexI = ExtMomBinSize;
+  OrderIndex = ExtMomBinSize * AngBinSize;
 
-  DiffInteraction =
-      new double[MaxOrder * AngBinSize * ExtMomBinSize * TauBinSize];
+  ChanT = new double[AngBinSize * ExtMomBinSize * TauBinSize];
+  dChanT = new double[MaxOrder * AngBinSize * ExtMomBinSize * TauBinSize];
+
+  ChanS = new double[AngBinSize * ExtMomBinSize];
+  dChanS = new double[MaxOrder * AngBinSize * ExtMomBinSize];
+
+  ChanI = new double[AngBinSize * ExtMomBinSize];
+  dChanI = new double[MaxOrder * AngBinSize * ExtMomBinSize];
+
   // double DiffInteraction[MaxOrder][ScaleBinSize +
   // 1][AngBinSize][ExtMomBinSize]; double IntInteraction[MaxOrder][ScaleBinSize
   // + 1][AngBinSize][ExtMomBinSize];
@@ -81,25 +89,47 @@ verQTheta::verQTheta() {
         double t = Index2Tau(tIndex);
         // EffInter(inin, qIndex, tIndex) = 8.0 * PI / (k * k + Para.Mass2) /
         //                                  (1 + pow(t * 10.0, 2) * 10.0 / PI);
-        EffInter(inin, qIndex, tIndex) = 0.0;
+        EffInterT(inin, qIndex, tIndex) = 0.0;
+        EffInterS(inin, qIndex) = 0.0;
+        EffInterI(inin, qIndex) = 0.0;
         for (int order = 0; order < MaxOrder; ++order) {
-          if (order == 0)
-            DiffInter(order, inin, qIndex, tIndex) =
-                EffInter(inin, qIndex, tIndex);
-          else
-            DiffInter(order, inin, qIndex, tIndex) = 0.0;
+          if (order == 0) {
+            DiffInterT(order, inin, qIndex, tIndex) =
+                EffInterT(inin, qIndex, tIndex);
+            DiffInterS(order, inin, qIndex) = EffInterS(inin, qIndex);
+            DiffInterI(order, inin, qIndex) = EffInterI(inin, qIndex);
+          } else {
+            DiffInterT(order, inin, qIndex, tIndex) = 0.0;
+            DiffInterS(order, inin, qIndex) = 0.0;
+            DiffInterI(order, inin, qIndex) = 0.0;
+          }
         }
       }
     }
 }
 
-double &verQTheta::EffInter(int Angle, int ExtQ, int Tau) {
-  return EffInteraction[Angle * AngleIndex + ExtQ * QIndex + Tau];
+double &verQTheta::EffInterT(int Angle, int ExtQ, int Tau) {
+  return ChanT[Angle * AngleIndex + ExtQ * QIndex + Tau];
 }
 
-double &verQTheta::DiffInter(int Order, int Angle, int ExtQ, int Tau) {
-  return DiffInteraction[Order * OrderIndex + Angle * AngleIndex +
-                         ExtQ * QIndex + Tau];
+double &verQTheta::DiffInterT(int Order, int Angle, int ExtQ, int Tau) {
+  return dChanT[Order * OrderIndex + Angle * AngleIndex + ExtQ * QIndex + Tau];
+}
+
+double &verQTheta::EffInterI(int Angle, int ExtQ) {
+  return ChanI[Angle * AngleIndexI + ExtQ];
+}
+
+double &verQTheta::DiffInterI(int Order, int Angle, int ExtQ) {
+  return dChanI[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
+}
+
+double &verQTheta::EffInterS(int Angle, int ExtQ) {
+  return ChanS[Angle * AngleIndexI + ExtQ];
+}
+
+double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
+  return dChanS[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
 }
 
 double verQTheta::Interaction(const momentum &InL, const momentum &InR,
@@ -117,7 +147,7 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
         Tau += Para.Beta;
       int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
       int TauIndex = Tau2Index(Tau);
-      return EffInter(AngleIndex, Mom2Index(k), TauIndex);
+      return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
       // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double Lower = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double UpperTau = Index2Tau(TauIndex + 1);
@@ -162,14 +192,14 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
     // cout << InL[0] << "," << InL[1] << endl;
     // cout << InR[0] << "," << InR[1] << endl;
     // cout << "angle: " << Angle2D(InL, InR) << endl;
-    DiffInter(Order, AngleIndex, QIndex, tBin) +=
+    DiffInterT(Order, AngleIndex, QIndex, tBin) +=
         WeightFactor / Para.dAngleTable[AngleIndex] / (Para.Beta / TauBinSize);
 
     // DiffInter(Order, AngleIndex, QIndex, tIndex) +=
     //     WeightFactor / Para.dAngleTable[AngleIndex] /
     //     (Para.Beta / TauBinSize) * Factor;
     // }
-    DiffInter(0, AngleIndex, QIndex, tBin) +=
+    DiffInterT(0, AngleIndex, QIndex, tBin) +=
         WeightFactor / Para.dAngleTable[AngleIndex];
   }
   return;
@@ -179,14 +209,14 @@ void verQTheta::Update(double Ratio) {
   for (int angle = 0; angle < AngBinSize; ++angle)
     for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
       for (int tindex = 0; tindex < TauBinSize; ++tindex) {
-        double OldValue = EffInter(angle, qindex, tindex);
+        double OldValue = EffInterT(angle, qindex, tindex);
         double NewValue = 0.0;
         for (int order = 1; order < MaxOrder; ++order) {
           // for (int order = 1; order < 2; ++order) {
-          NewValue += DiffInter(order, angle, qindex, tindex) / Normalization *
+          NewValue += DiffInterT(order, angle, qindex, tindex) / Normalization *
                       PhyWeight;
         }
-        EffInter(angle, qindex, tindex) =
+        EffInterT(angle, qindex, tindex) =
             OldValue * (1 - Ratio) + NewValue * Ratio;
       }
 }
@@ -217,8 +247,8 @@ void verQTheta::Save() {
       for (int angle = 0; angle < AngBinSize; ++angle)
         for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
           for (int tindex = 0; tindex < TauBinSize; ++tindex)
-            VerFile << DiffInter(order, angle, qindex, tindex) / Normalization *
-                           PhyWeight
+            VerFile << DiffInterT(order, angle, qindex, tindex) /
+                           Normalization * PhyWeight
                     << "  ";
       VerFile.close();
     } else {
@@ -249,7 +279,7 @@ void verQTheta::Save() {
     for (int angle = 0; angle < AngBinSize; ++angle)
       for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
         for (int tindex = 0; tindex < TauBinSize; ++tindex)
-          VerFile << EffInter(angle, qindex, tindex) << "  ";
+          VerFile << EffInterT(angle, qindex, tindex) << "  ";
     VerFile.close();
   } else {
     LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
@@ -262,8 +292,11 @@ void verQTheta::ClearStatis() {
     for (int qIndex = 0; qIndex < ExtMomBinSize; ++qIndex) {
       double k = Index2Mom(qIndex);
       for (int order = 0; order < MaxOrder; ++order)
-        for (int tindex = 0; tindex < TauBinSize; ++tindex)
-          DiffInter(order, inin, qIndex, tindex) = 0.0;
+        for (int tindex = 0; tindex < TauBinSize; ++tindex) {
+          DiffInterT(order, inin, qIndex, tindex) = 0.0;
+          DiffInterS(order, inin, qIndex) = 0.0;
+          DiffInterI(order, inin, qIndex) = 0.0;
+        }
     }
 }
 

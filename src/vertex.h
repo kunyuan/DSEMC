@@ -46,12 +46,24 @@ public:
   void Save();
   void ClearStatis();
   void ResetIRScale(int IRScaleBin);
-  double *EffInteraction;
-  double *DiffInteraction;
-  double *IntInteraction;
+  double *ChanT;
+  double *dChanT;
+  double *intChanT;
 
-  double &EffInter(int Angle, int ExtQ, int Tau);
-  double &DiffInter(int Order, int Angle, int ExtQ, int Tau);
+  double *ChanS;
+  double *dChanS;
+
+  double *ChanI;
+  double *dChanI;
+
+  double &EffInterT(int Angle, int ExtQ, int Tau);
+  double &DiffInterT(int Order, int Angle, int ExtQ, int Tau);
+
+  double &EffInterS(int Angle, int ExtQ);
+  double &DiffInterS(int Order, int Angle, int ExtQ);
+
+  double &EffInterI(int Angle, int ExtQ);
+  double &DiffInterI(int Order, int Angle, int ExtQ);
   // double EffInteraction[ScaleBinSize + 1][AngBinSize][ExtMomBinSize];
   // double DiffInteraction[MaxOrder][ScaleBinSize +
   // 1][AngBinSize][ExtMomBinSize]; double IntInteraction[MaxOrder][ScaleBinSize
@@ -65,6 +77,10 @@ public:
   int QIndex;
   int AngleIndex;
   int OrderIndex;
+
+  int QIndexI;
+  int AngleIndexI;
+  int OrderIndexI;
 };
 
 class verQ {
