@@ -186,27 +186,31 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 vector<mapT4> CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
                          ver4 RUVer) {
   vector<mapT4> Map;
-  array<array<int, 2>, 9> GT;
-  for (int ldt = 0; ldt < 2; ldt++)
-    for (int lut = 0; lut < 2; lut++)
-      for (int rdt = 0; rdt < 2; rdt++)
-        for (int rut = 0; rut < 2; rut++) {
-          array<int, 4> LegT[4], Tindex;
+  array<array<int, 2>, 9> GT; // G Tau pair
+  array<int, 4> LegT[4], Tindex;
+
+  for (int ldt = 0; ldt < LDVer.T.size(); ldt++)
+    for (int lut = 0; lut < LUVer.T.size(); lut++)
+      for (int rdt = 0; rdt < RDVer.T.size(); rdt++)
+        for (int rut = 0; rut < RUVer.T.size(); rut++) {
           auto &ldT = LDVer.T[ldt];
           auto &luT = LUVer.T[lut];
           auto &rdT = RDVer.T[rdt];
           auto &ruT = RUVer.T[rut];
 
+          // Tau Index for all possible internal G
           GT[0] = {ldT[OUTR], rdT[INL]};
           GT[1] = {ldT[OUTL], luT[INL]};
-          GT[2] = {ruT[OUTL], ldT[INR]};
-          GT[3] = {rdT[OUTL], luT[INR]};
+          GT[2] = {rdT[OUTL], luT[INR]};
+          GT[3] = {ruT[OUTL], ldT[INR]};
           GT[4] = {luT[OUTR], ruT[INL]};
           GT[5] = {rdT[OUTR], ruT[INR]};
           GT[6] = {luT[OUTR], ruT[INL]};
           GT[7] = {ruT[OUTR], rdT[INR]};
           GT[8] = {ruT[OUTR], rdT[INR]};
 
+          // external T for four envelope diagram
+          // INL, OUTL, INR, OUTR
           LegT[0] = {ldT[INL], luT[OUTL], rdT[INR], ruT[OUTR]};
           LegT[1] = {ldT[INL], ruT[OUTR], rdT[INR], luT[OUTL]};
           LegT[2] = {ldT[INL], luT[OUTL], ruT[INR], rdT[OUTR]};
@@ -224,7 +228,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
                     vertype Type, int Side) {
 
   if (LoopNum != 3)
-    return;
+    return Ver4;
   envelope Env;
   int LDInTL = InTL;
   int LUInTL = InTL + 2;
@@ -233,7 +237,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
   auto &G = Env.G;
 
-  // Initialize G Table
+  /////// Initialize G Tau and K Table  /////////
   G[0] = g2Matrix(LDInTL, RDInTL, &(*LoopMom)[LoopIndex]);
   G[1] = g2Matrix(LDInTL, LUInTL, &(*LoopMom)[LoopIndex + 1]);
   G[2] = g2Matrix(RDInTL, LUInTL, &(*LoopMom)[LoopIndex + 2]);
@@ -249,10 +253,11 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   momentum *InR = Ver4.LegK[INR];
   momentum *OutR = Ver4.LegK[OUTR];
 
+  //////// Initialize all sub-vertex ///////////
+
   array<momentum *, 4> LegK[10];
   vector<channel> ALL = {I, U, S, T};
 
-  // set vertex
   // LD Vertex
   LegK[0] = {InL, G[1].K, G[3].K, G[0].K};
   Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, Type, LEFT);
@@ -275,10 +280,12 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   LegK[7] = {G[6].K, G[3].K, G[5].K, OutL};
   LegK[8] = {G[4].K, G[3].K, InR, G[7].K};
   LegK[9] = {G[6].K, G[3].K, InR, G[8].K};
-  for (int i = 6; i <= 7; i++)
+  for (int i = 6; i <= 9; i++)
     Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, Type, RIGHT);
 
-  // T map
+  //////// T map (for all four envelope diagram) //////
+  // four diagrams have the same sub-vertex Tau configuration
+  // so here we just use the first diagram
   Env.Map = CreateMapT(Ver4, Env.Ver[0], Env.Ver[1], Env.Ver[3], Env.Ver[6]);
 
   Env.SymFactor = {-1.0, 1.0, -1.0, 1.0};

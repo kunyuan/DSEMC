@@ -54,13 +54,15 @@ void weight::Ver0(ver4 &Ver4) {
   return;
 }
 void weight::Vertex4(dse::ver4 &Ver4) {
+  // cout << Ver4.LoopNum << endl;
   if (Ver4.LoopNum == 0) {
     Ver0(Ver4);
-    return;
+  } else {
+    ChanUST(Ver4);
+    if (Ver4.LoopNum >= 3)
+      ChanI(Ver4);
   }
-  ChanUST(Ver4);
-  if (Ver4.LoopNum >= 3)
-    ChanI(Ver4);
+  return;
 }
 
 void weight::ChanUST(dse::ver4 &Ver4) {
