@@ -74,9 +74,10 @@ private:
   verfunc VerFunc;
 
   dse::verDiag VerDiag;
-  dse::ver4 Ver4Root[MaxOrder];
+  // diagram for different order and channel
+  dse::ver4 Ver4Root[MaxOrder][4];
 
-  double Evaluate(int LoopNum, int ID);
+  double Evaluate(int LoopNum, int Channel);
 
   void Vertex4(dse::ver4 &Ver4);
 

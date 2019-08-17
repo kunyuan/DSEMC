@@ -14,13 +14,13 @@ using namespace dse;
 
 #define TIND(Shift, LTau, RTau) ((LTau - Shift) * MaxTauNum + RTau - Shift)
 
-double weight::Evaluate(int LoopNum, int ID) {
+double weight::Evaluate(int LoopNum, int Channel) {
   if (LoopNum == 0) {
     // normalization
     return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2], Var.LoopMom[0],
                                  0.0, -2);
   } else {
-    ver4 &Root = Ver4Root[LoopNum];
+    ver4 &Root = Ver4Root[LoopNum][Channel];
     *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
     *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
 
@@ -58,6 +58,8 @@ void weight::Vertex4(dse::ver4 &Ver4) {
   if (Ver4.LoopNum == 0) {
     Ver0(Ver4);
   } else {
+    for (auto &w : Ver4.Weight)
+      w = 0.0;
     ChanUST(Ver4);
     if (Ver4.LoopNum >= 3)
       ChanI(Ver4);
@@ -75,9 +77,6 @@ void weight::ChanUST(dse::ver4 &Ver4) {
   gMatrix &G1 = Ver4.G[0];
   double Weight;
   // set all weight element to be zero
-  for (auto &w : Ver4.Weight)
-    w = 0.0;
-
   for (auto &chan : Ver4.Channel) {
     // construct internal momentum
     momentum &K2 = *Ver4.K[chan];

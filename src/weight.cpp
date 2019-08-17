@@ -41,11 +41,13 @@ void weight::Initialization() {
   }
 
   // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
-  vector<dse::channel> Chan = {dse::T};
-  for (int order = 1; order <= Groups.back().Order; order++) {
-    Ver4Root[order] = VerDiag.Build(Var.LoopMom, order, Chan, dse::NORMAL);
-    LOG_INFO(VerDiag.ToString(Ver4Root[order]));
-  }
+  dse::channel Chan[4] = {dse::I, dse::T, dse::U, dse::S};
+  for (int c = 0; c < 4; c++)
+    for (int order = 1; order <= Groups.back().Order; order++) {
+      vector<dse::channel> chan = {Chan[c]};
+      Ver4Root[order][c] = VerDiag.Build(Var.LoopMom, order, chan, dse::NORMAL);
+      LOG_INFO(VerDiag.ToString(Ver4Root[order][c]));
+    }
 
   LOG_INFO("Initializating MC variables ...")
   // initialize momentum variables
