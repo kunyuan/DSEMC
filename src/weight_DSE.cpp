@@ -33,8 +33,11 @@ double weight::Evaluate(int LoopNum, int Channel) {
     double Weight = 0.0;
     for (auto &w : Root.Weight)
       Weight += w;
-    // if (Order == 2)
-    //   // cout << Weight << endl;
+    // if (LoopNum == 3 && Channel == dse::I) {
+    //   cout << "loopnum: " << Root.LoopNum << endl;
+    //   cout << "channel: " << Root.Channel[0] << endl;
+    //   cout << Weight << endl;
+    // }
     // cout << count << endl;
     return Weight / pow(2.0 * PI, D * LoopNum);
     // return Weight;
@@ -173,6 +176,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
     Weight *= SubVer[6].Weight[map.RUVerT];
     Weight *= G[4](GT[4]) * G[5](GT[5]);
     Ver4.Weight[map.T[0]] = Weight;
+    // cout << Weight << endl;
 
     Weight = Env.SymFactor[1] * ComWeight;
     Weight *= SubVer[2].Weight[map.LUVerT];
@@ -180,6 +184,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
     Weight *= SubVer[7].Weight[map.RUVerT];
     Weight *= G[6](GT[6]) * G[5](GT[5]);
     Ver4.Weight[map.T[1]] = Weight;
+    // cout << Weight << endl;
 
     Weight = Env.SymFactor[2] * ComWeight;
     Weight *= SubVer[1].Weight[map.LUVerT];
@@ -187,6 +192,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
     Weight *= SubVer[8].Weight[map.RUVerT];
     Weight *= G[4](GT[4]) * G[7](GT[7]);
     Ver4.Weight[map.T[2]] = Weight;
+    // cout << Weight << endl;
 
     Weight = Env.SymFactor[3] * ComWeight;
     Weight *= SubVer[2].Weight[map.LUVerT];
@@ -194,6 +200,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
     Weight *= SubVer[9].Weight[map.RUVerT];
     Weight *= G[6](GT[6]) * G[8](GT[8]);
     Ver4.Weight[map.T[3]] = Weight;
+    // cout << Weight << endl;
   }
 
   return;

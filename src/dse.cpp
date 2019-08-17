@@ -72,9 +72,13 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
     Ver4.G[0] = gMatrix(Ver4.TauNum, InTL);
 
     for (auto &chan : Channel) {
-      if (chan == I)
+      if (chan == I) {
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Type, Side);
-      else
+        // if (LoopNum == 3) {
+        //   cout << Ver4.T.size() << endl;
+        //   ABORT("haha");
+        // }
+      } else
         Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Type, Side);
     }
   }
