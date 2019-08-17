@@ -92,6 +92,8 @@ void weight::Initialization() {
 
   Var.CurrIRScaleBin = ScaleBinSize / 1.5;
 
+  Var.CurrChannel = dse::T;
+
   // initialize RG staff
   // Var.CurrScale = ScaleBinSize - 1;
   Var.CurrScale = Para.Kf;
@@ -106,7 +108,7 @@ void weight::Initialization() {
 }
 
 double weight::GetNewWeight(group &Group) {
-  Group.NewWeight = Evaluate(Group.Order, Group.ID);
+  Group.NewWeight = Evaluate(Group.Order, Var.CurrChannel);
   return Group.NewWeight;
 }
 
@@ -121,9 +123,10 @@ void weight::RejectChange(group &Group) { return; }
 void weight::Measure(double WeightFactor) {
   if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
     // if (Var.CurrScale >= Para.ScaleTable[Var.CurrIRScaleBin])
-    VerQTheta.Measure(
-        Var.LoopMom[1], Var.LoopMom[2], Var.CurrExtMomBin, Var.CurrGroup->Order,
-        Var.Tau[Var.CurrGroup->TauNum - 1] - Var.Tau[0], WeightFactor);
+    VerQTheta.Measure(Var.LoopMom[1], Var.LoopMom[2], Var.CurrExtMomBin,
+                      Var.CurrGroup->Order,
+                      Var.Tau[Var.CurrGroup->TauNum - 1] - Var.Tau[0],
+                      Var.CurrChannel, WeightFactor);
   }
 }
 

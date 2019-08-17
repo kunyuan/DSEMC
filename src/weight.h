@@ -21,6 +21,7 @@ struct variable {
   int CurrExtMomBin; // current bin of the external momentum
   double CurrTau;    // current external tau
   double CurrScale;  // Current (Reference) Scale: Index=1, ..., ScaleBinSize
+  int CurrChannel;   // 0: I, 1: T, 2: U, 3: S
   int CurrIRScaleBin;
   double CurrWeight[MaxTauNum];
   array<momentum, MaxMomNum> LoopMom; // all momentum loop variables

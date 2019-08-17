@@ -41,7 +41,7 @@ public:
                      const momentum &Transfer, double Tau, int VerType);
 
   void Measure(const momentum &InL, const momentum &InR, const int QIndex,
-               int Order, double Tau, double WeightFactor);
+               int Order, double Tau, int Channel, double WeightFactor);
   void Update(double Ratio = 1.0);
   void Save();
   void ClearStatis();
@@ -72,7 +72,8 @@ public:
   // double TauBasis[TauBinSize][TauBasisNum];
 
   double Normalization;
-  double PhyWeight;
+  double PhyWeightT;
+  double PhyWeightI;
 
   int QIndex;
   int AngleIndex;

@@ -184,8 +184,18 @@ void markov::ChangeGroup() {
     // Generate New Mom
     Prop *= GetNewK(NewMom);
     Var.LoopMom[Var.CurrGroup->LoopNum] = NewMom;
+
+    // if the current order is zero, then set channel of order 1 at T
+    if (Var.CurrGroup->Order == 0)
+      Var.CurrChannel == dse::T;
+
   } else if (NewGroup.Order == Var.CurrGroup->Order - 1) {
     // change to a new group with one lower order
+
+    // if the current order is one, then decrease order is possible only for T
+    if (Var.CurrGroup->Order == 1 && Var.CurrChannel != dse::T)
+      return;
+
     Name = DECREASE_ORDER;
     // Remove OldTau
     int TauToRemove = Var.CurrGroup->TauNum - 2;
@@ -316,6 +326,33 @@ void markov::ChangeScale() {
     Weight.AcceptChange(*Var.CurrGroup);
   } else {
     Var.CurrScale = OldScale;
+    Weight.RejectChange(*Var.CurrGroup);
+  }
+  return;
+}
+
+void markov::ChangeChannel() {
+  if (Var.CurrGroup->Order == 0)
+    return;
+  double Prop = 1.0;
+  int OldChannel = Var.CurrChannel;
+  Var.CurrChannel = int(Random.urn() * 4);
+  // Var.CurrChannel = dse::T;
+  if (Var.CurrChannel == dse::U) {
+    Var.CurrChannel = OldChannel;
+    return;
+  }
+
+  Proposed[CHANGE_CHANNEL][Var.CurrGroup->ID] += 1;
+
+  double NewWeight = Weight.GetNewWeight(*Var.CurrGroup);
+
+  double R = Prop * fabs(NewWeight) / fabs(Var.CurrGroup->Weight);
+  if (Random.urn() < R) {
+    Accepted[CHANGE_CHANNEL][Var.CurrGroup->ID]++;
+    Weight.AcceptChange(*Var.CurrGroup);
+  } else {
+    Var.CurrChannel = OldChannel;
     Weight.RejectChange(*Var.CurrGroup);
   }
   return;

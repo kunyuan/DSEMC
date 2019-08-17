@@ -57,7 +57,8 @@ verQTheta::verQTheta() {
   // PhyWeight =
   //     1.0 / Para.Beta / Para.Beta * ExtMomBinSize * 2.0 * PI * Para.Kf * 4.0;
 
-  PhyWeight = ExtMomBinSize * 2.0 * PI * Para.Beta;
+  PhyWeightT = ExtMomBinSize * 2.0 * PI * Para.Beta;
+  PhyWeightI = ExtMomBinSize * 2.0 * PI * Para.Beta;
   // PhyWeight = 2.0 * PI / TauBinSize * 64;
   // PhyWeight = 1.0;
 
@@ -66,7 +67,7 @@ verQTheta::verQTheta() {
   OrderIndex = TauBinSize * ExtMomBinSize * AngBinSize;
 
   AngleIndexI = ExtMomBinSize;
-  OrderIndex = ExtMomBinSize * AngBinSize;
+  OrderIndexI = ExtMomBinSize * AngBinSize;
 
   ChanT = new double[AngBinSize * ExtMomBinSize * TauBinSize];
   dChanT = new double[MaxOrder * AngBinSize * ExtMomBinSize * TauBinSize];
@@ -175,7 +176,7 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
 }
 
 void verQTheta::Measure(const momentum &InL, const momentum &InR,
-                        const int QIndex, int Order, double dTau,
+                        const int QIndex, int Order, double dTau, int Channel,
                         double WeightFactor) {
   // cout << Order << ", " << DiagNum << endl;
   if (Order == 0) {
@@ -184,47 +185,117 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
   } else {
     // double Factor = 1.0 / pow(2.0 * PI, 2 * Order);
     int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
-    if (dTau < 0.0)
-      dTau += Para.Beta;
-    // } else {
-    int tBin = Tau2Index(dTau);
-    // cout << AngleIndex << endl;
-    // cout << InL[0] << "," << InL[1] << endl;
-    // cout << InR[0] << "," << InR[1] << endl;
-    // cout << "angle: " << Angle2D(InL, InR) << endl;
-    DiffInterT(Order, AngleIndex, QIndex, tBin) +=
-        WeightFactor / Para.dAngleTable[AngleIndex] / (Para.Beta / TauBinSize);
-
-    // DiffInter(Order, AngleIndex, QIndex, tIndex) +=
-    //     WeightFactor / Para.dAngleTable[AngleIndex] /
-    //     (Para.Beta / TauBinSize) * Factor;
-    // }
-    DiffInterT(0, AngleIndex, QIndex, tBin) +=
-        WeightFactor / Para.dAngleTable[AngleIndex];
+    if (Channel == 1) {
+      if (dTau < 0.0)
+        dTau += Para.Beta;
+      // } else {
+      int tBin = Tau2Index(dTau);
+      DiffInterT(Order, AngleIndex, QIndex, tBin) +=
+          WeightFactor / Para.dAngleTable[AngleIndex] /
+          (Para.Beta / TauBinSize);
+    } else if (Channel == 3) {
+      DiffInterS(Order, AngleIndex, QIndex) +=
+          WeightFactor / Para.dAngleTable[AngleIndex];
+    } else if (Channel == 0) {
+      DiffInterI(Order, AngleIndex, QIndex) +=
+          WeightFactor / Para.dAngleTable[AngleIndex];
+    }
   }
   return;
 }
 
 void verQTheta::Update(double Ratio) {
   for (int angle = 0; angle < AngBinSize; ++angle)
-    for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
+    for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+      // S channel
+      double OldValue = EffInterS(angle, qindex);
+      double NewValue = 0.0;
+      for (int order = 1; order < MaxOrder; ++order) {
+        NewValue +=
+            DiffInterS(order, angle, qindex) / Normalization * PhyWeightI;
+      }
+      EffInterS(angle, qindex) = OldValue * (1 - Ratio) + NewValue * Ratio;
+
+      // I channel
+      OldValue = EffInterI(angle, qindex);
+      NewValue = 0.0;
+      for (int order = 1; order < MaxOrder; ++order) {
+        NewValue +=
+            DiffInterI(order, angle, qindex) / Normalization * PhyWeightI;
+      }
+      EffInterI(angle, qindex) = OldValue * (1 - Ratio) + NewValue * Ratio;
+
+      // T channel
       for (int tindex = 0; tindex < TauBinSize; ++tindex) {
-        double OldValue = EffInterT(angle, qindex, tindex);
-        double NewValue = 0.0;
+        OldValue = EffInterT(angle, qindex, tindex);
+        NewValue = 0.0;
         for (int order = 1; order < MaxOrder; ++order) {
           // for (int order = 1; order < 2; ++order) {
           NewValue += DiffInterT(order, angle, qindex, tindex) / Normalization *
-                      PhyWeight;
+                      PhyWeightT;
         }
         EffInterT(angle, qindex, tindex) =
             OldValue * (1 - Ratio) + NewValue * Ratio;
       }
+    }
 }
 
 void verQTheta::Save() {
 
-  for (int order = 0; order < 5; order++) {
-    string FileName = fmt::format("vertex{0}_pid{1}.dat", order, Para.PID);
+  for (int chan = 0; chan < 4; chan++) {
+    if (chan == 2)
+      // we do not measure U channel
+      continue;
+    for (int order = 0; order < 5; order++) {
+      string FileName =
+          fmt::format("vertex{0}_{1}_pid{2}.dat", order, chan, Para.PID);
+      ofstream VerFile;
+      VerFile.open(FileName, ios::out | ios::trunc);
+      if (VerFile.is_open()) {
+        VerFile << fmt::sprintf(
+            "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n", Para.PID,
+            Para.ObsType, Para.Rs, Para.Beta, Para.Counter);
+        VerFile << "# TauTable: ";
+        for (int tau = 0; tau < TauBinSize; ++tau)
+          VerFile << Index2Tau(tau) << " ";
+        VerFile << endl;
+        VerFile << "# AngleTable: ";
+        for (int angle = 0; angle < AngBinSize; ++angle)
+          VerFile << Para.AngleTable[angle] << " ";
+        VerFile << endl;
+        VerFile << "# ExtMomBinTable: ";
+        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
+          VerFile << Para.ExtMomTable[qindex][0] << " ";
+        VerFile << endl;
+
+        for (int angle = 0; angle < AngBinSize; ++angle)
+          for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+            if (chan == 0)
+              VerFile << DiffInterI(order, angle, qindex) / Normalization *
+                             PhyWeightI
+                      << "  ";
+            else if (chan == 3)
+              VerFile << DiffInterS(order, angle, qindex) / Normalization *
+                             PhyWeightI
+                      << "  ";
+            else if (chan == 1) {
+              for (int tindex = 0; tindex < TauBinSize; ++tindex)
+                VerFile << DiffInterT(order, angle, qindex, tindex) /
+                               Normalization * PhyWeightT
+                        << "  ";
+            }
+          }
+        VerFile.close();
+      } else {
+        LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
+      }
+    }
+  }
+
+  for (int chan = 0; chan < 4; chan++) {
+    if (chan == 2)
+      continue;
+    string FileName = fmt::format("vertex{0}_pid{1}.dat", chan, Para.PID);
     ofstream VerFile;
     VerFile.open(FileName, ios::out | ios::trunc);
     if (VerFile.is_open()) {
@@ -245,44 +316,19 @@ void verQTheta::Save() {
       VerFile << endl;
 
       for (int angle = 0; angle < AngBinSize; ++angle)
-        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
-          for (int tindex = 0; tindex < TauBinSize; ++tindex)
-            VerFile << DiffInterT(order, angle, qindex, tindex) /
-                           Normalization * PhyWeight
-                    << "  ";
+        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+          if (chan == 0)
+            VerFile << EffInterI(angle, qindex) << "  ";
+          else if (chan == 3)
+            VerFile << EffInterS(angle, qindex) << "  ";
+          else if (chan == 1)
+            for (int tindex = 0; tindex < TauBinSize; ++tindex)
+              VerFile << EffInterT(angle, qindex, tindex) << "  ";
+        }
       VerFile.close();
     } else {
       LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
     }
-  }
-
-  string FileName = fmt::format("vertex_pid{0}.dat", Para.PID);
-  ofstream VerFile;
-  VerFile.open(FileName, ios::out | ios::trunc);
-  if (VerFile.is_open()) {
-    VerFile << fmt::sprintf("#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n",
-                            Para.PID, Para.ObsType, Para.Rs, Para.Beta,
-                            Para.Counter);
-    VerFile << "# TauTable: ";
-    for (int tau = 0; tau < TauBinSize; ++tau)
-      VerFile << Index2Tau(tau) << " ";
-    VerFile << endl;
-    VerFile << "# AngleTable: ";
-    for (int angle = 0; angle < AngBinSize; ++angle)
-      VerFile << Para.AngleTable[angle] << " ";
-    VerFile << endl;
-    VerFile << "# ExtMomBinTable: ";
-    for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
-      VerFile << Para.ExtMomTable[qindex][0] << " ";
-    VerFile << endl;
-
-    for (int angle = 0; angle < AngBinSize; ++angle)
-      for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
-        for (int tindex = 0; tindex < TauBinSize; ++tindex)
-          VerFile << EffInterT(angle, qindex, tindex) << "  ";
-    VerFile.close();
-  } else {
-    LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
   }
 }
 

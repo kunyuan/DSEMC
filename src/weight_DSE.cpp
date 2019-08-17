@@ -21,6 +21,10 @@ double weight::Evaluate(int LoopNum, int Channel) {
                                  0.0, -2);
   } else {
     ver4 &Root = Ver4Root[LoopNum][Channel];
+    if (Root.Weight.size() == 0)
+      // empty vertex
+      return 0.0;
+
     *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
     *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
 

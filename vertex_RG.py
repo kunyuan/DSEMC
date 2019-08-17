@@ -17,15 +17,22 @@ Beta = 20
 XType = "Mom"
 # XType = "Angle"
 
-##############   3D    ##################################
-# kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs  # 3D
-###### Bare Green's function    #########################
-# Bubble=0.08871  # 3D, Beta=0.5, rs=1
-# Bubble=0.0971916  #3D, Beta=10, rs=1
-# Bubble = 0.0971613  # 3D, T=0.04Ef, rs=1
-# Bubble= 0.097226 # 3D, zero temperature, rs=1
-###### Fock dressed Green's function ###################
-# Bubble, Density = 0.088883, 0.2387  # 3D, Beta=0.1, rs=1, Lambda=1.0
+# 0: I, 1: T, 2: U, 3: S
+# Channel = [0, 1, 3]
+Channel = [0, 3]
+# 0: total, 1: order 1, ...
+Order = [1, 2, 3]
+
+folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
+
+Data = {}  # key: (order, channel)
+DataWithAngle = {}  # key: (order, channel)
+TauBin = None
+AngleBin = None
+ExtMomBin = None
+AngleBinSize = None
+TauBinSize = None
+ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
@@ -34,86 +41,51 @@ kF = np.sqrt(2.0)/rs  # 2D
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
 Bubble = 0.0795775  # 2D, Beta=20, rs=1
 
+for order in Order:
+    for chan in Channel:
 
-folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
-
-files = os.listdir(folder)
-Num = 0
-Data0 = None
-ExtMomBin = None
-AngleBin = None
-TauBin = None
-for f in files:
-    if re.match("vertex"+"_pid[0-9]+.dat", f):
-        print f
-        with open(folder+f, "r") as file:
-            line1 = file.readline()
-            line2 = file.readline()
-            TauBin = np.fromstring(line2.split(":")[1], sep=' ')
-            line3 = file.readline()
-            AngleBin = np.fromstring(line3.split(":")[1], sep=' ')
-            line4 = file.readline()
-            ExtMomBin = np.fromstring(line4.split(":")[1], sep=' ')
-        Num += 1
-        d = np.loadtxt(folder+f)
-        if Data0 is None:
-            Data0 = d
+        files = os.listdir(folder)
+        Num = 0
+        Data0 = None
+        if(order == 0):
+            FileName = "vertex{0}_pid[0-9]+.dat".format(chan)
         else:
-            Data0 += d
+            FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
 
-AngleBinSize = len(AngleBin)
-TauBinSize = len(TauBin)
-ExtMomBinSize = len(ExtMomBin)
-ExtMomBin /= kF
-
-Data = None
-for f in files:
-    if re.match("vertex1"+"_pid[0-9]+.dat", f):
-        print f
-        d = np.loadtxt(folder+f)
-        if Data is None:
-            Data = d
+        for f in files:
+            if re.match(FileName, f):
+                print "Loading ", f
+                with open(folder+f, "r") as file:
+                    line1 = file.readline()
+                    line2 = file.readline()
+                    if TauBin is None:
+                        TauBin = np.fromstring(line2.split(":")[1], sep=' ')
+                        TauBinSize = len(TauBin)
+                    line3 = file.readline()
+                    if AngleBin is None:
+                        AngleBin = np.fromstring(line3.split(":")[1], sep=' ')
+                        AngleBinSize = len(AngleBin)
+                    line4 = file.readline()
+                    if ExtMomBin is None:
+                        ExtMomBin = np.fromstring(line4.split(":")[1], sep=' ')
+                        ExtMomBinSize = len(ExtMomBin)
+                        ExtMomBin /= kF
+                Num += 1
+                d = np.loadtxt(folder+f)
+                if Data0 is None:
+                    Data0 = d
+                else:
+                    Data0 += d
+        Data0 /= Num
+        if(chan == 1):
+            Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
         else:
-            Data += d
+            Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
-print "Found {0} files.".format(Num)
+        DataWithAngle[(order, chan)] = Data0
 
-Data3 = None
-for f in files:
-    if re.match("vertex2"+"_pid[0-9]+.dat", f):
-        print f
-        d = np.loadtxt(folder+f)
-        if Data3 is None:
-            Data3 = d
-        else:
-            Data3 += d
-
-print "Found {0} files.".format(Num)
-Data /= Num
-Data0 /= Num
-Data3 /= Num
-
-Data = Data.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
-Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
-Data3 = Data3.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
-
-qData = np.array(Data)
-qData0 = np.array(Data0)
-qData3 = np.array(Data3)
-# qData = np.sum(qData, axis=1)/AngleBinSize*2.0*np.pi
-qData = np.mean(qData, axis=0)
-qData0 = np.mean(qData0, axis=0)
-qData3 = np.mean(qData3, axis=0)
-# qData = np.mean(qData, axis=1)*2
-
-# verData=np.zeros(len(ExtMomBin))
-# for i in range(len(ExtMomBin)):
-#     verData[i]=integrate.simps(qData[:,i], ScaleBin[:])
-
-# y=np.power(ScaleBin[:-1], 3)
-# print ScaleBin[-5:-1]
-# print ScaleBin
-# print integrate.simps(y, ScaleBin[:-1])
+        # average the angle distribution
+        Data[(order, chan)] = np.mean(Data0, axis=0)
 
 
 def ErrorPlot(p, x, d, color, marker, label=None, size=4, shift=False):
@@ -139,56 +111,30 @@ if(XType == "Scale"):
     ax.set_xlim([0.0, ScaleBin[-2]])
     ax.set_xlabel("$Scale$", size=size)
 elif(XType == "Tau"):
+    chan = 1
     for i in range(ExtMomBinSize/8):
         index = 8*i
-        ErrorPlot(ax, TauBin, qData0[index, :],
-                  ColorList[2*i], 's', "Order 1, Q {0}".format(ExtMomBin[index]))
-        ErrorPlot(ax, TauBin, qData[index, :],
-                  ColorList[2*i+1], 's', "Order 2, Q {0}".format(ExtMomBin[index]))
+        for order in Order:
+            ErrorPlot(ax, TauBin, Data[(order, chan)][index, :],
+                      ColorList[2*i], 's', "Loop {0}, Q {1}".format(order, ExtMomBin[index]))
     ax.set_xlim([0.0, TauBin[-1]+0.1])
     ax.set_xlabel("$Tau$", size=size)
 elif (XType == "Mom"):
+    i = 0
+    for order in Order:
+        for chan in Channel:
+            i += 1
+            if(chan == 1):
+                qData = np.sum(Data[(order, chan)], axis=1) * \
+                    Beta/kF**2/TauBinSize
+            else:
+                qData = Data[(order, chan)]
 
-    # qData = np.sum(qData, axis=1)/(128.0/np.pi)
-    # qData0 = np.sum(qData0, axis=1)*Beta/kF**2/TauBinSize/40.65
-    qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
-    qData0 = np.sum(qData0, axis=1)*Beta/kF**2/TauBinSize
-    qData3 = np.sum(qData3, axis=1)*Beta/kF**2/TauBinSize
-    # qData0 = qData0/qData0[0]*12.50
-    # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
-    # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-
-    ErrorPlot(ax, ExtMomBin, qData0[:],
-              ColorList[1], 's', "Loop 1")
-
-    ErrorPlot(ax, ExtMomBin, qData[:],
-              ColorList[2], 's', "Loop 2")
-
-    ErrorPlot(ax, ExtMomBin, qData3[:],
-              ColorList[3], 's', "Loop 3")
-    # for i in range(ScaleBinSize/32):
-    #     # print i, index
-    #     # print ScaleBin[index]
-    #     index = 32*i
-    # # for i in range(ScaleBinSize+1):
-    #     ErrorPlot(ax, ExtMomBin, qData[index, :],
-    #               ColorList[i], 's', "Scale {0}".format(ScaleBin[index]))
-    # ErrorPlot(ax, AngleBin, Data[i, :, 8],
-    #           ColorList[i], 's', "Order {0}".format(i))
-    # ErrorPlot(ax, DataAtOrder[o], ColorList[i], 's', "Order {0}".format(o))
-
-    # ErrorPlot(ax, ExtMomBin, verData, 'y', 'o', "Sum")
-
-    # x = np.arange(0, 3.0, 0.001)
-    # y = x*0.0+Bubble
-    # for i in range(len(x)):
-    # if x[i]>2.0:
-    # y[i]=Bubble*(1-np.sqrt(1-4/x[i]**2))
-
-    # z=1.0/(1.0+y)
-    # y=1.0-y
-
-    # y=1.0/(x*x*kF*kF+1.0)
+            # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
+            # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
+            # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+            ErrorPlot(ax, ExtMomBin, qData,
+                      ColorList[i], 's', "Loop {0}, Chan {1}".format(order, chan))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble

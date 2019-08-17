@@ -288,7 +288,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   // so here we just use the first diagram
   Env.Map = CreateMapT(Ver4, Env.Ver[0], Env.Ver[1], Env.Ver[3], Env.Ver[6]);
 
-  Env.SymFactor = {-1.0, 1.0, -1.0, 1.0};
+  Env.SymFactor = {-1000.0, 1000.0, -1000.0, 1000.0};
   Ver4.Envelope.push_back(Env);
   return Ver4;
 }

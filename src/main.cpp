@@ -53,10 +53,10 @@ void InitPara() {
       "0", // 0 loop
       "1", // 1 loop
       "2", // 2 loop
-           // "3", // 3 loop
+      "3", // 3 loop
            // "4", // 4 loop
   };
-  Para.ReWeight = {1, 5.0, 3.0, 1.0, 1.0};
+  Para.ReWeight = {1, 5.0, 3.0, 0.5, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = BARE;
 
@@ -145,16 +145,17 @@ void MonteCarlo() {
       // }
 
       double x = Random.urn();
-      if (x < 1.0 / 4.0) {
+      if (x < 1.0 / 5.0) {
         Markov.ChangeGroup();
         // ;
-      } else if (x < 2.0 / 4.0) {
+      } else if (x < 2.0 / 5.0) {
         Markov.ChangeMomentum();
         // ;
-      } else if (x < 3.0 / 4.0) {
+      } else if (x < 3.0 / 5.0) {
         Markov.ChangeTau();
-        // ;
-        // } else if (x < 4.0 / 4.0) {
+      } else if (x < 4.0 / 5.0) {
+        Markov.ChangeChannel();
+        // } else if (x < 5.0 / 5.0) {
         //   Markov.ChangeScale();
         // ;
       }
@@ -169,8 +170,8 @@ void MonteCarlo() {
       //   Markov.PrintDeBugMCInfo();
       // }
 
-      if (i % 2 == 0)
-        Markov.Measure();
+      // if (i % 2 == 0)
+      Markov.Measure();
       // Markov.DynamicTest();
 
       if (i % 1000 == 0) {
