@@ -5,6 +5,7 @@
 #include "utility/utility.h"
 #include "vertex.h"
 #include <array>
+#include <map>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -14,8 +15,17 @@ extern parameter Para;
 namespace dse {
 using namespace std;
 
-enum vertype { BARE, DYNAMIC, NORMAL, PROJECTED, RENORMALIZED };
+enum caltype { BARE, RG, SKELETON, RENORMALIZED };
+enum vertype { BARE, DYNAMIC, NORMAL, RG, SKELETON, PROJECTED, RENORMALIZED };
 enum channel { I = 0, T, U, S };
+enum verflag {
+  BareCoupling,   // bare or renormalized coupling
+  IsProjected,    // projected vertex
+  IsRenormalized, // renormalized vertex
+  IsRG,           // RG calculation
+  ReExpandBare,   // rexpand all bare sub-vertex
+  ReExpandVer4,   // reexpand Gamma_4 sub-vertex
+};
 
 struct pair;
 struct envelope;
@@ -47,11 +57,14 @@ private:
   vector<double> _G;
 };
 
+typedef map<verflag, bool> flag;
+
 struct ver4 {
   int ID;
   int InTL;
   int LoopNum;
   int TauNum;
+  flag Flag;
   vertype Type;
   vector<channel> Channel;
   array<momentum *, 4> LegK; // legK index
@@ -141,7 +154,7 @@ struct envelope {
 class verDiag {
 public:
   ver4 Build(array<momentum, MaxMomNum> &loopmom, int LoopNum,
-             vector<channel> Channel, vertype Type);
+             vector<channel> Channel, caltype Type);
   string ToString(const ver4 &Vertex);
 
 private:
@@ -149,14 +162,16 @@ private:
   int MomNum = MaxLoopNum;
   array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
-  ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-              vector<channel> Channel, vertype Type, int Side);
+  map<verflag, bool> GetFlag(caltype Type);
 
-  ver4 Ver0(ver4 Ver4, int InTL, vertype Type, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, vertype Type,
+  ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
+              vector<channel> Channel, flag Flag, int Side);
+
+  ver4 Ver0(ver4 Ver4, int InTL, flag Flag, int Side);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, flag Flag,
              int Side);
   ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
-               vertype Type, int Side);
+               flag Flag, int Side);
   momentum *NextMom();
 };
 

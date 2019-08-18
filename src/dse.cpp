@@ -40,26 +40,56 @@ momentum *verDiag::NextMom() {
   return &(*LoopMom)[MomNum - 1];
 }
 
+map<verflag, bool> verDiag::GetFlag(caltype Type) {
+  map<verflag, bool> Flag;
+
+  Flag[IsRG] = false;
+  Flag[IsProjected] = false;
+  Flag[IsRenormalized] = false;
+  Flag[ReExpandBare] = false;
+  Flag[ReExpandVer4] = false;
+  Flag[BareCoupling] = false;
+
+  if (Type == caltype::BARE) {
+    Flag[BareCoupling] = true;
+  } else if (Type == caltype::RG) {
+    Flag[IsRG] = true;
+    // In RG calculation, the projected vertex will be measured
+    Flag[IsProjected] = true;
+    Flag[ReExpandBare] = true;
+    Flag[ReExpandVer4] = true;
+  } else if (Type == caltype::SKELETON) {
+    Flag[IsProjected] = true;
+    Flag[ReExpandBare] = false;
+    Flag[ReExpandVer4] = true;
+  } else if (Type == caltype::RENORMALIZED) {
+    Flag[IsRenormalized] = true;
+    Flag[ReExpandBare] = true;
+    Flag[ReExpandVer4] = true;
+  }
+}
+
 ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
-                    vector<channel> Channel, vertype Type) {
+                    vector<channel> Channel, caltype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
   DiagNum = 0;
   MomNum = MaxLoopNum;
   LoopMom = &loopMom;
   array<momentum *, 4> LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2],
                                NextMom()};
-  return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
+  auto Flag = GetFlag(Type);
+  return Vertex(LegK, 0, LoopNum, 3, Channel, Flag, LEFT);
 }
 
 ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
-                     int LoopIndex, vector<channel> Channel, vertype Type,
+                     int LoopIndex, vector<channel> Channel, flag Flag,
                      int Side) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
   Ver4.TauNum = 2 * (LoopNum + 1);
-  Ver4.Type = Type;
+  Ver4.Flag = Flag;
   Ver4.LegK = LegK;
 
   if (LoopNum == 0) {

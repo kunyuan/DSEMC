@@ -45,7 +45,8 @@ void weight::Initialization() {
   for (int c = 0; c < 4; c++)
     for (int order = 1; order <= Groups.back().Order; order++) {
       vector<dse::channel> chan = {Chan[c]};
-      Ver4Root[order][c] = VerDiag.Build(Var.LoopMom, order, chan, dse::NORMAL);
+      Ver4Root[order][c] =
+          VerDiag.Build(Var.LoopMom, order, chan, dse::caltype::BARE);
       LOG_INFO(VerDiag.ToString(Ver4Root[order][c]));
     }
 
@@ -54,13 +55,6 @@ void weight::Initialization() {
   for (auto &mom : Var.LoopMom)
     for (int i = 0; i < D; i++)
       mom[i] = Random.urn() * Para.Kf / sqrt(D);
-
-  // initialize tau variables
-  // for (int i = 0; i < MaxTauNum/ 2; i++) {
-  //   Var.Tau[2 * i] = Random.urn() * Para.Beta;
-  //   Var.Tau[2 * i + 1] = Var.Tau[2 * i]; // assume even and odd tau are the
-  //   same
-  // }
 
   for (int i = 0; i < MaxTauNum; i++) {
     Var.Tau[i] = Random.urn() * Para.Beta;
@@ -71,9 +65,8 @@ void weight::Initialization() {
     sp = (spin)(Random.irn(0, 1));
 
   Var.CurrExtMomBin = 0;
+
   // Var.LoopMom[0].fill(0.0);
-  // for (int i = 0; i < D; i++)
-  //   Var.LoopMom[0][i] = Var.ExtMomTable[Var.CurrExtMomBin][i];
   Var.LoopMom[0] = Para.ExtMomTable[Var.CurrExtMomBin];
 
   // initialize external tau
@@ -86,7 +79,6 @@ void weight::Initialization() {
   // initialize group
 
   Var.CurrVersion = 0;
-  //   Var.CurrGroup = &Groups[0];
 
   Var.CurrGroup = &Groups[0];
 
