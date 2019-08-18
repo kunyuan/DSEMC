@@ -187,7 +187,7 @@ void markov::ChangeGroup() {
 
     // if the current order is zero, then set channel of order 1 at T
     if (Var.CurrGroup->Order == 0)
-      Var.CurrChannel == dse::T;
+      Var.CurrChannel = dse::T;
 
   } else if (NewGroup.Order == Var.CurrGroup->Order - 1) {
     // change to a new group with one lower order

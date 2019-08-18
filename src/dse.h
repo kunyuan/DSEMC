@@ -16,7 +16,6 @@ namespace dse {
 using namespace std;
 
 enum caltype { BARE, RG, SKELETON, RENORMALIZED };
-enum vertype { BARE, DYNAMIC, NORMAL, RG, SKELETON, PROJECTED, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 enum verflag {
   BareCoupling,   // bare or renormalized coupling
@@ -65,7 +64,6 @@ struct ver4 {
   int LoopNum;
   int TauNum;
   flag Flag;
-  vertype Type;
   vector<channel> Channel;
   array<momentum *, 4> LegK; // legK index
   vector<array<int, 4>> T;
@@ -168,10 +166,10 @@ private:
               vector<channel> Channel, flag Flag, int Side);
 
   ver4 Ver0(ver4 Ver4, int InTL, flag Flag, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, flag Flag,
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, flag SubVerFlag,
              int Side);
   ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
-               flag Flag, int Side);
+               flag SubVerFlag, int Side);
   momentum *NextMom();
 };
 
