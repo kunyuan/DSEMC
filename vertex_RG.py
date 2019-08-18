@@ -19,9 +19,10 @@ XType = "Mom"
 
 # 0: I, 1: T, 2: U, 3: S
 # Channel = [0, 1, 3]
-Channel = [0, 3]
+Channel = [0, 1, 3]
+ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [1, 2, 3]
+Order = [1, 2]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 
@@ -134,7 +135,7 @@ elif (XType == "Mom"):
             # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
             # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
             ErrorPlot(ax, ExtMomBin, qData,
-                      ColorList[i], 's', "Loop {0}, Chan {1}".format(order, chan))
+                      ColorList[i], 's', "Loop {0}, Chan {1}".format(order, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
