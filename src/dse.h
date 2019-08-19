@@ -19,6 +19,7 @@ enum caltype { BARE, RG, PARQUET, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
 struct pair;
+struct bubble;
 struct envelope;
 
 class gMatrix {
@@ -61,12 +62,13 @@ struct ver4 {
   bool ReExpandVer4;
   vector<channel> Channel;
   array<momentum *, 4> LegK; // legK index
-  vector<array<int, 4>> T;
+  vector<array<int, 4>> T;   // external T list
 
   // bubble diagram
   vector<pair> Pairs; // all two-particle reducible diagrams
   array<gMatrix, 4> G;
 
+  vector<bubble> Bubble;     // bubble diagrams
   vector<envelope> Envelope; // envelop diagrams at order 4
 
   vector<double> Weight; // size: equal to T.size()
@@ -80,6 +82,23 @@ struct mapT {
   array<int, 2> G2T;
   // map LVer T index and RVer T index to merged T index
   int T;
+};
+
+struct mapT2 {
+  int LVerT;
+  int RVerT;
+  // LVer T index and RVer T index to Internal T for G1 and G2
+  array<array<int, 2>, 4> GT; // four indepdent G
+  // map LVer T index and RVer T index to merged T index
+  array<int, 3> T; // three channels
+};
+
+struct bubble {
+  array<ver4, 3> LVer;
+  array<ver4, 3> RVer;
+  array<double, 3> SymFactor;
+  array<gMatrix, 4> G;
+  vector<mapT2> Map;
 };
 
 struct pair {
