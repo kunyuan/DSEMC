@@ -53,7 +53,7 @@ void weight::Ver0(ver4 &Ver4) {
   Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
                    VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
   // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
-  if (Ver4.Flag[BareCoupling] == false) {
+  if (Ver4.Type != dse::caltype::BARE) {
     double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];
     Ver4.Weight[1] = VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
     Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);

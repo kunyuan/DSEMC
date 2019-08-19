@@ -40,37 +40,6 @@ momentum *verDiag::NextMom() {
   return &(*LoopMom)[MomNum - 1];
 }
 
-map<verflag, bool> verDiag::GetFlag(caltype Type) {
-  map<verflag, bool> Flag;
-
-  Flag[IsRG] = false;
-  Flag[IsProjected] = false;
-  Flag[IsRenormalized] = false;
-  Flag[ReExpandBare] = false;
-  Flag[ReExpandVer4] = false;
-  Flag[BareCoupling] = false;
-
-  if (Type == caltype::BARE) {
-    Flag[BareCoupling] = true;
-  } else if (Type == caltype::RG) {
-    Flag[IsRG] = true;
-    // In RG calculation, the projected vertex will be measured
-    Flag[IsProjected] = true;
-    Flag[ReExpandBare] = true;
-    Flag[ReExpandVer4] = true;
-  } else if (Type == caltype::SKELETON) {
-    Flag[IsProjected] = true;
-    Flag[ReExpandBare] = false;
-    Flag[ReExpandVer4] = true;
-  } else if (Type == caltype::RENORMALIZED) {
-    Flag[IsRenormalized] = true;
-    Flag[ReExpandBare] = true;
-    Flag[ReExpandVer4] = true;
-  }
-
-  return Flag;
-}
-
 ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
                     vector<channel> Channel, caltype Type) {
   ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
@@ -79,24 +48,36 @@ ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
   LoopMom = &loopMom;
   array<momentum *, 4> LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2],
                                NextMom()};
-  auto Flag = GetFlag(Type);
-  return Vertex(LegK, 0, LoopNum, 3, Channel, Flag, LEFT);
+  return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
 }
 
 ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
-                     int LoopIndex, vector<channel> Channel, flag Flag,
+                     int LoopIndex, vector<channel> Channel, caltype Type,
                      int Side) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
   Ver4.TauNum = 2 * (LoopNum + 1);
-  Ver4.Flag = Flag;
+  Ver4.Type = Type;
   Ver4.LegK = LegK;
+
+  if (Type == caltype::BARE) {
+    Ver4.ReExpandBare = false;
+    Ver4.ReExpandVer4 = false;
+  } else if (Type == caltype::RG && Type == caltype::RENORMALIZED) {
+    // In RG and renormalization calculation, the projected vertex will be
+    // measured
+    Ver4.ReExpandBare = true;
+    Ver4.ReExpandVer4 = true;
+  } else if (Type == caltype::PARQUET) {
+    Ver4.ReExpandBare = false;
+    Ver4.ReExpandVer4 = true;
+  }
 
   if (LoopNum == 0) {
     ASSERT_ALLWAYS(Channel[0] == I, "Only I channel has zero loop vertex!");
-    Ver4 = Ver0(Ver4, InTL, Flag, Side);
+    Ver4 = Ver0(Ver4, InTL, Side);
   } else {
 
     Ver4.Channel = Channel;
@@ -105,9 +86,9 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
 
     for (auto &chan : Channel) {
       if (chan == I) {
-        Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Flag, Side);
+        Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Side);
       } else
-        Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Flag, Side);
+        Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Side);
     }
   }
 
@@ -118,7 +99,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   return Ver4;
 }
 
-ver4 verDiag::Ver0(ver4 Ver4, int InTL, flag Flag, int Side) {
+ver4 verDiag::Ver0(ver4 Ver4, int InTL, int Side) {
   ////////////// bare interaction ///////////
   if (Side == LEFT)
     // Side==left, then make sure INL Tau are the last TauIndex
@@ -127,7 +108,7 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, flag Flag, int Side) {
     // Side==right, then make sure INR Tau are the last TauIndex
     Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
 
-  if (Flag[BareCoupling] == false) {
+  if (Ver4.Type != caltype::BARE) {
     //////////// dressed interaction ///////////
     Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
     Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
@@ -136,7 +117,7 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, flag Flag, int Side) {
 }
 
 ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
-                      channel chan, flag SubVerFlag, int Side) {
+                      channel chan, int Side) {
 
   ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
 
@@ -166,15 +147,15 @@ ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
     ////////////////////   Left SubVer  ///////////////////
     int LLoopIndex = LoopIndex + 1;
     if (chan == U || chan == T)
-      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, S}, SubVerFlag, LEFT);
+      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, S}, Ver4.Type, LEFT);
     else
-      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, T}, SubVerFlag, LEFT);
+      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, T}, Ver4.Type, LEFT);
 
     ////////////////////   Right SubVer  ///////////////////
     int oR = LoopNum - 1 - ol;
     int RInTL = InTL + 2 * (ol + 1);
     int RLoopNum = LoopIndex + 1 + ol;
-    RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, SubVerFlag, RIGHT);
+    RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Ver4.Type, RIGHT);
 
     ///////////   External and Internal Tau  ////////////////
     array<int, 2> G1T, G2T;
@@ -257,8 +238,7 @@ vector<mapT4> CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
   return Map;
 }
 
-ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
-                    flag SubVerFlag, int Side) {
+ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side) {
 
   if (LoopNum != 3)
     return Ver4;
@@ -295,20 +275,20 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
 
   // LD Vertex
   LegK[0] = {InL, G[1].K, G[3].K, G[0].K};
-  Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, SubVerFlag, LEFT);
+  Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
 
   // LU Vertex
   LegK[1] = {G[1].K, OutL, G[2].K, G[4].K};
   LegK[2] = {G[1].K, OutR, G[2].K, G[6].K};
-  Env.Ver[1] = Vertex(LegK[1], LUInTL, 0, LoopIndex, ALL, SubVerFlag, LEFT);
-  Env.Ver[2] = Vertex(LegK[2], LUInTL, 0, LoopIndex, ALL, SubVerFlag, LEFT);
+  Env.Ver[1] = Vertex(LegK[1], LUInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
+  Env.Ver[2] = Vertex(LegK[2], LUInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
 
   // RD Vertex
   LegK[3] = {G[0].K, G[2].K, InR, G[5].K};
   LegK[4] = {G[0].K, G[2].K, G[7].K, OutR};
   LegK[5] = {G[0].K, G[2].K, G[8].K, OutL};
   for (int i = 3; i <= 5; i++)
-    Env.Ver[i] = Vertex(LegK[i], RDInTL, 0, LoopIndex, ALL, SubVerFlag, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RDInTL, 0, LoopIndex, ALL, Ver4.Type, RIGHT);
 
   // RU Vertex
   LegK[6] = {G[4].K, G[3].K, G[5].K, OutR};
@@ -316,7 +296,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
   LegK[8] = {G[4].K, G[3].K, InR, G[7].K};
   LegK[9] = {G[6].K, G[3].K, InR, G[8].K};
   for (int i = 6; i <= 9; i++)
-    Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, SubVerFlag, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, Ver4.Type, RIGHT);
 
   //////// T map (for all four envelope diagram) //////
   // four diagrams have the same sub-vertex Tau configuration

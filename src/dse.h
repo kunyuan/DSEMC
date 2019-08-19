@@ -15,16 +15,8 @@ extern parameter Para;
 namespace dse {
 using namespace std;
 
-enum caltype { BARE, RG, SKELETON, RENORMALIZED };
+enum caltype { BARE, RG, PARQUET, RENORMALIZED };
 enum channel { I = 0, T, U, S };
-enum verflag {
-  BareCoupling,   // bare or renormalized coupling
-  IsProjected,    // projected vertex
-  IsRenormalized, // renormalized vertex
-  IsRG,           // RG calculation
-  ReExpandBare,   // rexpand all bare sub-vertex
-  ReExpandVer4,   // reexpand Gamma_4 sub-vertex
-};
 
 struct pair;
 struct envelope;
@@ -56,14 +48,14 @@ private:
   vector<double> _G;
 };
 
-typedef map<verflag, bool> flag;
-
 struct ver4 {
   int ID;
   int InTL;
   int LoopNum;
   int TauNum;
-  flag Flag;
+  caltype Type;
+  bool ReExpandBare;
+  bool ReExpandVer4;
   vector<channel> Channel;
   array<momentum *, 4> LegK; // legK index
   vector<array<int, 4>> T;
@@ -160,16 +152,13 @@ private:
   int MomNum = MaxLoopNum;
   array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
-  map<verflag, bool> GetFlag(caltype Type);
-
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-              vector<channel> Channel, flag Flag, int Side);
+              vector<channel> Channel, caltype Type, int Side);
 
-  ver4 Ver0(ver4 Ver4, int InTL, flag Flag, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, flag SubVerFlag,
-             int Side);
+  ver4 Ver0(ver4 Ver4, int InTL, int Side);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side);
   ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
-               flag SubVerFlag, int Side);
+               int Side);
   momentum *NextMom();
 };
 
