@@ -79,14 +79,14 @@ void weight::ChanUST(dse::ver4 &Ver4) {
   const momentum &OutL = *Ver4.LegK[OUTL];
   const momentum &InR = *Ver4.LegK[INR];
   const momentum &OutR = *Ver4.LegK[OUTR];
-  const momentum &K1 = *Ver4.K[0];
+  const momentum &K1 = *Ver4.G[0].K;
   int InTL = Ver4.T[0][INL];
   gMatrix &G1 = Ver4.G[0];
   double Weight;
   // set all weight element to be zero
   for (auto &chan : Ver4.Channel) {
     // construct internal momentum
-    momentum &K2 = *Ver4.K[chan];
+    momentum &K2 = *Ver4.G[chan].K;
     gMatrix &G2 = Ver4.G[chan];
     if (chan == T) {
       K2 = OutL + K1 - InL;

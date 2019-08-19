@@ -27,9 +27,10 @@ public:
     _TauNum = 0;
     _InTL = 0;
   }
-  gMatrix(int TauNum, int InTL) {
+  gMatrix(int TauNum, int InTL, momentum *k) {
     _TauNum = TauNum;
     _InTL = InTL;
+    K = k;
     _G.resize(TauNum * TauNum);
     for (auto &g : _G)
       g = 0.0;
@@ -41,6 +42,8 @@ public:
   double &operator()(const array<int, 2> &t) {
     return _G[(t[IN] - _InTL) * _TauNum + t[OUT] - _InTL];
   }
+
+  momentum *K;
 
 private:
   int _TauNum;
@@ -61,12 +64,10 @@ struct ver4 {
   vector<array<int, 4>> T;
 
   // bubble diagram
-  vector<pair> Pairs;        // all two-particle reducible diagrams
-  vector<envelope> Envelope; // envelop diagrams at order 4
-  // internal K and G for bubble diagram
-  // 0: K1, G1, 1-3: K2, G2 for channel t, u, s
-  array<momentum *, 4> K;
+  vector<pair> Pairs; // all two-particle reducible diagrams
   array<gMatrix, 4> G;
+
+  vector<envelope> Envelope; // envelop diagrams at order 4
 
   vector<double> Weight; // size: equal to T.size()
 };

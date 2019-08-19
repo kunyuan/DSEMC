@@ -27,7 +27,7 @@ const int TauBinSize = 128;
 const int TauBasisNum = 32;
 
 enum selfenergy { BARE, FOCK, DRESSED }; // self energy type
-enum type { RG, POLAR };
+enum type { GU, GW, RG, PARQUET };
 enum obstype { FREQ, EQUALTIME };
 enum ver4type { POINT, FULL, MOM, MOM_ANGLE };
 

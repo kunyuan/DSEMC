@@ -451,9 +451,9 @@ double fermi::PhyGreen(double Tau, const momentum &Mom, int GType,
   }
 
   k = Mom.norm();
-  if (Para.SelfEnergyType == BARE)
+  if (Para.SelfEnergyType == selfenergy::BARE)
     Ek = k * k; // bare propagator
-  else if (Para.SelfEnergyType == FOCK)
+  else if (Para.SelfEnergyType == selfenergy::FOCK)
     Ek = FockSigma(Mom); // Fock diagram dressed propagator
   else
     ABORT("Green function is not implemented!");
