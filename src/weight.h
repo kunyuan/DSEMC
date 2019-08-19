@@ -85,7 +85,7 @@ private:
   void Ver0(dse::ver4 &Ver4);
 
   void ChanI(dse::ver4 &Ver4);
-  void ChanUST(dse::bubble &Bubble);
+  void ChanUST(dse::ver4 &Ver4);
 };
 
 }; // namespace diag

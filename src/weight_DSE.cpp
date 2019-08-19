@@ -67,76 +67,75 @@ void weight::Vertex4(dse::ver4 &Ver4) {
   } else {
     for (auto &w : Ver4.Weight)
       w = 0.0;
-    for (auto &bubble : Ver4.Bubble)
-      ChanUST(bubble);
+    ChanUST(Ver4);
     if (Ver4.LoopNum >= 3)
       ChanI(Ver4);
   }
   return;
 }
 
-void weight::ChanUST(dse::bubble &Bubble) {
-  const momentum &InL = *Bubble.LegK[INL];
-  const momentum &OutL = *Bubble.LegK[OUTL];
-  const momentum &InR = *Bubble.LegK[INR];
-  const momentum &OutR = *Bubble.LegK[OUTR];
-  auto &G = Bubble.G;
-  const momentum &K1 = *Ver4.G[0].K;
-  int InTL = Ver4.InTL;
-  gMatrix &G1 = Ver4.G[0];
-  double Weight;
-  // set all weight element to be zero
-  for (auto &chan : Ver4.Channel) {
-    // construct internal momentum
-    momentum &K2 = *Ver4.G[chan].K;
-    gMatrix &G2 = Ver4.G[chan];
-    if (chan == T) {
-      K2 = OutL + K1 - InL;
-    } else if (chan == U) {
-      K2 = OutR + K1 - InL;
-    } else if (chan == S) {
-      K2 = InL + InR - K1;
-    } else if (chan == I) {
-      continue;
+void weight::ChanUST(dse::ver4 &Ver4) {
+  for (auto &bubble : Ver4.Bubble) {
+    const momentum &InL = *bubble.LegK[INL];
+    const momentum &OutL = *bubble.LegK[OUTL];
+    const momentum &InR = *bubble.LegK[INR];
+    const momentum &OutR = *bubble.LegK[OUTR];
+    auto &G = bubble.G;
+    int InTL = Ver4.InTL;
+    const momentum &K1 = *G[0].K;
+    gMatrix &G1 = Ver4.G[0];
+    double Weight;
+    // set all weight element to be zero
+    for (auto &chan : Ver4.Channel) {
+      // construct internal momentum
+      momentum &K2 = *Ver4.G[chan].K;
+      gMatrix &G2 = Ver4.G[chan];
+      if (chan == T) {
+        K2 = OutL + K1 - InL;
+      } else if (chan == U) {
+        K2 = OutR + K1 - InL;
+      } else if (chan == S) {
+        K2 = InL + InR - K1;
+      } else if (chan == I) {
+        continue;
+      }
+
+      // construct Green's function weight table
+      for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
+        for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
+          double dTau = Var.Tau[rt] - Var.Tau[lt];
+          G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
+          if (chan == S)
+            // LVer to RVer
+            G2(lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
+          else
+            // RVer to LVer
+            G2(rt, lt) = Fermi.Green(-dTau, K2, UP, 0, Var.CurrScale);
+        }
     }
 
-    // construct Green's function weight table
-    for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
-      for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
-        double dTau = Var.Tau[rt] - Var.Tau[lt];
-        G1(lt, rt) = Fermi.Green(dTau, K1, UP, 0, Var.CurrScale);
-        if (chan == S)
-          // LVer to RVer
-          G2(lt, rt) = Fermi.Green(dTau, K2, UP, 0, Var.CurrScale);
-        else
-          // RVer to LVer
-          G2(rt, lt) = Fermi.Green(-dTau, K2, UP, 0, Var.CurrScale);
+    // for vertex4 with one or more loops
+    for (auto &pair : Ver4.Pairs) {
+
+      ver4 &LVer = pair.LVer;
+      ver4 &RVer = pair.RVer;
+
+      Vertex4(LVer);
+      Vertex4(RVer);
+
+      for (auto &m : pair.Map) {
+        Weight = pair.SymFactor;
+        Weight *= G1(m.G1T[IN], m.G1T[OUT]);
+        Weight *= Ver4.G[pair.Chan](m.G2T[IN], m.G2T[OUT]);
+        Weight *= LVer.Weight[m.LVerT] * RVer.Weight[m.RVerT];
+        Ver4.Weight[m.T] += Weight;
       }
-  }
-
-  // for vertex4 with one or more loops
-  for (auto &pair : Ver4.Pairs) {
-
-    ver4 &LVer = pair.LVer;
-    ver4 &RVer = pair.RVer;
-
-    Vertex4(LVer);
-    Vertex4(RVer);
-
-    for (auto &m : pair.Map) {
-      Weight = pair.SymFactor;
-      Weight *= G1(m.G1T[IN], m.G1T[OUT]);
-      Weight *= Ver4.G[pair.Chan](m.G2T[IN], m.G2T[OUT]);
-      Weight *= LVer.Weight[m.LVerT] * RVer.Weight[m.RVerT];
-      Ver4.Weight[m.T] += Weight;
     }
   }
 }
 
 void weight::ChanI(dse::ver4 &Ver4) {
   if (Ver4.LoopNum != 3)
-    return;
-  if (Ver4.Channel[0] != I)
     return;
   for (auto &Env : Ver4.Envelope) {
     const momentum &InL = *Env.LegK[INL];
