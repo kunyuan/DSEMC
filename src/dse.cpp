@@ -79,17 +79,14 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
     ASSERT_ALLWAYS(Channel[0] == I, "Only I channel has zero loop vertex!");
     Ver4 = Ver0(Ver4, InTL, Side);
   } else {
-
-    Ver4.Channel = Channel;
-    // Ver4.K[0] = &(*LoopMom)[LoopIndex];
-    Ver4.G[0] = gMatrix(Ver4.TauNum, InTL, &(*LoopMom)[LoopIndex]);
-
+    vector<channel> UST;
     for (auto &chan : Channel) {
-      if (chan == I) {
+      if (chan == I)
         Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Side);
-      } else
-        Ver4 = ChanUST(Ver4, InTL, LoopNum, LoopIndex, chan, Side);
+      else
+        UST.push_back(chan);
     }
+    Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, Side);
   }
 
   Ver4.Weight.resize(Ver4.T.size());
@@ -116,92 +113,104 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, int Side) {
   return Ver4;
 }
 
-ver4 verDiag::ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex,
-                      channel chan, int Side) {
+vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer) {
+  ///////////   External and Internal Tau  ////////////////
+  vector<mapT2> Map;
+  array<array<int, 2>, 4> GT;
+  array<array<int, 4>, 3> LegT;
+  array<int, 3> Tidx;
 
-  ASSERT_ALLWAYS(chan != I, "ChanUST can not process I channel!");
+  for (int lt = 0; lt < LVer.T.size(); ++lt)
+    for (int rt = 0; rt < RVer.T.size(); ++rt) {
 
-  // Ver4.K[chan] = NextMom();
-  Ver4.G[chan] = gMatrix(Ver4.TauNum, InTL, NextMom());
+      auto &LvT = LVer.T[lt];
+      auto &RvT = RVer.T[rt];
 
-  array<momentum *, 4> LLegK, RLegK; // left and right vertex external LegK
-  if (chan == T) {
+      GT[0] = {LvT[OUTR], RvT[INL]};
+      GT[1] = {RvT[OUTL], LvT[INR]};
+      GT[2] = {RvT[OUTL], LvT[INR]};
+      GT[3] = {LvT[OUTL], RvT[INL]};
 
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTL], Ver4.G[chan].K, Ver4.G[0].K};
-    RLegK = {Ver4.G[0].K, Ver4.G[chan].K, Ver4.LegK[INR], Ver4.LegK[OUTR]};
+      LegT[0] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
+      LegT[1] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
+      LegT[2] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
 
-  } else if (chan == U) {
+      // add T array into the T pool of the vertex
+      for (int i = 0; i < 3; i++)
+        Tidx[i] = AddToTList(Ver4.T, LegT[i]);
+      Map.push_back(mapT2{lt, rt, Tidx, GT});
+    }
+  return Map;
+}
 
-    LLegK = {Ver4.LegK[INL], Ver4.LegK[OUTR], Ver4.G[chan].K, Ver4.G[0].K};
-    RLegK = {Ver4.G[0].K, Ver4.G[chan].K, Ver4.LegK[INR], Ver4.LegK[OUTL]};
+ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
+                      int LoopIndex, int Side, bool IsProjected) {
+  bubble Bubble;
+  Bubble.IsProjected = IsProjected;
+  Bubble.Channel = Channel;
+  auto &LegK = Ver4.LegK;
+  caltype Type = Ver4.Type;
+  if (IsProjected == false)
+    Bubble.LegK = LegK;
 
-  } else if (chan == S) {
+  auto &G = Bubble.G;
 
-    LLegK = {Ver4.LegK[INL], Ver4.G[0].K, Ver4.LegK[INR], Ver4.G[chan].K};
-    RLegK = {Ver4.G[0].K, Ver4.LegK[OUTL], Ver4.G[chan].K, Ver4.LegK[OUTR]};
-  }
+  G[0] = gMatrix(Ver4.TauNum, InTL, &(*LoopMom)[LoopIndex]);
+  G[1] = gMatrix(Ver4.TauNum, InTL, NextMom());
+  G[2] = gMatrix(Ver4.TauNum, InTL, NextMom());
+  G[3] = gMatrix(Ver4.TauNum, InTL, NextMom());
 
-  ver4 LVer, RVer;
   for (int ol = 0; ol < LoopNum; ol++) {
+    pair Pair;
 
-    ////////////////////   Left SubVer  ///////////////////
-    int LLoopIndex = LoopIndex + 1;
-    if (chan == U || chan == T)
-      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, S}, Ver4.Type, LEFT);
-    else
-      LVer = Vertex(LLegK, InTL, ol, LLoopIndex, {I, U, T}, Ver4.Type, LEFT);
+    // left and right vertex external LegK
+    array<momentum *, 4> LLegK[4], RLegK[4];
 
-    ////////////////////   Right SubVer  ///////////////////
-    int oR = LoopNum - 1 - ol;
-    int RInTL = InTL + 2 * (ol + 1);
-    int RLoopNum = LoopIndex + 1 + ol;
-    RVer = Vertex(RLegK, RInTL, oR, RLoopNum, {I, U, S, T}, Ver4.Type, RIGHT);
+    ////////////////// T channel ////////////////////////////
+    LLegK[T] = {LegK[INL], LegK[OUTL], G[T].K, G[0].K};
+    RLegK[T] = {G[0].K, G[T].K, LegK[INR], LegK[OUTR]};
 
-    ///////////   External and Internal Tau  ////////////////
-    array<int, 2> G1T, G2T;
-    vector<mapT> Map;
+    ////////////////// U channel ////////////////////////////
+    LLegK[U] = {LegK[INL], LegK[OUTR], G[U].K, G[0].K};
+    RLegK[U] = {G[0].K, G[U].K, LegK[INR], LegK[OUTL]};
 
-    for (int lt = 0; lt < LVer.T.size(); ++lt)
-      for (int rt = 0; rt < RVer.T.size(); ++rt) {
+    ////////////////// S channel ////////////////////////////
+    LLegK[S] = {LegK[INL], G[S].K, LegK[INR], G[0].K};
+    RLegK[S] = {G[0].K, LegK[OUTL], G[S].K, LegK[OUTR]};
 
-        auto &LvT = LVer.T[lt];
-        auto &RvT = RVer.T[rt];
-        array<int, 4> LegT;
+    for (auto &c : Bubble.Channel) {
+      ////////////////////   Right SubVer  ///////////////////
+      int oR = LoopNum - 1 - ol;
+      int RInTL = InTL + 2 * (ol + 1);
+      int Rlopidx = LoopIndex + 1 + ol;
 
-        if (chan == T) {
-
-          LegT = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-          G1T = {LvT[OUTR], RvT[INL]};
-          G2T = {RvT[OUTL], LvT[INR]};
-
-        } else if (chan == U) {
-
-          LegT = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-          G1T = {LvT[OUTR], RvT[INL]};
-          G2T = {RvT[OUTL], LvT[INR]};
-
-        } else if (chan == S) {
-
-          LegT = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
-          G1T = {LvT[OUTL], RvT[INL]};
-          G2T = {LvT[OUTR], RvT[INR]};
-        }
-
-        // add T array into the T pool of the vertex
-        int Index = AddToTList(Ver4.T, LegT);
-        Map.push_back(mapT{lt, rt, G1T, G2T, Index});
+      if (c == U || c == T) {
+        Pair.LVer[c] =
+            Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, Type, LEFT);
+        Pair.RVer[c] =
+            Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
+      } else if (c == S) {
+        Pair.LVer[c] =
+            Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, Type, LEFT);
+        Pair.RVer[c] =
+            Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
       }
+    }
 
-    Ver4.Pairs.push_back(pair{LVer, RVer, chan, Sym(chan), Map});
+    Pair.Map = CreateMapT2(Ver4, Pair.LVer[0], Pair.RVer[0]);
+    Pair.SymFactor = {-1.0, 1.0, -0.5};
+    Bubble.Pair.push_back(Pair);
   }
+
+  Ver4.Bubble.push_back(Bubble);
   return Ver4;
 }
 
-vector<mapT4> CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
-                         ver4 RUVer) {
+vector<mapT4> CreateMapT4(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
+                          ver4 RUVer) {
   vector<mapT4> Map;
   array<array<int, 2>, 9> GT; // G Tau pair
-  array<int, 4> LegT[4], Tindex;
+  array<int, 4> LegT[4], Tidx;
 
   for (int ldt = 0; ldt < LDVer.T.size(); ldt++)
     for (int lut = 0; lut < LUVer.T.size(); lut++)
@@ -231,26 +240,29 @@ vector<mapT4> CreateMapT(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
           LegT[3] = {ldT[INL], rdT[OUTR], ruT[INR], luT[OUTL]};
 
           for (int i = 0; i < 4; i++)
-            Tindex[i] = AddToTList(Ver4.T, LegT[i]);
+            Tidx[i] = AddToTList(Ver4.T, LegT[i]);
 
-          Map.push_back(mapT4{ldt, lut, rdt, rut, GT, Tindex});
+          Map.push_back(mapT4{ldt, lut, rdt, rut, Tidx, GT});
         }
   return Map;
 }
 
-ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side) {
+ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
+                    bool IsProjected) {
 
   if (LoopNum != 3)
     return Ver4;
 
   envelope Env;
+  Env.IsProjected = IsProjected;
+  if (IsProjected == false)
+    Env.LegK = Ver4.LegK;
+  auto &G = Env.G;
 
   int LDInTL = InTL;
   int LUInTL = InTL + 2;
   int RDInTL = InTL + 4;
   int RUInTL = InTL + 6;
-
-  auto &G = Env.G;
 
   /////// Initialize G Tau and K Table  /////////
   G[0] = g2Matrix(LDInTL, RDInTL, &(*LoopMom)[LoopIndex]);
@@ -301,7 +313,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side) {
   //////// T map (for all four envelope diagram) //////
   // four diagrams have the same sub-vertex Tau configuration
   // so here we just use the first diagram
-  Env.Map = CreateMapT(Ver4, Env.Ver[0], Env.Ver[1], Env.Ver[3], Env.Ver[6]);
+  Env.Map = CreateMapT4(Ver4, Env.Ver[0], Env.Ver[1], Env.Ver[3], Env.Ver[6]);
 
   Env.SymFactor = {-1.0, 1.0, -1.0, 1.0};
   Ver4.Envelope.push_back(Env);
@@ -314,37 +326,42 @@ string verDiag::ToString(const ver4 &Ver4) {
     Info +=
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
   Info += "\n";
-  Info += "SubVer: \n";
-  for (int p = 0; p < Ver4.Pairs.size(); p++) {
-    pair pp = Ver4.Pairs[p];
-    Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer.ID);
-    for (auto &t : pp.LVer.T)
-      Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
-                          t[OUTR]);
-    Info += "\n";
+  for (auto &bubble : Ver4.Bubble) {
+    Info += "SubVer: \n";
+    for (int p = 0; p < bubble.Pair.size(); p++) {
+      pair pp = bubble.Pair[p];
+      Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer[0].ID);
+      for (auto &t : pp.LVer[0].T)
+        Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
+                            t[OUTR]);
+      Info += "\n";
 
-    Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer.ID);
-    for (auto &t : pp.RVer.T)
-      Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
-                          t[OUTR]);
-    Info += "\n";
+      Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer[0].ID);
+      for (auto &t : pp.RVer[0].T)
+        Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
+                            t[OUTR]);
+      Info += "\n";
 
-    Info += fmt::format("  G1 Internal T Map: ");
-    for (auto &m : pp.Map)
-      Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT, m.G1T[0],
-                          m.G1T[1]);
-    Info += "\n";
+      // Info += fmt::format("  G1 Internal T Map: ");
+      // for (auto &m : pp.Map)
+      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerTidx, m.RVerTidx,
+      //   m.GT[0],
+      //                       m.G1T[1]);
+      // Info += "\n";
 
-    Info += fmt::format("  G2 Internal T Map: ");
-    for (auto &m : pp.Map)
-      Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT, m.G2T[0],
-                          m.G2T[1]);
-    Info += "\n";
+      // Info += fmt::format("  G2 Internal T Map: ");
+      // for (auto &m : pp.Map)
+      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT,
+      //   m.G2T[0],
+      //                       m.G2T[1]);
+      // Info += "\n";
 
-    Info += fmt::format("         Map:        ");
-    for (auto &m : pp.Map)
-      Info += fmt::format("({0}, {1}) => {2}, ", m.LVerT, m.RVerT, m.T);
-    Info += "\n";
+      Info += fmt::format("         Map:        ");
+      for (auto &m : pp.Map)
+        Info +=
+            fmt::format("({0}, {1}) => {2}, ", m.LVerTidx, m.RVerTidx, m.Tidx);
+      Info += "\n";
+    }
   }
   return Info;
 }

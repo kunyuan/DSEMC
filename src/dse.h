@@ -18,9 +18,27 @@ using namespace std;
 enum caltype { BARE, RG, PARQUET, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
-struct pair;
 struct bubble;
 struct envelope;
+
+struct ver4 {
+  int ID;
+  int InTL;
+  int LoopNum;
+  int TauNum;
+  caltype Type;
+  bool ReExpandBare;
+  bool ReExpandVer4;
+
+  vector<bubble> Bubble;     // bubble diagrams and its counter diagram
+  vector<envelope> Envelope; // envelop diagrams and its counter diagram
+
+  array<momentum *, 4> LegK; // external legK index
+  vector<array<int, 4>> T;   // external T list
+  vector<double> Weight;     // size: equal to T.size()
+};
+
+//////////////// Bubble diagrams /////////////////////////////
 
 class gMatrix {
 public:
@@ -52,62 +70,32 @@ private:
   vector<double> _G;
 };
 
-struct ver4 {
-  int ID;
-  int InTL;
-  int LoopNum;
-  int TauNum;
-  caltype Type;
-  bool ReExpandBare;
-  bool ReExpandVer4;
-  vector<channel> Channel;
-  array<momentum *, 4> LegK; // legK index
-  vector<array<int, 4>> T;   // external T list
-
-  // bubble diagram
-  vector<pair> Pairs; // all two-particle reducible diagrams
-  array<gMatrix, 4> G;
-
-  vector<bubble> Bubble;     // bubble diagrams
-  vector<envelope> Envelope; // envelop diagrams at order 4
-
-  vector<double> Weight; // size: equal to T.size()
-};
-
-struct mapT {
-  int LVerT;
-  int RVerT;
-  // LVer T index and RVer T index to Internal T for G1 and G2
-  array<int, 2> G1T;
-  array<int, 2> G2T;
-  // map LVer T index and RVer T index to merged T index
-  int T;
-};
-
 struct mapT2 {
-  int LVerT;
-  int RVerT;
-  // LVer T index and RVer T index to Internal T for G1 and G2
-  array<array<int, 2>, 4> GT; // four indepdent G
+  int LVerTidx; // LVer T index
+  int RVerTidx; // RVer T index
   // map LVer T index and RVer T index to merged T index
-  array<int, 3> T; // three channels
-};
+  array<int, 3> Tidx; // three channels
 
-struct bubble {
-  array<ver4, 3> LVer;
-  array<ver4, 3> RVer;
-  array<double, 3> SymFactor;
-  array<gMatrix, 4> G;
-  vector<mapT2> Map;
+  // LVer T and RVer T to Internal T for G1 and G2
+  array<array<int, 2>, 4> GT; // four indepdent G
 };
 
 struct pair {
-  ver4 LVer;
-  ver4 RVer;
-  channel Chan;
-  double SymFactor;
-  vector<mapT> Map;
+  array<ver4, 3> LVer;
+  array<ver4, 3> RVer;
+  array<double, 3> SymFactor;
+  vector<mapT2> Map;
 };
+
+struct bubble {
+  bool IsProjected;
+  vector<channel> Channel;   // list of channels
+  array<momentum *, 4> LegK; // legK index
+  array<gMatrix, 4> G;
+  vector<pair> Pair;
+};
+
+//////////////// Envelope diagrams /////////////////////////////
 
 class g2Matrix {
 public:
@@ -144,22 +132,26 @@ private:
 };
 
 struct mapT4 {
-  int LDVerT;
-  int RDVerT;
-  int LUVerT;
-  int RUVerT;
-  // LVer T index and RVer T index to Internal T for G1 and G2
-  array<array<int, 2>, 9> GT;
+  int LDVerTidx;
+  int RDVerTidx;
+  int LUVerTidx;
+  int RUVerTidx;
   // map LVer T index and RVer T index to merged T index
-  array<int, 4> T; // external T for four envelop diagrams
+  array<int, 4> Tidx; // external T for four envelop diagrams
+  // LVer T and RVer T to Internal T for G1 and G2
+  array<array<int, 2>, 9> GT;
 };
 
 struct envelope {
+  bool IsProjected;
+  array<momentum *, 4> LegK; // legK index
   array<ver4, 10> Ver;
   array<g2Matrix, 9> G;
   vector<mapT4> Map;
   array<double, 4> SymFactor;
 };
+
+////////////// Vertex Creation Class /////////////////////////////////
 
 class verDiag {
 public:
@@ -176,9 +168,10 @@ private:
               vector<channel> Channel, caltype Type, int Side);
 
   ver4 Ver0(ver4 Ver4, int InTL, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side);
-  ver4 ChanUST(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, channel Channel,
-               int Side);
+  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
+             bool IsProjected = false);
+  ver4 ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
+               int LoopIndex, int Side, bool IsProjected = false);
   momentum *NextMom();
 };
 
