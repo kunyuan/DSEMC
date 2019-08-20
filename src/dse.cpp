@@ -10,17 +10,6 @@
 using namespace dse;
 using namespace std;
 
-double Sym(channel chan) {
-  if (chan == T)
-    return -1.0;
-  else if (chan == U)
-    return 1.0;
-  else if (chan == S)
-    return 0.5;
-  else
-    return 1.0;
-}
-
 int AddToTList(vector<array<int, 4>> &TList, const array<int, 4> T) {
   // find the T array in the list, if failed, create a new array
   for (int i = 0; i < TList.size(); i++) {
@@ -157,9 +146,8 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   auto &G = Bubble.G;
 
   G[0] = gMatrix(Ver4.TauNum, InTL, &(*LoopMom)[LoopIndex]);
-  G[1] = gMatrix(Ver4.TauNum, InTL, NextMom());
-  G[2] = gMatrix(Ver4.TauNum, InTL, NextMom());
-  G[3] = gMatrix(Ver4.TauNum, InTL, NextMom());
+  for (auto &c : Bubble.Channel)
+    G[c] = gMatrix(Ver4.TauNum, InTL, NextMom());
 
   for (int ol = 0; ol < LoopNum; ol++) {
     // left and right vertex external LegK
