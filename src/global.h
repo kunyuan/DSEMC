@@ -77,11 +77,9 @@ struct parameter {
 //////////   Diagram  ////////////////////////////
 const int MaxOrder = 5;            // Max diagram order
 const int MaxLevel = MaxOrder + 1; // Max diagram order
-const int MaxMomNum = get_power<2, MaxOrder + 1>::value * 4;
-const int MaxGroupNum = 8;     // Max number of diagram groups
-const int MaxDiagNum = 1024;   // Max number of Hugenholtz diagrams in one group
-const int MaxGPoolSize = 8192; // Max total indepdent G for all diagrams
-const int MaxVerPoolSize = 4096; // Max total indepdent vertex for all diagrams
+const int MaxMomNum = get_power<2, MaxOrder + 1>::value * 8;
+const int MaxGroupNum = 8;   // Max number of diagram groups
+const int MaxDiagNum = 1024; // Max number of Hugenholtz diagrams in one group
 const int MaxLoopNum = MaxOrder + 3; // Max loop number in one group
 const int MaxTauNum = 2 * MaxOrder;  // Max tau number in one group
 const int MaxGNum = 2 * MaxOrder;    // Max G number in one group

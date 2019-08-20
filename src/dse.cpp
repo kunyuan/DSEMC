@@ -113,12 +113,13 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, int Side) {
   return Ver4;
 }
 
-vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer) {
+vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
   ///////////   External and Internal Tau  ////////////////
   vector<mapT2> Map;
+  array<int, 2> G0T;
   array<array<int, 2>, 4> GT;
-  array<array<int, 4>, 3> LegT;
-  array<int, 3> Tidx;
+  array<array<int, 4>, 4> LegT;
+  int Tidx;
 
   for (int lt = 0; lt < LVer.T.size(); ++lt)
     for (int rt = 0; rt < RVer.T.size(); ++rt) {
@@ -126,19 +127,18 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer) {
       auto &LvT = LVer.T[lt];
       auto &RvT = RVer.T[rt];
 
-      GT[0] = {LvT[OUTR], RvT[INL]};
-      GT[1] = {RvT[OUTL], LvT[INR]};
-      GT[2] = {RvT[OUTL], LvT[INR]};
-      GT[3] = {LvT[OUTL], RvT[INL]};
+      G0T = {LvT[OUTR], RvT[INL]};
+      GT[T] = {RvT[OUTL], LvT[INR]};
+      GT[U] = {RvT[OUTL], LvT[INR]};
+      GT[S] = {LvT[OUTL], RvT[INL]};
 
-      LegT[0] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-      LegT[1] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-      LegT[2] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
+      LegT[T] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
+      LegT[U] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
+      LegT[S] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
 
       // add T array into the T pool of the vertex
-      for (int i = 0; i < 3; i++)
-        Tidx[i] = AddToTList(Ver4.T, LegT[i]);
-      Map.push_back(mapT2{lt, rt, Tidx, GT});
+      Tidx = AddToTList(Ver4.T, LegT[Chan]);
+      Map.push_back(mapT2{lt, rt, Tidx, G0T, GT[Chan]});
     }
   return Map;
 }
@@ -162,10 +162,9 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   G[3] = gMatrix(Ver4.TauNum, InTL, NextMom());
 
   for (int ol = 0; ol < LoopNum; ol++) {
-    pair Pair;
-
     // left and right vertex external LegK
     array<momentum *, 4> LLegK[4], RLegK[4];
+    double SymFactor[4] = {0.0, -1.0, 1.0, -0.5};
 
     ////////////////// T channel ////////////////////////////
     LLegK[T] = {LegK[INL], LegK[OUTL], G[T].K, G[0].K};
@@ -180,27 +179,28 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
     RLegK[S] = {G[0].K, LegK[OUTL], G[S].K, LegK[OUTR]};
 
     for (auto &c : Bubble.Channel) {
+      pair Pair;
+      Pair.Channel = c;
+      Pair.SymFactor = SymFactor[c];
       ////////////////////   Right SubVer  ///////////////////
       int oR = LoopNum - 1 - ol;
       int RInTL = InTL + 2 * (ol + 1);
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
-        Pair.LVer[c] =
+        Pair.LVer =
             Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, Type, LEFT);
-        Pair.RVer[c] =
+        Pair.RVer =
             Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
       } else if (c == S) {
-        Pair.LVer[c] =
+        Pair.LVer =
             Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, Type, LEFT);
-        Pair.RVer[c] =
+        Pair.RVer =
             Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
       }
+      Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c);
+      Bubble.Pair.push_back(Pair);
     }
-
-    Pair.Map = CreateMapT2(Ver4, Pair.LVer[0], Pair.RVer[0]);
-    Pair.SymFactor = {-1.0, 1.0, -0.5};
-    Bubble.Pair.push_back(Pair);
   }
 
   Ver4.Bubble.push_back(Bubble);
@@ -332,14 +332,14 @@ string verDiag::ToString(const ver4 &Ver4) {
     Info += "SubVer: \n";
     for (int p = 0; p < bubble.Pair.size(); p++) {
       pair pp = bubble.Pair[p];
-      Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer[0].ID);
-      for (auto &t : pp.LVer[0].T)
+      Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer.ID);
+      for (auto &t : pp.LVer.T)
         Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
                             t[OUTR]);
       Info += "\n";
 
-      Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer[0].ID);
-      for (auto &t : pp.RVer[0].T)
+      Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer.ID);
+      for (auto &t : pp.RVer.T)
         Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
                             t[OUTR]);
       Info += "\n";

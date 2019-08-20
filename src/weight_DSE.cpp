@@ -108,18 +108,16 @@ void weight::ChanUST(dse::ver4 &Ver4) {
 
     // for vertex4 with one or more loops
     for (auto &pair : bubble.Pair) {
-      for (auto &chan : bubble.Channel) {
-        ver4 &LVer = pair.LVer[chan];
-        ver4 &RVer = pair.RVer[chan];
-        Vertex4(LVer);
-        Vertex4(RVer);
+      ver4 &LVer = pair.LVer;
+      ver4 &RVer = pair.RVer;
+      Vertex4(LVer);
+      Vertex4(RVer);
 
-        for (auto &map : pair.Map) {
-          Weight = pair.SymFactor[chan];
-          Weight *= G[0](map.GT[0]) * G[chan](map.GT[chan]);
-          Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
-          Ver4.Weight[map.Tidx[chan]] += Weight;
-        }
+      for (auto &map : pair.Map) {
+        Weight = pair.SymFactor;
+        Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
+        Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
+        Ver4.Weight[map.Tidx] += Weight;
       }
     }
   }

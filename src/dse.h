@@ -73,16 +73,17 @@ struct mapT2 {
   int LVerTidx; // LVer T index
   int RVerTidx; // RVer T index
   // map LVer T index and RVer T index to merged T index
-  array<int, 3> Tidx; // three channels
-
+  int Tidx; // three channels
   // LVer T and RVer T to Internal T for G1 and G2
-  array<array<int, 2>, 4> GT; // four indepdent G
+  array<int, 2> G0T; // the shared G
+  array<int, 2> GT;
 };
 
 struct pair {
-  array<ver4, 3> LVer;
-  array<ver4, 3> RVer;
-  array<double, 3> SymFactor;
+  ver4 LVer;
+  ver4 RVer;
+  channel Channel;
+  double SymFactor;
   vector<mapT2> Map;
 };
 
@@ -92,7 +93,7 @@ struct bubble {
   vector<channel> Channel;   // list of channels
   array<momentum *, 4> LegK; // legK index
   array<gMatrix, 4> G;
-  vector<pair> Pair;
+  vector<pair> Pair; // different Tau arrangement and channel
 };
 
 //////////////// Envelope diagrams /////////////////////////////
