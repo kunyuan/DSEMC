@@ -23,7 +23,6 @@ struct envelope;
 
 struct ver4 {
   int ID;
-  int InTL;
   int LoopNum;
   int TauNum;
   caltype Type;
@@ -88,6 +87,7 @@ struct pair {
 };
 
 struct bubble {
+  int InTL;
   bool IsProjected;
   vector<channel> Channel;   // list of channels
   array<momentum *, 4> LegK; // legK index
@@ -144,6 +144,7 @@ struct mapT4 {
 
 struct envelope {
   bool IsProjected;
+  int InTL;
   array<momentum *, 4> LegK; // legK index
   array<ver4, 10> Ver;
   array<g2Matrix, 9> G;

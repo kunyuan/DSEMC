@@ -147,6 +147,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
                       int LoopIndex, int Side, bool IsProjected) {
   bubble Bubble;
   Bubble.IsProjected = IsProjected;
+  Bubble.InTL = InTL;
   Bubble.Channel = Channel;
   auto &LegK = Ver4.LegK;
   caltype Type = Ver4.Type;
@@ -255,6 +256,7 @@ ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
 
   envelope Env;
   Env.IsProjected = IsProjected;
+  Env.InTL = InTL;
   if (IsProjected == false)
     Env.LegK = Ver4.LegK;
   auto &G = Env.G;
