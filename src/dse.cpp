@@ -31,7 +31,6 @@ momentum *verDiag::NextMom() {
 
 ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
                     vector<channel> Channel, caltype Type) {
-  ASSERT_ALLWAYS(LoopNum > 0, "LoopNum must be larger than zero!");
   DiagNum = 0;
   MomNum = MaxLoopNum;
   LoopMom = &loopMom;
@@ -68,20 +67,19 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
     Ver4.RenormVer4 = true;
   }
 
-  if (LoopNum == 0) {
-    ASSERT_ALLWAYS(Channel[0] == I, "Only I channel has zero loop vertex!");
-    Ver4 = Ver0(Ver4, InTL, Side);
-  } else {
-    vector<channel> UST;
-    for (auto &chan : Channel) {
-      if (chan == I)
-        Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Side);
+  vector<channel> UST;
+  for (auto &chan : Channel) {
+    if (chan == I) {
+      if (LoopNum == 0)
+        Ver4 = Ver0(Ver4, InTL, Side);
       else
-        UST.push_back(chan);
-    }
-    Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, Side);
-    // if (Ver4.Re)
+        Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Side);
+    } else
+      UST.push_back(chan);
   }
+  if (UST.size() > 0)
+    Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, Side);
+  // if (Ver4.Re)
 
   Ver4.Weight.resize(Ver4.T.size());
   for (auto &d : Ver4.Weight)

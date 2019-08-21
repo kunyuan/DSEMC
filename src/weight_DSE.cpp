@@ -17,36 +17,37 @@ using namespace dse;
 double weight::Evaluate(int LoopNum, int Channel) {
   if (LoopNum == 0) {
     // normalization
+    // cout << Var.CurrOrder << endl;
     return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2], Var.LoopMom[0],
                                  0.0, -2);
-  } else {
-    ver4 &Root = Ver4Root[LoopNum][Channel];
-    if (Root.Weight.size() == 0)
-      // empty vertex
-      return 0.0;
-
-    if (Channel == dse::S) {
-      *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
-      *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
-    } else {
-      *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
-      *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
-    }
-
-    Vertex4(Root);
-
-    double Weight = 0.0;
-    for (auto &w : Root.Weight)
-      Weight += w;
-    // if (LoopNum == 3 && Channel == dse::I) {
-    //   cout << "loopnum: " << Root.LoopNum << endl;
-    //   cout << "channel: " << Root.Channel[0] << endl;
-    //   cout << Weight << endl;
-    // }
-    // cout << count << endl;
-    return Weight / pow(2.0 * PI, D * LoopNum);
-    // return Weight;
   }
+
+  ver4 &Root = Ver4Root[LoopNum][Channel];
+  if (Root.Weight.size() == 0)
+    // empty vertex
+    return 0.0;
+
+  if (Channel == dse::S) {
+    *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
+    *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
+  } else {
+    *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
+    *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
+  }
+
+  Vertex4(Root);
+
+  double Weight = 0.0;
+  for (auto &w : Root.Weight)
+    Weight += w;
+  // if (LoopNum == 3 && Channel == dse::I) {
+  //   cout << "loopnum: " << Root.LoopNum << endl;
+  //   cout << "channel: " << Root.Channel[0] << endl;
+  //   cout << Weight << endl;
+  // }
+  // cout << count << endl;
+  return Weight / pow(2.0 * PI, D * LoopNum);
+  // return Weight;
 }
 
 void weight::Ver0(ver4 &Ver4) {

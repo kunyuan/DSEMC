@@ -195,6 +195,8 @@ void markov::ChangeGroup() {
       if (Var.CurrOrder == Para.Order)
         return;
       Var.VerOrder[Var.CurrGroup->Order + 1] = 1;
+      if (Var.CurrGroup->Order == 0)
+        Var.VerOrder[0] = 1;
     }
 
   } else if (NewGroup.Order == Var.CurrGroup->Order - 1) {
@@ -204,8 +206,12 @@ void markov::ChangeGroup() {
     if (Var.CurrGroup->Order == 1 && Var.CurrChannel != dse::T)
       return;
 
-    if (Para.Type == VARIATIONAL && Var.VerOrder[Var.CurrGroup->Order] != 1)
-      return;
+    if (Para.Type == VARIATIONAL) {
+      if (Var.VerOrder[Var.CurrGroup->Order] != 1)
+        return;
+      if (Var.CurrGroup->Order == 1 && Var.VerOrder[0] != 1)
+        return;
+    }
 
     Name = DECREASE_ORDER;
     // Remove OldTau

@@ -12,7 +12,7 @@ size = 12
 
 rs = 1.0
 Mass2 = 2
-Lambda=0.0
+Lambda = 2.0
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -134,14 +134,16 @@ elif(XType == "Tau"):
     ax.set_xlabel("$Tau$", size=size)
 elif (XType == "Mom"):
     i = 0
+    bare = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)
     for chan in Channel:
-        if(chan==1):
-            qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)
+        if(chan == 1):
+            qData = np.array(bare)
         for order in Order:
             i += 1
             if(chan == 1):
                 qData -= np.sum(Data[(order, chan)], axis=1) * \
                     Beta/kF**2/TauBinSize
+                qData += bare*(Lambda/8.0/np.pi*bare)**order
             else:
                 qData = Data[(order, chan)]
 
@@ -156,7 +158,7 @@ elif (XType == "Mom"):
     for i in range(len(x)):
         if x[i] > 2.0:
             y[i] = Bubble*(1-np.sqrt(1-4/x[i]**2))
-    y0 = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2)
+    y0 = 8.0*np.pi/(x*x*kF*kF+Mass2)
     # ym=y0-y0*y0*y
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2+y*8.0*np.pi)
 
