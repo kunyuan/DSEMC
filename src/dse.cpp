@@ -35,8 +35,12 @@ ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
   DiagNum = 0;
   MomNum = MaxLoopNum;
   LoopMom = &loopMom;
-  array<momentum *, 4> LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2],
-                               NextMom()};
+  array<momentum *, 4> LegK;
+  if (Channel.size() == 1 && Channel[0] == S) {
+    LegK = {&(*LoopMom)[1], &(*LoopMom)[2], NextMom(), NextMom()};
+  } else {
+    LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2], NextMom()};
+  }
   return Vertex(LegK, 0, LoopNum, 3, Channel, Type, LEFT);
 }
 
@@ -54,7 +58,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   if (Type == caltype::BARE) {
     Ver4.ReExpandBare = false;
     Ver4.ReExpandVer4 = false;
-  } else if (Type == caltype::RG && Type == caltype::RENORMALIZED) {
+  } else if (Type == caltype::RG || Type == caltype::RENORMALIZED) {
     // In RG and renormalization calculation, the projected vertex will be
     // measured
     Ver4.ReExpandBare = true;
@@ -62,6 +66,9 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   } else if (Type == caltype::PARQUET) {
     Ver4.ReExpandBare = false;
     Ver4.ReExpandVer4 = true;
+  } else if (Type == caltype::VARIATIONAL) {
+    Ver4.ReExpandBare = true;
+    Ver4.ReExpandVer4 = false;
   }
 
   if (LoopNum == 0) {

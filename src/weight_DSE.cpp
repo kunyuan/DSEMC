@@ -25,8 +25,13 @@ double weight::Evaluate(int LoopNum, int Channel) {
       // empty vertex
       return 0.0;
 
-    *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
-    *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
+    if (Channel == dse::S) {
+      *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
+      *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
+    } else {
+      *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
+      *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
+    }
 
     Vertex4(Root);
 

@@ -15,7 +15,7 @@ extern parameter Para;
 namespace dse {
 using namespace std;
 
-enum caltype { BARE, RG, PARQUET, RENORMALIZED };
+enum caltype { BARE, RG, PARQUET, RENORMALIZED, VARIATIONAL };
 enum channel { I = 0, T, U, S };
 
 struct bubble;

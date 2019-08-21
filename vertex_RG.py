@@ -18,8 +18,8 @@ XType = "Mom"
 # XType = "Angle"
 
 # 0: I, 1: T, 2: U, 3: S
-# Channel = [0, 1, 3]
 Channel = [0, 1, 3]
+# Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
 Order = [1, 2, ]
@@ -41,6 +41,17 @@ kF = np.sqrt(2.0)/rs  # 2D
 # Bubble=0.11635  #2D, Beta=0.5, rs=1
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
 Bubble = 0.0795775  # 2D, Beta=20, rs=1
+
+
+def AngleIntegation(Data, l):
+    # l: angular momentum
+    shape = Data.shape[1:]
+    Result = np.zeros(shape)
+    for x in range(AngleBinSize):
+        Result += Data[x, ...] * \
+            np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
+    return Result
+
 
 for order in Order:
     for chan in Channel:
@@ -86,7 +97,7 @@ for order in Order:
         DataWithAngle[(order, chan)] = Data0
 
         # average the angle distribution
-        Data[(order, chan)] = np.mean(Data0, axis=0)
+        Data[(order, chan)] = AngleIntegation(Data0, 0)
 
 
 def ErrorPlot(p, x, d, color, marker, label=None, size=4, shift=False):
@@ -152,6 +163,7 @@ elif (XType == "Mom"):
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
     ax.set_xlim([0.0, ExtMomBin[-1]])
+    # ax.set_xscale("log")
     ax.set_xlabel("$q/k_F$", size=size)
 
 elif(XType == "Angle"):

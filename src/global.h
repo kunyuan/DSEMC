@@ -84,6 +84,7 @@ const int MaxLoopNum = MaxOrder + 3; // Max loop number in one group
 const int MaxTauNum = 2 * MaxOrder;  // Max tau number in one group
 const int MaxGNum = 2 * MaxOrder;    // Max G number in one group
 const int MaxVer4Num = MaxOrder;     // Max Ver4 number in one group
+const double BUBBLE = 0.0795775;     // bubble diagram for polarization
 
 //////////   Generic Global Constants  /////////////////
 const double TM32 = 1.0 / (pow(2.0, 32));
