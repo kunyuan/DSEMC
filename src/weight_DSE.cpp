@@ -55,8 +55,12 @@ void weight::Ver0(ver4 &Ver4) {
   const momentum &InR = *K[INR];
   momentum DiQ = InL - *K[OUTL];
   momentum ExQ = InL - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
+  int VerIndex = Ver4.T[0][INL] / 2;
+  Ver4.Weight[0] =
+      VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0, Var.VerOrder[VerIndex]) -
+      VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0, Var.VerOrder[VerIndex]);
+  // cout << VerIndex << endl;
+  // cout << Ver4.Weight[0] << endl;
   // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
   if (Ver4.Type != dse::caltype::BARE) {
     double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];

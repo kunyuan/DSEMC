@@ -17,6 +17,7 @@ using namespace std;
 
 struct variable {
   group *CurrGroup;
+  int CurrOrder;
   long int CurrVersion;
   int CurrExtMomBin; // current bin of the external momentum
   double CurrTau;    // current external tau
@@ -27,6 +28,8 @@ struct variable {
   array<momentum, MaxMomNum> LoopMom; // all momentum loop variables
   array<double, MaxTauNum> Tau;       // all tau variables
   array<int, MaxLoopNum> LoopSpin;    // all spin variables
+  // order of bare interaction, for variational approach only
+  array<int, MaxLoopNum + 1> VerOrder;
 };
 
 class weight {

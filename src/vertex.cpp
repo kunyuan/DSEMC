@@ -134,12 +134,19 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
 }
 
 double verQTheta::Interaction(const momentum &InL, const momentum &InR,
-                              const momentum &Transfer, double Tau,
-                              int VerType) {
+                              const momentum &Transfer, double Tau, int VerType,
+                              int VerOrder) {
 
   double k = Transfer.norm();
   if (VerType == 0) {
-    return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
+    double coupling = 8.0 * PI / (k * k + Para.Mass2);
+    if (VerOrder == 1)
+      return -coupling / Para.Beta;
+    else {
+      return -coupling * pow(Para.Lambda / 8.0 / PI * coupling, VerOrder - 1) /
+             Para.Beta;
+    }
+    // return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
     return 0.0;

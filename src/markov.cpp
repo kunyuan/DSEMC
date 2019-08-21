@@ -37,6 +37,8 @@ markov::markov() : Var(Weight.Var), Groups(Weight.Groups) {
   UpdatesName[CHANGE_MOM] = NAME(CHANGE_MOM);
   UpdatesName[CHANGE_TAU] = NAME(CHANGE_TAU);
   UpdatesName[CHANGE_SCALE] = NAME(CHANGE_SCALE);
+  UpdatesName[CHANGE_CHANNEL] = NAME(CHANGE_CHANNEL);
+  UpdatesName[CHANGE_VERORDER] = NAME(CHANGE_VERORDER);
 
   // for(int i=0;i<MCUpdates;i++)
   // UpdatesName[(Updates)i]=NAME((Updates))
@@ -189,11 +191,20 @@ void markov::ChangeGroup() {
     if (Var.CurrGroup->Order == 0)
       Var.CurrChannel = dse::T;
 
+    if (Para.Type == VARIATIONAL) {
+      if (Var.CurrOrder == Para.Order)
+        return;
+      Var.VerOrder[Var.CurrGroup->Order + 1] = 1;
+    }
+
   } else if (NewGroup.Order == Var.CurrGroup->Order - 1) {
     // change to a new group with one lower order
 
     // if the current order is one, then decrease order is possible only for T
     if (Var.CurrGroup->Order == 1 && Var.CurrChannel != dse::T)
+      return;
+
+    if (Para.Type == VARIATIONAL && Var.VerOrder[Var.CurrGroup->Order] != 1)
       return;
 
     Name = DECREASE_ORDER;
@@ -216,8 +227,8 @@ void markov::ChangeGroup() {
              Var.CurrGroup->ReWeight;
 
   // if (Name == INCREASE_ORDER) {
-  //   cout << "time:" << Var.Tau[2] << ", " << Var.Tau[3] << endl;
-  //   cout << NewWeight << endl;
+  // cout << "time:" << Var.Tau[2] << ", " << Var.Tau[3] << endl;
+  // cout << NewWeight << endl;
   // }
   // if (NewGroup.Order == 2)
   //   cout << NewWeight << endl;
@@ -225,6 +236,10 @@ void markov::ChangeGroup() {
   if (Random.urn() < R) {
     Accepted[Name][Var.CurrGroup->ID]++;
     Weight.AcceptChange(NewGroup);
+    if (Name == INCREASE_ORDER)
+      Var.CurrOrder++;
+    else if (Name == DECREASE_ORDER)
+      Var.CurrOrder--;
   } else {
     Weight.RejectChange(NewGroup);
   }
@@ -356,6 +371,42 @@ void markov::ChangeChannel() {
     Weight.RejectChange(*Var.CurrGroup);
   }
   return;
+}
+
+void markov::ChangeVerOrder() {
+  if (Para.Type != VARIATIONAL)
+    return;
+  if (Var.CurrGroup->Order == 0)
+    return;
+  int VerIndex = int((Var.CurrGroup->Order + 1) * Random.urn());
+  int OldVerOrder = Var.VerOrder[VerIndex];
+  int OldOrder = Var.CurrOrder;
+  if (Random.urn() < 0.5) {
+    if (Var.CurrOrder == Para.Order)
+      return;
+    Var.VerOrder[VerIndex]++;
+    Var.CurrOrder++;
+  } else {
+    if (Var.VerOrder[VerIndex] == 1)
+      return;
+    Var.VerOrder[VerIndex]--;
+    Var.CurrOrder--;
+  }
+
+  Proposed[CHANGE_VERORDER][Var.CurrGroup->ID] += 1;
+  double Prop = 1.0;
+
+  double NewWeight = Weight.GetNewWeight(*Var.CurrGroup);
+
+  double R = Prop * fabs(NewWeight) / fabs(Var.CurrGroup->Weight);
+  if (Random.urn() < R) {
+    Accepted[CHANGE_VERORDER][Var.CurrGroup->ID]++;
+    Weight.AcceptChange(*Var.CurrGroup);
+  } else {
+    Var.VerOrder[VerIndex] = OldVerOrder;
+    Var.CurrOrder = OldOrder;
+    Weight.RejectChange(*Var.CurrGroup);
+  }
 }
 
 double markov::GetNewTau(double &NewTau1, double &NewTau2) {

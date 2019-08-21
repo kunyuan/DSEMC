@@ -15,7 +15,7 @@ extern parameter Para;
 namespace dse {
 using namespace std;
 
-enum caltype { BARE, RG, PARQUET, RENORMALIZED, VARIATIONAL };
+enum caltype { BARE, RG, PARQUET, RENORMALIZED };
 enum channel { I = 0, T, U, S };
 
 struct bubble;
@@ -27,7 +27,7 @@ struct ver4 {
   int TauNum;
   caltype Type;
   bool ReExpandBare;
-  bool ReExpandVer4;
+  bool RenormVer4;
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
@@ -174,6 +174,7 @@ private:
              bool IsProjected = false);
   ver4 ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
                int LoopIndex, int Side, bool IsProjected = false);
+
   momentum *NextMom();
 };
 

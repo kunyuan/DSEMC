@@ -11,7 +11,8 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Lambda = 2
+Mass2 = 2
+Lambda=0.0
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -24,7 +25,7 @@ ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
 Order = [1, 2, ]
 
-folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
+folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Mass2)
 
 Data = {}  # key: (order, channel)
 DataWithAngle = {}  # key: (order, channel)
@@ -50,7 +51,7 @@ def AngleIntegation(Data, l):
     for x in range(AngleBinSize):
         Result += Data[x, ...] * \
             np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
-    return Result
+    return Result/2.0/np.pi
 
 
 for order in Order:
@@ -133,18 +134,20 @@ elif(XType == "Tau"):
     ax.set_xlabel("$Tau$", size=size)
 elif (XType == "Mom"):
     i = 0
-    for order in Order:
-        for chan in Channel:
+    for chan in Channel:
+        if(chan==1):
+            qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)
+        for order in Order:
             i += 1
             if(chan == 1):
-                qData = np.sum(Data[(order, chan)], axis=1) * \
+                qData -= np.sum(Data[(order, chan)], axis=1) * \
                     Beta/kF**2/TauBinSize
             else:
                 qData = Data[(order, chan)]
 
             # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
-            # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
-            # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+            # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)-qData0
+            # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)-qData
             ErrorPlot(ax, ExtMomBin, qData,
                       ColorList[i], 's', "Loop {0}, Chan {1}".format(order, ChanName[chan]))
 
@@ -153,12 +156,12 @@ elif (XType == "Mom"):
     for i in range(len(x)):
         if x[i] > 2.0:
             y[i] = Bubble*(1-np.sqrt(1-4/x[i]**2))
-    y0 = 8.0*np.pi/(x*x*kF*kF+Lambda)
+    y0 = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2)
     # ym=y0-y0*y0*y
-    yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
+    yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    # ax.plot(x, y0, 'k-', lw=2, label="original")
+    ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 

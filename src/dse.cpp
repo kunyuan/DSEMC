@@ -57,18 +57,15 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
 
   if (Type == caltype::BARE) {
     Ver4.ReExpandBare = false;
-    Ver4.ReExpandVer4 = false;
+    Ver4.RenormVer4 = false;
   } else if (Type == caltype::RG || Type == caltype::RENORMALIZED) {
     // In RG and renormalization calculation, the projected vertex will be
     // measured
     Ver4.ReExpandBare = true;
-    Ver4.ReExpandVer4 = true;
+    Ver4.RenormVer4 = true;
   } else if (Type == caltype::PARQUET) {
     Ver4.ReExpandBare = false;
-    Ver4.ReExpandVer4 = true;
-  } else if (Type == caltype::VARIATIONAL) {
-    Ver4.ReExpandBare = true;
-    Ver4.ReExpandVer4 = false;
+    Ver4.RenormVer4 = true;
   }
 
   if (LoopNum == 0) {
@@ -83,6 +80,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
         UST.push_back(chan);
     }
     Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, Side);
+    // if (Ver4.Re)
   }
 
   Ver4.Weight.resize(Ver4.T.size());

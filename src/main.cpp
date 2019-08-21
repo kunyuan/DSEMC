@@ -25,9 +25,9 @@ parameter Para; // parameters as a global variable
 RandomFactory Random;
 
 int main(int argc, const char *argv[]) {
-  cout << "Beta, Rs, Mass2, MaxExtMom(*kF), TotalStep(*1e6), Seed, "
+  cout << "Beta, Rs, Mass2, Lambda, MaxExtMom(*kF), TotalStep(*1e6), Seed, "
           "PID\n";
-  cin >> Para.Beta >> Para.Rs >> Para.Mass2 >> Para.MaxExtMom >>
+  cin >> Para.Beta >> Para.Rs >> Para.Mass2 >> Para.Lambda >> Para.MaxExtMom >>
       Para.TotalStep >> Para.Seed >> Para.PID;
   InitPara(); // initialize global parameters
   MonteCarlo();
@@ -40,7 +40,7 @@ void InitPara() {
   LOGGER_CONF(LogFile, "MC", Logger::file_on | Logger::screen_on, INFO, INFO);
 
   // Para.Type = POLAR;
-  Para.Type = RG;
+  Para.Type = VARIATIONAL;
   Para.ObsType = FREQ;
 
   Para.UseVer4 = false;
@@ -56,6 +56,7 @@ void InitPara() {
            // "3", // 3 loop
            // "4", // 4 loop
   };
+  Para.Order = Para.GroupName.size() - 1;
   Para.ReWeight = {1, 5.0, 3.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = selfenergy::BARE;
@@ -74,6 +75,7 @@ void InitPara() {
   Para.Kf = Kf;
   Para.Ef = Kf * Kf;
   Para.Mu = Para.Ef;
+  Para.Mass2 += Para.Lambda;
   Para.MaxExtMom *= Kf;
 
   // scale all energy with E_F
@@ -145,16 +147,19 @@ void MonteCarlo() {
       // }
 
       double x = Random.urn();
-      if (x < 1.0 / 5.0) {
+      if (x < 1.0 / 6.0) {
         Markov.ChangeGroup();
         // ;
-      } else if (x < 2.0 / 5.0) {
+      } else if (x < 2.0 / 6.0) {
         Markov.ChangeMomentum();
         // ;
-      } else if (x < 3.0 / 5.0) {
+      } else if (x < 3.0 / 6.0) {
         Markov.ChangeTau();
-      } else if (x < 4.0 / 5.0) {
+      } else if (x < 4.0 / 6.0) {
         Markov.ChangeChannel();
+      } else if (x < 5.0 / 6.0) {
+        if (Para.Type == VARIATIONAL)
+          Markov.ChangeVerOrder();
         // } else if (x < 5.0 / 5.0) {
         //   Markov.ChangeScale();
         // ;

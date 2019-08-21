@@ -64,6 +64,9 @@ void weight::Initialization() {
   for (auto &sp : Var.LoopSpin)
     sp = (spin)(Random.irn(0, 1));
 
+  for (auto &ver : Var.VerOrder)
+    ver = 1;
+
   Var.CurrExtMomBin = 0;
 
   // Var.LoopMom[0].fill(0.0);
@@ -81,6 +84,8 @@ void weight::Initialization() {
   Var.CurrVersion = 0;
 
   Var.CurrGroup = &Groups[0];
+
+  Var.CurrOrder = Var.CurrGroup->Order;
 
   Var.CurrIRScaleBin = ScaleBinSize / 1.5;
 
@@ -113,29 +118,29 @@ void weight::AcceptChange(group &Group) {
 void weight::RejectChange(group &Group) { return; }
 
 void weight::Measure(double WeightFactor) {
-  if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
+  if (Para.Vertex4Type == MOM_ANGLE) {
     // if (Var.CurrScale >= Para.ScaleTable[Var.CurrIRScaleBin])
     VerQTheta.Measure(Var.LoopMom[1], Var.LoopMom[2], Var.CurrExtMomBin,
-                      Var.CurrGroup->Order,
+                      Var.CurrOrder,
                       Var.Tau[Var.CurrGroup->TauNum - 1] - Var.Tau[0],
                       Var.CurrChannel, WeightFactor);
   }
 }
 
 void weight::Update(double Ratio) {
-  if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
+  if (Para.Vertex4Type == MOM_ANGLE) {
     VerQTheta.Update(Ratio);
   }
 }
 
 void weight::Save() {
-  if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
+  if (Para.Vertex4Type == MOM_ANGLE) {
     VerQTheta.Save();
   }
 }
 
 void weight::ClearStatis() {
-  if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
+  if (Para.Vertex4Type == MOM_ANGLE) {
     VerQTheta.ClearStatis();
   }
 }

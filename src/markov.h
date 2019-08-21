@@ -10,7 +10,7 @@
 
 namespace mc {
 using namespace std;
-const int MCUpdates = 7;
+const int MCUpdates = 8;
 
 typedef array<double, ExtMomBinSize> polar;
 
@@ -29,6 +29,7 @@ public:
   void ChangeGroup();
   void ChangeScale();
   void ChangeChannel();
+  void ChangeVerOrder();
 
   void Measure();
   void UpdateWeight(double Ratio);
@@ -73,6 +74,7 @@ private:
     CHANGE_TAU,
     CHANGE_MOM,
     CHANGE_SCALE,
+    CHANGE_VERORDER,
     CHANGE_CHANNEL,
     END
   };
