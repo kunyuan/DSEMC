@@ -164,6 +164,8 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
 
 ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
                       int LoopIndex, bool IsProjected) {
+  if (IsProjected)
+    return Ver4;
   bubble Bubble;
   Bubble.IsProjected = IsProjected;
   Bubble.InTL = InTL;
