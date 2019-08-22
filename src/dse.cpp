@@ -132,7 +132,8 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, bool IsBare) {
   return Ver4;
 }
 
-vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
+vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan,
+                          bool IsProjected) {
   ///////////   External and Internal Tau  ////////////////
   vector<mapT2> Map;
   array<int, 2> G0T;
@@ -151,9 +152,15 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
       GT[U] = {RvT[OUTL], LvT[INR]};
       GT[S] = {LvT[OUTL], RvT[INL]};
 
-      LegT[T] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
-      LegT[U] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
-      LegT[S] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
+      if (IsProjected == false) {
+        LegT[T] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
+        LegT[U] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
+        LegT[S] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
+      } else {
+        LegT[T] = {LvT[INL], LvT[INL], RvT[INR], RvT[INR]};
+        LegT[U] = {LvT[INL], RvT[INR], RvT[INR], LvT[INL]};
+        LegT[S] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
+      }
 
       // add T array into the T pool of the vertex
       Tidx = AddToTList(Ver4.T, LegT[Chan]);
@@ -164,16 +171,20 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
 
 ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
                       int LoopIndex, bool IsProjected) {
-  if (IsProjected)
-    return Ver4;
   bubble Bubble;
   Bubble.IsProjected = IsProjected;
   Bubble.InTL = InTL;
   Bubble.Channel = Channel;
   auto &LegK = Ver4.LegK;
   caltype Type = Ver4.Type;
+
   if (IsProjected == false)
     Bubble.LegK = LegK;
+  else {
+    // projected LegK
+    for (int i = 0; i < 4; i++)
+      Bubble.LegK[i] = NextMom();
+  }
 
   auto &G = Bubble.G;
 
@@ -199,6 +210,9 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
     RLegK[S] = {G[0].K, LegK[OUTL], G[S].K, LegK[OUTR]};
 
     for (auto &c : Bubble.Channel) {
+      if (IsProjected && c == S)
+        continue;
+
       pair Pair;
       Pair.Channel = c;
       Pair.SymFactor = SymFactor[c];
@@ -218,7 +232,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
         Pair.RVer =
             Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
       }
-      Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c);
+      Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c, IsProjected);
       Bubble.Pair.push_back(Pair);
     }
   }

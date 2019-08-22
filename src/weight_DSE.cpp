@@ -83,10 +83,22 @@ void weight::ChanUST(dse::ver4 &Ver4) {
   double Weight = 0.0;
   for (auto &bubble : Ver4.Bubble) {
     auto &G = bubble.G;
-    const momentum &InL = *bubble.LegK[INL];
-    const momentum &OutL = *bubble.LegK[OUTL];
-    const momentum &InR = *bubble.LegK[INR];
-    const momentum &OutR = *bubble.LegK[OUTR];
+    momentum &InL = *bubble.LegK[INL];
+    momentum &OutL = *bubble.LegK[OUTL];
+    momentum &InR = *bubble.LegK[INR];
+    momentum &OutR = *bubble.LegK[OUTR];
+
+    if (bubble.IsProjected) {
+      // T channel
+      double Ratio = Para.Kf / (*Ver4.LegK[INL]).norm();
+      InL = *Ver4.LegK[INL] * Ratio;
+      Ratio = Para.Kf / (*Ver4.LegK[INR]).norm();
+      InR = *Ver4.LegK[INR] * Ratio;
+      momentum Transfer = *Ver4.LegK[INL] - *Ver4.LegK[OUTL];
+      OutL = InL - Transfer;
+      OutR = InR + Transfer;
+    }
+
     const momentum &K0 = *G[0].K;
     int InTL = bubble.InTL;
     for (auto &chan : bubble.Channel)
