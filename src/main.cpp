@@ -53,7 +53,7 @@ void InitPara() {
       "0", // 0 loop
       "1", // 1 loop
       "2", // 2 loop
-      "3", // 3 loop
+           // "3", // 3 loop
            // "4", // 4 loop
   };
   Para.Order = Para.GroupName.size() - 1;

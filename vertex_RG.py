@@ -11,8 +11,8 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Mass2 = 1.0
-Lambda = 0.75
+Mass2 = 4.0
+Lambda = 0.5
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -23,7 +23,7 @@ Channel = [0, 1, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [1, 2, 3]
+Order = [1, 2, 3, 4]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Mass2)
 
