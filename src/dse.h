@@ -26,8 +26,9 @@ struct ver4 {
   int LoopNum;
   int TauNum;
   caltype Type;
+  int Side; // right side vertex is always a full gamma4
   bool ReExpandBare;
-  bool ReExpandVer4;
+  bool RenormVer4;
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
@@ -169,11 +170,11 @@ private:
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
               vector<channel> Channel, caltype Type, int Side);
 
-  ver4 Ver0(ver4 Ver4, int InTL, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
-             bool IsProjected = false);
+  ver4 Ver0(ver4 Ver4, int InTL, bool IsBare = false);
+  ver4 ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
+             int LoopIndex, bool IsProjected = false);
   ver4 ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
-               int LoopIndex, int Side, bool IsProjected = false);
+               int LoopIndex, bool IsProjected = false);
   momentum *NextMom();
 };
 

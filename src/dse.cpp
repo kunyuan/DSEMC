@@ -54,35 +54,54 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   Ver4.TauNum = 2 * (LoopNum + 1);
   Ver4.Type = Type;
   Ver4.LegK = LegK;
+  Ver4.Side = Side;
 
   if (Type == caltype::BARE) {
     Ver4.ReExpandBare = false;
-    Ver4.ReExpandVer4 = false;
-  } else if (Type == caltype::RG || Type == caltype::RENORMALIZED) {
-    // In RG and renormalization calculation, the projected vertex will be
-    // measured
+    Ver4.RenormVer4 = false;
+  } else {
     Ver4.ReExpandBare = true;
-    Ver4.ReExpandVer4 = true;
-  } else if (Type == caltype::PARQUET) {
-    Ver4.ReExpandBare = false;
-    Ver4.ReExpandVer4 = true;
-  } else if (Type == caltype::VARIATIONAL) {
-    Ver4.ReExpandBare = true;
-    Ver4.ReExpandVer4 = false;
+    Ver4.RenormVer4 = true;
+
+    if (Type == caltype::PARQUET && Ver4.Side == LEFT)
+      Ver4.ReExpandBare = false;
+
+    if (Type == caltype::VARIATIONAL)
+      Ver4.RenormVer4 = false;
+  }
+
+  vector<channel> UST;
+  vector<channel> II;
+  for (auto &chan : Channel) {
+    if (chan == I)
+      II.push_back(chan);
+    else
+      UST.push_back(chan);
   }
 
   if (LoopNum == 0) {
-    ASSERT_ALLWAYS(Channel[0] == I, "Only I channel has zero loop vertex!");
-    Ver4 = Ver0(Ver4, InTL, Side);
+    // the same for left and right vertex with loopnum=0
+    if (Ver4.ReExpandBare == false)
+      // just bare coupling
+      Ver4 = Ver0(Ver4, InTL, true);
+    else
+      // renormalized coupling
+      Ver4 = Ver0(Ver4, InTL, false);
   } else {
-    vector<channel> UST;
-    for (auto &chan : Channel) {
-      if (chan == I)
-        Ver4 = ChanI(Ver4, InTL, LoopNum, LoopIndex, Side);
-      else
-        UST.push_back(chan);
+    // normal diagram
+    Ver4 = ChanI(Ver4, II, InTL, LoopNum, LoopIndex, false);
+    Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, false);
+
+    // counter diagrams if the vertex is on the right
+    if (Ver4.Side == RIGHT && Ver4.RenormVer4) {
+      Ver4 = ChanI(Ver4, II, InTL, LoopNum, LoopIndex, true);
+      Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, true);
     }
-    Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, Side);
+    // counter diagrams if the vertex is on the left
+    if (Ver4.Side == LEFT && Ver4.ReExpandBare) {
+      Ver4 = ChanI(Ver4, {I}, InTL, LoopNum, LoopIndex, true);
+      Ver4 = ChanUST(Ver4, {T, U, S}, InTL, LoopNum, LoopIndex, true);
+    }
   }
 
   Ver4.Weight.resize(Ver4.T.size());
@@ -92,16 +111,16 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   return Ver4;
 }
 
-ver4 verDiag::Ver0(ver4 Ver4, int InTL, int Side) {
+ver4 verDiag::Ver0(ver4 Ver4, int InTL, bool IsBare) {
   ////////////// bare interaction ///////////
-  if (Side == LEFT)
+  if (Ver4.Side == LEFT)
     // Side==left, then make sure INL Tau are the last TauIndex
     Ver4.T.push_back({InTL, InTL, InTL, InTL});
   else
     // Side==right, then make sure INR Tau are the last TauIndex
     Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
 
-  if (Ver4.Type != caltype::BARE) {
+  if (IsBare == false) {
     //////////// dressed interaction ///////////
     Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
     Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
@@ -140,7 +159,7 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan) {
 }
 
 ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
-                      int LoopIndex, int Side, bool IsProjected) {
+                      int LoopIndex, bool IsProjected) {
   bubble Bubble;
   Bubble.IsProjected = IsProjected;
   Bubble.InTL = InTL;
@@ -243,10 +262,15 @@ vector<mapT4> CreateMapT4(ver4 &Ver4, ver4 LDVer, ver4 LUVer, ver4 RDVer,
   return Map;
 }
 
-ver4 verDiag::ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
-                    bool IsProjected) {
+ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
+                    int LoopIndex, bool IsProjected) {
+  if (Channel.size() == 0 || Channel[0] != I)
+    return Ver4;
 
   if (LoopNum != 3)
+    return Ver4;
+
+  if (IsProjected)
     return Ver4;
 
   envelope Env;
@@ -341,8 +365,8 @@ string verDiag::ToString(const ver4 &Ver4) {
 
       // Info += fmt::format("  G1 Internal T Map: ");
       // for (auto &m : pp.Map)
-      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerTidx, m.RVerTidx,
-      //   m.GT[0],
+      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerTidx,
+      //   m.RVerTidx, m.GT[0],
       //                       m.G1T[1]);
       // Info += "\n";
 
