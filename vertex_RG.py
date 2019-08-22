@@ -50,7 +50,7 @@ def AngleIntegation(Data, l):
     for x in range(AngleBinSize):
         Result += Data[x, ...] * \
             np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
-    return Result
+    return Result/2.0/np.pi
 
 
 for order in Order:
