@@ -94,8 +94,12 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
 
     // counter diagrams if the vertex is on the right
     if (Ver4.Side == RIGHT && Ver4.RenormVer4) {
-      Ver4 = ChanI(Ver4, II, InTL, LoopNum, LoopIndex, true);
-      Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, true);
+      ASSERT_ALLWAYS(II.size() == 1,
+                     "Right vertex should contain one I channel!");
+      ASSERT_ALLWAYS(UST.size() == 3,
+                     "Right vertex should contain one U, S, T channels!");
+      Ver4 = ChanI(Ver4, {I}, InTL, LoopNum, LoopIndex, true);
+      Ver4 = ChanUST(Ver4, {T, U, S}, InTL, LoopNum, LoopIndex, true);
     }
     // counter diagrams if the vertex is on the left
     if (Ver4.Side == LEFT && Ver4.ReExpandBare) {
