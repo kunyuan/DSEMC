@@ -1,0 +1,4 @@
+#rs=1, Beta=20
+#Mass2  Gamma_ph  error
+  2     10.095    0.005
+  4      5.832    0.004
