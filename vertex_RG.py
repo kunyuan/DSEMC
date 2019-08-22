@@ -11,8 +11,8 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Mass2 = 2
-Lambda = 2.0
+Mass2 = 1.0
+Lambda = 0.75
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -23,7 +23,7 @@ Channel = [0, 1, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [1, 2, ]
+Order = [1, 2, 3]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Mass2)
 
@@ -153,7 +153,7 @@ elif (XType == "Mom"):
             ErrorPlot(ax, ExtMomBin, qData,
                       ColorList[i], 's', "Loop {0}, Chan {1}".format(order, ChanName[chan]))
 
-    x = np.arange(0, 3.0, 0.001)
+    x = np.arange(0.01, 3.0, 0.001)
     y = x*0.0+Bubble
     for i in range(len(x)):
         if x[i] > 2.0:
@@ -163,7 +163,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    ax.plot(x, y0, 'k-', lw=2, label="original")
+    # ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
