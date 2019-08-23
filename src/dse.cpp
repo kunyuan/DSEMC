@@ -362,17 +362,21 @@ ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
 string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
   string SideStr;
   if (Ver4.Side == LEFT)
-    SideStr = "Left";
+    SideStr = "L";
   else
-    SideStr = "Right";
+    SideStr = "R";
   // string Info =
   //     indent +
   //     "==============================================================\n";
-  string Info = indent + fmt::format("─L{0}, {1} Ver4 ID: {2}, LoopNum: {3}, "
-                                     "RenormBare: {4}, RenormVer4: {5}\n",
-                                     Level, SideStr, Ver4.ID, Ver4.LoopNum,
-                                     Ver4.RenormBare, Ver4.RenormVer4);
-  Info += indent + " ├─T: ";
+  string Info =
+      indent + fmt::format("├Level: {0}, {1}Ver4 ID: {2}, LoopNum: {3}, "
+                           "RenormBare: {4}, RenormVer4: {5}\n",
+                           Level, SideStr, Ver4.ID, Ver4.LoopNum,
+                           Ver4.RenormBare, Ver4.RenormVer4);
+  if (Ver4.Bubble.size() > 0)
+    Info += indent + "├─T: ";
+  else
+    Info += indent + "└─T: ";
   for (auto &t : Ver4.T)
     Info +=
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
@@ -382,28 +386,29 @@ string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
   Info += "\n";
 
   for (auto &bubble : Ver4.Bubble) {
-    Info += indent +
-            fmt::format(" └─BUBBLE - Projected: {0}\n", bubble.IsProjected);
-    Info += indent + " . │\n";
+    Info +=
+        indent + fmt::format("└─BUBBLE - Projected: {0}\n", bubble.IsProjected);
+    // Info += indent + ". │\n";
     for (int p = 0; p < bubble.Pair.size(); p++) {
       pair pp = bubble.Pair[p];
-      Info +=
-          indent + fmt::format(" . ├PAIR - Channel: {0}, LVerLoopNum: {1}\n",
-                               pp.Channel, pp.LVer.LoopNum);
+      Info += indent + fmt::format(". ├PAIR - Channel: {0}, LVerLoopNum: {1}\n",
+                                   pp.Channel, pp.LVer.LoopNum);
 
       // Info += indent + " . │\n";
-      Info += indent + fmt::format(" . ├─Map:");
+      Info += indent + fmt::format(". ├─Map:");
       for (auto &m : pp.Map)
-        Info += fmt::format("({0},{1})>{2}, ", m.LVerTidx, m.RVerTidx, m.Tidx);
+        Info += fmt::format("({0},{1}):{2}, ", m.LVerTidx, m.RVerTidx, m.Tidx);
 
-      Info += "\n" + indent + " . │\n";
-      Info += ToString(pp.LVer, indent + " . │", Level + 1);
+      Info += "\n" + indent + ". │\n";
+      Info += ToString(pp.LVer, indent + ". ", Level + 1);
       // Info +=
       //     indent + ".....................................................\n";
 
-      Info += indent + " . │\n";
-      Info += ToString(pp.RVer, indent + " . │", Level + 1);
-      Info += indent + "\n";
+      Info += indent + ". │\n";
+      Info += ToString(pp.RVer, indent + ". ", Level + 1);
+      Info += indent + ".  \n";
+      // Info += "\n";
+      // Info += indent + "\n";
       // Info += "\n" + indent + " . │\n";
       // Info += "\n" + indent;
       // Info += ".....................................................\n";
