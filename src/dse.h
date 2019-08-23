@@ -25,8 +25,8 @@ struct ver4 {
   int ID;
   int LoopNum;
   int TauNum;
-  caltype Type;
   int Side; // right side vertex is always a full gamma4
+  bool IsVer4;
   bool RenormBare;
   bool RenormVer4;
 
@@ -168,7 +168,8 @@ private:
   array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-              vector<channel> Channel, caltype Type, int Side);
+              vector<channel> Channel, int Side, bool RenormBare,
+              bool RenormVer4);
 
   ver4 Ver0(ver4 Ver4, int InTL);
   ver4 ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,

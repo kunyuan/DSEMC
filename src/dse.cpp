@@ -45,30 +45,20 @@ ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
 }
 
 ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
-                     int LoopIndex, vector<channel> Channel, caltype Type,
-                     int Side) {
+                     int LoopIndex, vector<channel> Channel, int Side,
+                     bool RenormBare, bool RenormVer4) {
   ver4 Ver4;
   Ver4.ID = DiagNum;
   DiagNum++;
   Ver4.LoopNum = LoopNum;
   Ver4.TauNum = 2 * (LoopNum + 1);
-  Ver4.Type = Type;
   Ver4.LegK = LegK;
   Ver4.Side = Side;
+  Ver4.RenormBare = RenormBare;
+  Ver4.RenormVer4 = RenormVer4;
 
-  if (Type == caltype::BARE) {
-    Ver4.RenormBare = false;
-    Ver4.RenormVer4 = false;
-  } else {
-    Ver4.RenormBare = true;
-    Ver4.RenormVer4 = true;
-
-    if (Type == caltype::PARQUET && Ver4.Side == LEFT)
-      Ver4.RenormBare = false;
-
-    if (Type == caltype::VARIATIONAL)
-      Ver4.RenormVer4 = false;
-  }
+  ASSERT_ALLWAYS((RenormBare && (!RenormVer4)) == false,
+                 "RenormBare=true and RenormVer4=false is not allowed!");
 
   vector<channel> UST;
   vector<channel> II;
@@ -170,7 +160,6 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   Bubble.IsProjected = IsProjected;
   Bubble.InTL = InTL;
   Bubble.Channel = Channel;
-  caltype Type = Ver4.Type;
   array<double, 4> SymFactor = {0.0, -1.0, 1.0, -0.5};
 
   if (IsProjected)
@@ -220,15 +209,15 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
-        Pair.LVer =
-            Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, Type, LEFT);
-        Pair.RVer =
-            Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, LEFT,
+                           Ver4.RenormBare, Ver4.RenormVer4);
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+                           Ver4.RenormVer4, Ver4.RenormVer4);
       } else if (c == S) {
-        Pair.LVer =
-            Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, Type, LEFT);
-        Pair.RVer =
-            Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, Type, RIGHT);
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, LEFT,
+                           Ver4.RenormBare, Ver4.RenormVer4);
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+                           Ver4.RenormVer4, Ver4.RenormVer4);
       }
       Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c, IsProjected);
       Bubble.Pair.push_back(Pair);
@@ -326,20 +315,24 @@ ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
 
   // LD Vertex
   LegK[0] = {InL, G[1].K, G[3].K, G[0].K};
-  Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
+  Env.Ver[0] = Vertex(LegK[0], LDInTL, 0, LoopIndex, ALL, LEFT, Ver4.RenormVer4,
+                      Ver4.RenormVer4);
 
   // LU Vertex
   LegK[1] = {G[1].K, OutL, G[2].K, G[4].K};
   LegK[2] = {G[1].K, OutR, G[2].K, G[6].K};
-  Env.Ver[1] = Vertex(LegK[1], LUInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
-  Env.Ver[2] = Vertex(LegK[2], LUInTL, 0, LoopIndex, ALL, Ver4.Type, LEFT);
+  Env.Ver[1] = Vertex(LegK[1], LUInTL, 0, LoopIndex, ALL, LEFT, Ver4.RenormVer4,
+                      Ver4.RenormVer4);
+  Env.Ver[2] = Vertex(LegK[2], LUInTL, 0, LoopIndex, ALL, LEFT, Ver4.RenormVer4,
+                      Ver4.RenormVer4);
 
   // RD Vertex
   LegK[3] = {G[0].K, G[2].K, InR, G[5].K};
   LegK[4] = {G[0].K, G[2].K, G[7].K, OutR};
   LegK[5] = {G[0].K, G[2].K, G[8].K, OutL};
   for (int i = 3; i <= 5; i++)
-    Env.Ver[i] = Vertex(LegK[i], RDInTL, 0, LoopIndex, ALL, Ver4.Type, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RDInTL, 0, LoopIndex, ALL, RIGHT,
+                        Ver4.RenormVer4, Ver4.RenormVer4);
 
   // RU Vertex
   LegK[6] = {G[4].K, G[3].K, G[5].K, OutR};
@@ -347,7 +340,8 @@ ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   LegK[8] = {G[4].K, G[3].K, InR, G[7].K};
   LegK[9] = {G[6].K, G[3].K, InR, G[8].K};
   for (int i = 6; i <= 9; i++)
-    Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, Ver4.Type, RIGHT);
+    Env.Ver[i] = Vertex(LegK[i], RUInTL, 0, LoopIndex, ALL, RIGHT,
+                        Ver4.RenormVer4, Ver4.RenormVer4);
 
   //////// T map (for all four envelope diagram) //////
   // four diagrams have the same sub-vertex Tau configuration
