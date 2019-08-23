@@ -81,33 +81,46 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 
 void weight::ChanUST(dse::ver4 &Ver4) {
   double Weight = 0.0;
+  double Ratio;
+  momentum Transfer;
+  array<momentum *, 4> &LegK0 = Ver4.LegK;
+
   for (auto &bubble : Ver4.Bubble) {
     auto &G = bubble.G;
-    momentum &InL = *bubble.LegK[INL];
-    momentum &OutL = *bubble.LegK[OUTL];
-    momentum &InR = *bubble.LegK[INR];
-    momentum &OutR = *bubble.LegK[OUTR];
-
-    if (bubble.IsProjected) {
-      // T channel
-      double Ratio = Para.Kf / (*Ver4.LegK[INL]).norm();
-      InL = *Ver4.LegK[INL] * Ratio;
-      Ratio = Para.Kf / (*Ver4.LegK[INR]).norm();
-      InR = *Ver4.LegK[INR] * Ratio;
-      momentum Transfer = *Ver4.LegK[INL] - *Ver4.LegK[OUTL];
-      OutL = InL - Transfer;
-      OutR = InR + Transfer;
-    }
-
     const momentum &K0 = *G[0].K;
     int InTL = bubble.InTL;
-    for (auto &chan : bubble.Channel)
+
+    for (auto &chan : bubble.Channel) {
+      array<momentum *, 4> &LegK = bubble.LegK[chan];
+
+      if (bubble.IsProjected) {
+        if (chan == S) {
+          continue;
+        } else {
+          Ratio = Para.Kf / (*LegK0[INL]).norm();
+          *LegK[INL] = *LegK0[INL] * Ratio;
+          Ratio = Para.Kf / (*LegK0[INR]).norm();
+          *LegK[INR] = *LegK0[INR] * Ratio;
+
+          if (chan == T) {
+            Transfer = *LegK0[INL] - *LegK0[OUTL];
+            *LegK[OUTL] = *LegK[INL] - Transfer;
+            *LegK[OUTR] = *LegK[INL] + Transfer;
+          } else {
+            Transfer = *LegK0[INL] - *LegK0[OUTR];
+            *LegK[OUTL] = *LegK[INR] + Transfer;
+            *LegK[OUTR] = *LegK[INL] - Transfer;
+          }
+        }
+      }
+
       if (chan == T)
-        *G[T].K = OutL + K0 - InL;
+        *G[T].K = *LegK[OUTL] + K0 - *LegK[INL];
       else if (chan == U)
-        *G[U].K = OutR + K0 - InL;
+        *G[U].K = *LegK[OUTR] + K0 - *LegK[INL];
       else if (chan == S)
-        *G[S].K = InL + InR - K0;
+        *G[S].K = *LegK[INL] + *LegK[INR] - K0;
+    }
 
     for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
       for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {

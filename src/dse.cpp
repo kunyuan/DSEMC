@@ -175,18 +175,22 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   Bubble.IsProjected = IsProjected;
   Bubble.InTL = InTL;
   Bubble.Channel = Channel;
-  auto &LegK = Ver4.LegK;
   caltype Type = Ver4.Type;
+  array<double, 4> SymFactor = {0.0, -1.0, 1.0, -0.5};
 
-  if (IsProjected == false)
-    Bubble.LegK = LegK;
-  else {
-    // projected LegK
-    for (int i = 0; i < 4; i++)
-      Bubble.LegK[i] = NextMom();
-  }
+  if (IsProjected)
+    for (auto &s : SymFactor)
+      s *= -1;
+
+  for (auto &c : Channel)
+    if (IsProjected == false)
+      Bubble.LegK[c] = Ver4.LegK;
+    else
+      // projected LegK
+      Bubble.LegK[c] = {NextMom(), NextMom(), NextMom(), NextMom()};
 
   auto &G = Bubble.G;
+  auto &LegK = Bubble.LegK;
 
   G[0] = gMatrix(Ver4.TauNum, InTL, &(*LoopMom)[LoopIndex]);
   for (auto &c : Bubble.Channel)
@@ -195,19 +199,18 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   for (int ol = 0; ol < LoopNum; ol++) {
     // left and right vertex external LegK
     array<momentum *, 4> LLegK[4], RLegK[4];
-    double SymFactor[4] = {0.0, -1.0, 1.0, -0.5};
 
     ////////////////// T channel ////////////////////////////
-    LLegK[T] = {LegK[INL], LegK[OUTL], G[T].K, G[0].K};
-    RLegK[T] = {G[0].K, G[T].K, LegK[INR], LegK[OUTR]};
+    LLegK[T] = {LegK[T][INL], LegK[T][OUTL], G[T].K, G[0].K};
+    RLegK[T] = {G[0].K, G[T].K, LegK[T][INR], LegK[T][OUTR]};
 
     ////////////////// U channel ////////////////////////////
-    LLegK[U] = {LegK[INL], LegK[OUTR], G[U].K, G[0].K};
-    RLegK[U] = {G[0].K, G[U].K, LegK[INR], LegK[OUTL]};
+    LLegK[U] = {LegK[U][INL], LegK[U][OUTR], G[U].K, G[0].K};
+    RLegK[U] = {G[0].K, G[U].K, LegK[U][INR], LegK[U][OUTL]};
 
     ////////////////// S channel ////////////////////////////
-    LLegK[S] = {LegK[INL], G[S].K, LegK[INR], G[0].K};
-    RLegK[S] = {G[0].K, LegK[OUTL], G[S].K, LegK[OUTR]};
+    LLegK[S] = {LegK[S][INL], G[S].K, LegK[S][INR], G[0].K};
+    RLegK[S] = {G[0].K, LegK[S][OUTL], G[S].K, LegK[S][OUTR]};
 
     for (auto &c : Bubble.Channel) {
       if (IsProjected && c == S)
