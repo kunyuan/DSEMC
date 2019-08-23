@@ -359,49 +359,76 @@ ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   return Ver4;
 }
 
-string verDiag::ToString(const ver4 &Ver4) {
-  string Info = fmt::format("Root: \n  ID: {0}; T: ", Ver4.ID);
+string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
+  string SideStr;
+  if (Ver4.Side == LEFT)
+    SideStr = "Left";
+  else
+    SideStr = "Right";
+  // string Info =
+  //     indent +
+  //     "==============================================================\n";
+  string Info = indent + fmt::format("─L{0}, {1} Ver4 ID: {2}, LoopNum: {3}, "
+                                     "RenormBare: {4}, RenormVer4: {5}\n",
+                                     Level, SideStr, Ver4.ID, Ver4.LoopNum,
+                                     Ver4.RenormBare, Ver4.RenormVer4);
+  Info += indent + " ├─T: ";
   for (auto &t : Ver4.T)
     Info +=
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
+
+  // Info += "\n" + indent;
+  // Info += "---------------------------------------------------------\n";
   Info += "\n";
+
   for (auto &bubble : Ver4.Bubble) {
-    Info += "SubVer: \n";
+    Info += indent +
+            fmt::format(" └─BUBBLE - Projected: {0}\n", bubble.IsProjected);
+    Info += indent + " . │\n";
     for (int p = 0; p < bubble.Pair.size(); p++) {
       pair pp = bubble.Pair[p];
-      Info += fmt::format("  LVer ID: {0}, T: ", pp.LVer.ID);
-      for (auto &t : pp.LVer.T)
-        Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
-                            t[OUTR]);
-      Info += "\n";
+      Info +=
+          indent + fmt::format(" . ├PAIR - Channel: {0}, LVerLoopNum: {1}\n",
+                               pp.Channel, pp.LVer.LoopNum);
 
-      Info += fmt::format("  RVer ID: {0}, T: ", pp.RVer.ID);
-      for (auto &t : pp.RVer.T)
-        Info += fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR],
-                            t[OUTR]);
-      Info += "\n";
+      // Info += indent + " . │\n";
+      Info += indent + fmt::format(" . ├─Map:");
+      for (auto &m : pp.Map)
+        Info += fmt::format("({0},{1})>{2}, ", m.LVerTidx, m.RVerTidx, m.Tidx);
+
+      Info += "\n" + indent + " . │\n";
+      Info += ToString(pp.LVer, indent + " . │", Level + 1);
+      // Info +=
+      //     indent + ".....................................................\n";
+
+      Info += indent + " . │\n";
+      Info += ToString(pp.RVer, indent + " . │", Level + 1);
+      Info += indent + "\n";
+      // Info += "\n" + indent + " . │\n";
+      // Info += "\n" + indent;
+      // Info += ".....................................................\n";
 
       // Info += fmt::format("  G1 Internal T Map: ");
       // for (auto &m : pp.Map)
-      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerTidx,
-      //   m.RVerTidx, m.GT[0],
+      //   Info += fmt::format("({0}, {1}): {2}-{3},
+      //   ", m.LVerTidx, m.RVerTidx, m.GT[0],
       //                       m.G1T[1]);
       // Info += "\n";
 
       // Info += fmt::format("  G2 Internal T Map: ");
       // for (auto &m : pp.Map)
-      //   Info += fmt::format("({0}, {1}): {2}-{3}, ", m.LVerT, m.RVerT,
-      //   m.G2T[0],
+      //   Info += fmt::format("({0}, {1}): {2}-{3},
+      //   ", m.LVerT, m.RVerT, m.G2T[0],
       //                       m.G2T[1]);
-      // Info += "\n";
+      // Info += indent + "__\n";
 
-      Info += fmt::format("         Map:        ");
-      for (auto &m : pp.Map)
-        Info +=
-            fmt::format("({0}, {1}) => {2}, ", m.LVerTidx, m.RVerTidx, m.Tidx);
-      Info += "\n";
+      // Info += indent + "--------------------------------------"
+      //                  "----------------------\n";
     }
   }
+
+  // Info += "=======================================================\n";
+  // Info += indent + "----------------------------------------------------\n";
   return Info;
 }
 

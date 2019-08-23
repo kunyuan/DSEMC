@@ -160,7 +160,7 @@ class verDiag {
 public:
   ver4 Build(array<momentum, MaxMomNum> &loopmom, int LoopNum,
              vector<channel> Channel, caltype Type);
-  string ToString(const ver4 &Vertex);
+  string ToString(const ver4 &Vertex, string indent = "│", int Level = 0);
 
 private:
   int DiagNum = 0;
