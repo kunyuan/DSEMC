@@ -104,14 +104,16 @@ void weight::ChanUST(dse::ver4 &Ver4) {
           continue;
         } else {
           Ratio = Para.Kf / (*LegK0[INL]).norm();
+          // Ratio = 1.0;
           *LegK[INL] = *LegK0[INL] * Ratio;
+          // Ratio = 1.0;
           Ratio = Para.Kf / (*LegK0[INR]).norm();
           *LegK[INR] = *LegK0[INR] * Ratio;
 
           if (chan == T) {
             Transfer = *LegK0[INL] - *LegK0[OUTL];
             *LegK[OUTL] = *LegK[INL] - Transfer;
-            *LegK[OUTR] = *LegK[INL] + Transfer;
+            *LegK[OUTR] = *LegK[INR] + Transfer;
           } else {
             Transfer = *LegK0[INL] - *LegK0[OUTR];
             *LegK[OUTL] = *LegK[INR] + Transfer;

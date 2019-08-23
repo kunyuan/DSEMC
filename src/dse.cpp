@@ -206,8 +206,8 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
     RLegK[S] = {G[0].K, LegK[S][OUTL], G[S].K, LegK[S][OUTR]};
 
     for (auto &c : Bubble.Channel) {
-      if (ol == 1 && c == T && LoopNum == 2)
-        continue;
+      // if (ol == 1 && c == T && LoopNum == 2)
+      //   continue;
 
       if (IsProjected && c == S)
         continue;
@@ -223,9 +223,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       if (c == U || c == T) {
         Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, LEFT,
                            Ver4.RenormVer4, Ver4.RexpandBare, false);
-        // Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
-        //                    Ver4.RenormVer4, Ver4.RenormVer4, true);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, T}, RIGHT,
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       } else if (c == S) {
         Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, LEFT,
