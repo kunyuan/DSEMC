@@ -27,7 +27,7 @@ struct ver4 {
   int TauNum;
   caltype Type;
   int Side; // right side vertex is always a full gamma4
-  bool ReExpandBare;
+  bool RenormBare;
   bool RenormVer4;
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
@@ -170,7 +170,7 @@ private:
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
               vector<channel> Channel, caltype Type, int Side);
 
-  ver4 Ver0(ver4 Ver4, int InTL, bool IsBare = false);
+  ver4 Ver0(ver4 Ver4, int InTL);
   ver4 ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
              int LoopIndex, bool IsProjected = false);
   ver4 ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,

@@ -57,14 +57,14 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   Ver4.Side = Side;
 
   if (Type == caltype::BARE) {
-    Ver4.ReExpandBare = false;
+    Ver4.RenormBare = false;
     Ver4.RenormVer4 = false;
   } else {
-    Ver4.ReExpandBare = true;
+    Ver4.RenormBare = true;
     Ver4.RenormVer4 = true;
 
     if (Type == caltype::PARQUET && Ver4.Side == LEFT)
-      Ver4.ReExpandBare = false;
+      Ver4.RenormBare = false;
 
     if (Type == caltype::VARIATIONAL)
       Ver4.RenormVer4 = false;
@@ -81,12 +81,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
 
   if (LoopNum == 0) {
     // the same for left and right vertex with loopnum=0
-    if (Ver4.ReExpandBare == false)
-      // just bare coupling
-      Ver4 = Ver0(Ver4, InTL, true);
-    else
-      // renormalized coupling
-      Ver4 = Ver0(Ver4, InTL, false);
+    Ver4 = Ver0(Ver4, InTL);
   } else {
     // normal diagram
     Ver4 = ChanI(Ver4, II, InTL, LoopNum, LoopIndex, false);
@@ -102,7 +97,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
       Ver4 = ChanUST(Ver4, {T, U, S}, InTL, LoopNum, LoopIndex, true);
     }
     // counter diagrams if the vertex is on the left
-    if (Ver4.Side == LEFT && Ver4.ReExpandBare) {
+    if (Ver4.Side == LEFT && Ver4.RenormBare) {
       Ver4 = ChanI(Ver4, {I}, InTL, LoopNum, LoopIndex, true);
       Ver4 = ChanUST(Ver4, {T, U, S}, InTL, LoopNum, LoopIndex, true);
     }
@@ -115,7 +110,7 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   return Ver4;
 }
 
-ver4 verDiag::Ver0(ver4 Ver4, int InTL, bool IsBare) {
+ver4 verDiag::Ver0(ver4 Ver4, int InTL) {
   ////////////// bare interaction ///////////
   if (Ver4.Side == LEFT)
     // Side==left, then make sure INL Tau are the last TauIndex
@@ -124,7 +119,7 @@ ver4 verDiag::Ver0(ver4 Ver4, int InTL, bool IsBare) {
     // Side==right, then make sure INR Tau are the last TauIndex
     Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
 
-  if (IsBare == false) {
+  if (Ver4.RenormBare == true) {
     //////////// dressed interaction ///////////
     Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
     Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});

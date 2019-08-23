@@ -17,12 +17,14 @@ Beta = 20
 XType = "Mom"
 # XType = "Angle"
 
+OrderByOrder = False
+
 # 0: I, 1: T, 2: U, 3: S
 Channel = [0, 1, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [1, 2, ]
+Order = [0, 1, ]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 
@@ -133,7 +135,7 @@ elif(XType == "Tau"):
     ax.set_xlabel("$Tau$", size=size)
 elif (XType == "Mom"):
     i = 0
-    for order in Order:
+    for order in Order[1:]:
         for chan in Channel:
             i += 1
             if(chan == 1):
@@ -147,6 +149,23 @@ elif (XType == "Mom"):
             # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
             ErrorPlot(ax, ExtMomBin, qData,
                       ColorList[i], 's', "Loop {0}, Chan {1}".format(order, ChanName[chan]))
+
+    i = 0
+
+    for chan in Channel:
+        i += 1
+        if(chan == 1):
+            qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
+            qData -= np.sum(Data[(0, chan)], axis=1) * \
+                Beta/kF**2/TauBinSize
+        else:
+            qData = Data[(0, chan)]
+
+        # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
+        # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
+        # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+        ErrorPlot(ax, ExtMomBin, qData,
+                  ColorList[i], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
