@@ -52,7 +52,7 @@ void InitPara() {
   Para.GroupName = {
       "0", // 0 loop
       "1", // 1 loop
-           // "2", // 2 loop
+      "2", // 2 loop
            // "3", // 3 loop
            // "4", // 4 loop
   };
