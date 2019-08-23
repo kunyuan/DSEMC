@@ -86,10 +86,10 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
     // counter diagrams if the vertex is on the right
     if (IsFullVer4) {
       if (Ver4.RenormVer4) {
-        ASSERT_ALLWAYS(II.size() == 1,
-                       "Right vertex should contain one I channel!");
-        ASSERT_ALLWAYS(UST.size() == 3,
-                       "Right vertex should contain one U, S, T channels!");
+        // ASSERT_ALLWAYS(II.size() == 1,
+        //                "Right vertex should contain one I channel!");
+        // ASSERT_ALLWAYS(UST.size() == 3,
+        //                "Right vertex should contain one U, S, T channels!");
         Ver4 = ChanI(Ver4, II, InTL, LoopNum, LoopIndex, true);
         Ver4 = ChanUST(Ver4, UST, InTL, LoopNum, LoopIndex, true);
       }
@@ -206,7 +206,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
     RLegK[S] = {G[0].K, LegK[S][OUTL], G[S].K, LegK[S][OUTR]};
 
     for (auto &c : Bubble.Channel) {
-      if (ol == 0 && c == T && LoopNum == 2)
+      if (ol == 1 && c == T && LoopNum == 2)
         continue;
 
       if (IsProjected && c == S)
@@ -221,12 +221,11 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
-        // Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S},
-        // LEFT,
-        //                    Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U}, LEFT,
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, LEFT,
                            Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+        // Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+        //                    Ver4.RenormVer4, Ver4.RenormVer4, true);
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, T}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       } else if (c == S) {
         Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, LEFT,
