@@ -26,9 +26,10 @@ struct ver4 {
   int LoopNum;
   int TauNum;
   int Side; // right side vertex is always a full gamma4
-  bool IsVer4;
-  bool RenormBare;
-  bool RenormVer4;
+
+  bool IsFullVer4;
+  bool RenormVer4;  // renormalize the current vertex
+  bool RexpandBare; // reexpand the coupling in the left vertex
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
@@ -168,8 +169,8 @@ private:
   array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-              vector<channel> Channel, int Side, bool RenormBare,
-              bool RenormVer4);
+              vector<channel> Channel, int Side, bool RenormVer4,
+              bool RexpandBare, bool IsFullVer4);
 
   ver4 Ver0(ver4 Ver4, int InTL);
   ver4 ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
