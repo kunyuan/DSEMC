@@ -142,7 +142,7 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
     return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
-    // return 0.0;
+    return 0.0;
     if (k < Para.MaxExtMom) {
       if (Tau < 0.0)
         Tau += Para.Beta;

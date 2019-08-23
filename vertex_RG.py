@@ -20,7 +20,7 @@ XType = "Mom"
 OrderByOrder = False
 
 # 0: I, 1: T, 2: U, 3: S
-Channel = [0, 1, 3]
+Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
@@ -177,7 +177,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    # ax.plot(x, y0, 'k-', lw=2, label="original")
+    ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
