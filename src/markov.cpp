@@ -113,7 +113,9 @@ void markov::Measure() {
   Weight.Measure(WeightFactor);
 };
 
-void markov::UpdateWeight(double Ratio) { Weight.Update(Ratio); }
+void markov::UpdateWeight(double Ratio, int Order) {
+  Weight.Update(Ratio, Order);
+}
 
 void markov::SaveToFile() {
   // return;

@@ -11,7 +11,7 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Lambda = 2
+Lambda = 2.0
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -24,7 +24,7 @@ Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [0, 1, 2]
+Order = [0, 1, 2, 3]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 
@@ -158,6 +158,12 @@ elif (XType == "Mom"):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
             qData -= np.sum(Data[(0, chan)], axis=1) * \
                 Beta/kF**2/TauBinSize
+            # qData -= np.sum(Data[(1, chan)], axis=1) * \
+            #     Beta/kF**2/TauBinSize
+            # qData -= np.sum(Data[(2, chan)], axis=1) * \
+            #     Beta/kF**2/TauBinSize
+            # qData -= np.sum(Data[(3, chan)], axis=1) * \
+            #     Beta/kF**2/TauBinSize
         else:
             qData = Data[(0, chan)]
 

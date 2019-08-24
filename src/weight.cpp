@@ -122,9 +122,9 @@ void weight::Measure(double WeightFactor) {
   }
 }
 
-void weight::Update(double Ratio) {
+void weight::Update(double Ratio, int Order) {
   if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
-    VerQTheta.Update(Ratio);
+    VerQTheta.Update(Ratio, Order);
   }
 }
 

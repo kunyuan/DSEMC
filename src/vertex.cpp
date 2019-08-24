@@ -204,7 +204,7 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
   return;
 }
 
-void verQTheta::Update(double Ratio) {
+void verQTheta::Update(double Ratio, int Order) {
   for (int angle = 0; angle < AngBinSize; ++angle)
     for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
       // S channel
@@ -229,8 +229,8 @@ void verQTheta::Update(double Ratio) {
       for (int tindex = 0; tindex < TauBinSize; ++tindex) {
         OldValue = EffInterT(angle, qindex, tindex);
         NewValue = 0.0;
-        for (int order = 1; order < MaxOrder; ++order) {
-          // for (int order = 1; order < 2; ++order) {
+        // for (int order = 1; order < MaxOrder; ++order) {
+        for (int order = 1; order <= Order; ++order) {
           NewValue += DiffInterT(order, angle, qindex, tindex) / Normalization *
                       PhyWeightT;
         }

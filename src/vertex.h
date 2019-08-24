@@ -42,7 +42,7 @@ public:
 
   void Measure(const momentum &InL, const momentum &InR, const int QIndex,
                int Order, double Tau, int Channel, double WeightFactor);
-  void Update(double Ratio = 1.0);
+  void Update(double Ratio, int Order);
   void Save();
   void ClearStatis();
   void ResetIRScale(int IRScaleBin);
