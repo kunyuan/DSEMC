@@ -55,19 +55,37 @@ void weight::Ver0(ver4 &Ver4) {
   const momentum &InR = *K[INR];
   momentum DiQ = InL - *K[OUTL];
   momentum ExQ = InL - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
-  // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
+  double DiQAmp = DiQ.norm();
+  double ExQAmp = ExQ.norm();
+  if (abs(DiQAmp - Var.LoopMom[0][0]) < 1.0e-6)
+    Ver4.Weight[0] = 0.0;
+  else
+    Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
+
+  if (abs(ExQAmp - Var.LoopMom[0][0]) > 1.0e-6)
+    Ver4.Weight[0] += -VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
+
+  if (Ver4.T[0][INL] == 0)
+    Ver4.Weight[0] = 1.0 / Para.Beta;
+
+  // Var.Tau[Var.CurrGroup->TauNum - 1] - Var.Tau[0],
+
   if (Ver4.RexpandBare) {
-    // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
     double Tau = Var.Tau[Ver4.T[1][INR]] - Var.Tau[Ver4.T[1][INL]];
-    // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
-    // Ver4.T[2][INR]
-    //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[1] = +VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
-    Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);
-    // Ver4.Weight[1] = 0.0;
-    // Ver4.Weight[2] = 0.0;
+    if (abs(DiQAmp - Var.LoopMom[0][0]) < 1.0e-6)
+      Ver4.Weight[1] = +VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
+    else
+      Ver4.Weight[1] = 0.0;
+
+    if (abs(ExQAmp - Var.LoopMom[0][0]) < 1.0e-6)
+      Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);
+    else
+      Ver4.Weight[2] = 0.0;
+
+    if (Ver4.T[1][INR] == Var.CurrGroup->TauNum - 1) {
+      Ver4.Weight[1] = 1.0 / Para.Beta;
+      Ver4.Weight[2] = 0.0;
+    }
   }
   return;
 }
