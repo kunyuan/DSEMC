@@ -148,7 +148,21 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
         Tau += Para.Beta;
       int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
       int TauIndex = Tau2Index(Tau);
-      return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+      // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
+      //   return 0.0;
+      // else
+
+      if (k < 0.2 * Para.Kf)
+        return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+      else if (k > 1.0 * Para.Kf && k < 2.5 * Para.Kf) {
+        if ((InL.norm() > 0.8 * Para.Kf && InL.norm() < 1.2 * Para.Kf) &&
+            (InR.norm() > 0.8 * Para.Kf && InR.norm() < 1.2 * Para.Kf)) {
+          return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf), TauIndex);
+        } else
+          // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+          return 0.0;
+      } else
+        return 0.0;
       // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double Lower = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double UpperTau = Index2Tau(TauIndex + 1);

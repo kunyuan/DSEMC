@@ -154,6 +154,9 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan,
         LegT[T] = {LvT[INL], LvT[INL], RvT[INR], RvT[INR]};
         LegT[U] = {LvT[INL], RvT[INR], RvT[INR], LvT[INL]};
         LegT[S] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
+
+        // LegT[T] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
+        // LegT[U] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
       }
 
       // add T array into the T pool of the vertex
@@ -221,14 +224,17 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
-        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, LEFT,
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U}, LEFT,
                            Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, T}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       } else if (c == S) {
-        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, T}, LEFT,
-                           Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, S, T}, RIGHT,
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1,
+                           {
+                               I,
+                           },
+                           LEFT, Ver4.RenormVer4, Ver4.RexpandBare, false);
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, S}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       }
       Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c, IsProjected);

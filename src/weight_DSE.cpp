@@ -97,28 +97,77 @@ void weight::ChanUST(dse::ver4 &Ver4) {
     int InTL = bubble.InTL;
 
     for (auto &chan : bubble.Channel) {
+      bubble.ProjFactor[chan] = 1;
       array<momentum *, 4> &LegK = bubble.LegK[chan];
 
       if (bubble.IsProjected) {
         if (chan == S) {
           continue;
-        } else {
-          Ratio = Para.Kf / (*LegK0[INL]).norm();
-          // Ratio = 1.0;
-          *LegK[INL] = *LegK0[INL] * Ratio;
-          // Ratio = 1.0;
-          Ratio = Para.Kf / (*LegK0[INR]).norm();
-          *LegK[INR] = *LegK0[INR] * Ratio;
+        } else if (chan == T) {
+          Transfer = *LegK0[INL] - *LegK0[OUTL];
+          double Q = Transfer.norm();
+          if (Q < 0.2 * Para.Kf) {
+            Ratio = Para.Kf / (*LegK0[INL]).norm();
+            *LegK[INL] = *LegK0[INL] * Ratio;
+            Ratio = Para.Kf / (*LegK0[INR]).norm();
+            *LegK[INR] = *LegK0[INR] * Ratio;
 
-          if (chan == T) {
-            Transfer = *LegK0[INL] - *LegK0[OUTL];
             *LegK[OUTL] = *LegK[INL] - Transfer;
             *LegK[OUTR] = *LegK[INR] + Transfer;
-          } else {
-            Transfer = *LegK0[INL] - *LegK0[OUTR];
+          } else if (Q > 1.0 * Para.Kf && Q < 2.5 * Para.Kf) {
+            if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+
+              Ratio = 2.0 * Para.Kf / Q;
+              Transfer = Transfer * Ratio;
+              *LegK[INL] = Transfer * 0.5;
+              *LegK[INR] = Transfer * (-0.5);
+              *LegK[OUTL] = *LegK[INL] - Transfer;
+              *LegK[OUTR] = *LegK[INR] + Transfer;
+            } else {
+              bubble.ProjFactor[T] = 0.0;
+            }
+          } else
+            bubble.ProjFactor[T] = 0.0;
+        } else {
+          Transfer = *LegK0[INL] - *LegK0[OUTR];
+          double Q = Transfer.norm();
+          if (Q < 0.2 * Para.Kf) {
+            Ratio = Para.Kf / (*LegK0[INL]).norm();
+            *LegK[INL] = *LegK0[INL] * Ratio;
+            Ratio = Para.Kf / (*LegK0[INR]).norm();
+            *LegK[INR] = *LegK0[INR] * Ratio;
+
             *LegK[OUTL] = *LegK[INR] + Transfer;
             *LegK[OUTR] = *LegK[INL] - Transfer;
-          }
+          } else if (Q > 1.0 * Para.Kf && Q < 2.5 * Para.Kf) {
+
+            if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+                ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+                 (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+
+              Ratio = 2.0 * Para.Kf / Q;
+              Transfer = Transfer * Ratio;
+              *LegK[INL] = Transfer * 0.5;
+              *LegK[INR] = Transfer * (-0.5);
+              *LegK[OUTL] = *LegK[INR] + Transfer;
+              *LegK[OUTR] = *LegK[INL] - Transfer;
+            } else {
+              bubble.ProjFactor[U] = 0.0;
+            }
+          } else
+            bubble.ProjFactor[U] = 0.0;
         }
       }
 
@@ -152,7 +201,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       Vertex4(RVer);
 
       for (auto &map : pair.Map) {
-        Weight = pair.SymFactor;
+        Weight = pair.SymFactor * bubble.ProjFactor[pair.Channel];
         Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
         Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
         Ver4.Weight[map.Tidx] += Weight;

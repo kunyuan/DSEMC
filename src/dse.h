@@ -92,7 +92,8 @@ struct pair {
 struct bubble {
   int InTL;
   bool IsProjected;
-  vector<channel> Channel;             // list of channels except I
+  vector<channel> Channel; // list of channels except I
+  array<double, 4> ProjFactor;
   array<array<momentum *, 4>, 4> LegK; // legK index for different channel
   array<gMatrix, 4> G;
   vector<pair> Pair; // different Tau arrangement and channel
