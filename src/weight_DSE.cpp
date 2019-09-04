@@ -17,8 +17,10 @@ using namespace dse;
 double weight::Evaluate(int LoopNum, int Channel) {
   if (LoopNum == 0) {
     // normalization
-    return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2], Var.LoopMom[0],
-                                 0.0, -2);
+    // return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2],
+    // Var.LoopMom[0],
+    //                              0.0, -2);
+    return 1.0;
   } else {
     ver4 &Root = Ver4Root[LoopNum][Channel];
     if (Root.Weight.size() == 0)
@@ -51,12 +53,10 @@ double weight::Evaluate(int LoopNum, int Channel) {
 
 void weight::Ver0(ver4 &Ver4) {
   auto &K = Ver4.LegK;
-  const momentum &InL = *K[INL];
-  const momentum &InR = *K[INR];
-  momentum DiQ = InL - *K[OUTL];
-  momentum ExQ = InL - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0);
+  momentum DiQ = *K[INL] - *K[OUTL];
+  momentum ExQ = *K[INL] - *K[OUTR];
+  Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
+                   VerQTheta.Interaction(K, ExQ, 0.0, 0);
   // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
@@ -64,8 +64,8 @@ void weight::Ver0(ver4 &Ver4) {
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[1] = +VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
-    Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);
+    Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
+    Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
     // Ver4.Weight[1] = 0.0;
     // Ver4.Weight[2] = 0.0;
   }
@@ -114,25 +114,25 @@ void weight::ChanUST(dse::ver4 &Ver4) {
 
             *LegK[OUTL] = *LegK[INL] - Transfer;
             *LegK[OUTR] = *LegK[INR] + Transfer;
-          } else if (Q > 1.0 * Para.Kf && Q < 2.5 * Para.Kf) {
-            if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+            // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
+            //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
 
-              Ratio = 2.0 * Para.Kf / Q;
-              Transfer = Transfer * Ratio;
-              *LegK[INL] = Transfer * 0.5;
-              *LegK[INR] = Transfer * (-0.5);
-              *LegK[OUTL] = *LegK[INL] - Transfer;
-              *LegK[OUTR] = *LegK[INR] + Transfer;
-            } else {
-              bubble.ProjFactor[T] = 0.0;
-            }
+            //     Ratio = 2.0 * Para.Kf / Q;
+            //     Transfer = Transfer * Ratio;
+            //     *LegK[INL] = Transfer * 0.5;
+            //     *LegK[INR] = Transfer * (-0.5);
+            //     *LegK[OUTL] = *LegK[INR];
+            //     *LegK[OUTR] = *LegK[INL];
+            //   } else {
+            //     bubble.ProjFactor[T] = 0.0;
+            //   }
           } else
             bubble.ProjFactor[T] = 0.0;
         } else {
@@ -146,26 +146,26 @@ void weight::ChanUST(dse::ver4 &Ver4) {
 
             *LegK[OUTL] = *LegK[INR] + Transfer;
             *LegK[OUTR] = *LegK[INL] - Transfer;
-          } else if (Q > 1.0 * Para.Kf && Q < 2.5 * Para.Kf) {
+            // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
 
-            if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
-                ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
-                 (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+            //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
 
-              Ratio = 2.0 * Para.Kf / Q;
-              Transfer = Transfer * Ratio;
-              *LegK[INL] = Transfer * 0.5;
-              *LegK[INR] = Transfer * (-0.5);
-              *LegK[OUTL] = *LegK[INR] + Transfer;
-              *LegK[OUTR] = *LegK[INL] - Transfer;
-            } else {
-              bubble.ProjFactor[U] = 0.0;
-            }
+            //     Ratio = 2.0 * Para.Kf / Q;
+            //     Transfer = Transfer * Ratio;
+            //     *LegK[INL] = Transfer * 0.5;
+            //     *LegK[INR] = Transfer * (-0.5);
+            //     *LegK[OUTL] = *LegK[INL];
+            //     *LegK[OUTR] = *LegK[INR];
+            //   } else {
+            //     bubble.ProjFactor[U] = 0.0;
+            //   }
           } else
             bubble.ProjFactor[U] = 0.0;
         }

@@ -133,11 +133,10 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
   return dChanS[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
 }
 
-double verQTheta::Interaction(const momentum &InL, const momentum &InR,
-                              const momentum &Transfer, double Tau,
-                              int VerType) {
+double verQTheta::Interaction(const array<momentum *, 4> &LegK,
+                              const momentum &Q, double Tau, int VerType) {
 
-  double k = Transfer.norm();
+  double k = Q.norm();
   if (VerType == 0) {
     return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
     // return 1.0 / Para.Beta;
@@ -146,21 +145,31 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
     if (k < Para.MaxExtMom) {
       if (Tau < 0.0)
         Tau += Para.Beta;
-      int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
+      int AngleIndex = Angle2Index(Angle2D(*LegK[INL], *LegK[INR]), AngBinSize);
       int TauIndex = Tau2Index(Tau);
       // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
       //   return 0.0;
       // else
 
-      if (k < 0.2 * Para.Kf)
+      if (k < 0.2 * Para.Kf) {
         return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
-      else if (k > 1.0 * Para.Kf && k < 2.5 * Para.Kf) {
-        if ((InL.norm() > 0.8 * Para.Kf && InL.norm() < 1.2 * Para.Kf) &&
-            (InR.norm() > 0.8 * Para.Kf && InR.norm() < 1.2 * Para.Kf)) {
-          return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf), TauIndex);
-        } else
-          // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
-          return 0.0;
+        // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
+        //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[INL]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[INR]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[INR]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[OUTL]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[OUTL]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[OUTR]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[OUTR]).norm() < 1.2 * Para.Kf)) {
+        //     return EffInterT(AngBinSize / 2, Mom2Index(2.0 * Para.Kf),
+        //     TauIndex);
+        //     // return 0.5;
+        //     // return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf),
+        //     TauIndex);
+        //   } else
+        //     // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+        //     return 0.0;
       } else
         return 0.0;
       // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
