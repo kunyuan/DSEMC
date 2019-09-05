@@ -106,7 +106,7 @@ public:
   //   void _TestAngle2D();
 };
 
-double Angle2D(const momentum &K1, const momentum &K2);
+double Angle3D(const momentum &K1, const momentum &K2);
 double Index2Angle(const int &Index, const int &AngleNum);
 int Angle2Index(const double &Angle, const int &AngleNum);
 void _TestAngleIndex();

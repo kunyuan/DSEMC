@@ -22,6 +22,9 @@ double weight::Evaluate(int LoopNum, int Channel) {
     //                              0.0, -2);
     return 1.0;
   } else {
+    if (Channel != dse::T)
+      return 0.0;
+
     ver4 &Root = Ver4Root[LoopNum][Channel];
     if (Root.Weight.size() == 0)
       // empty vertex
@@ -55,19 +58,19 @@ void weight::Ver0(ver4 &Ver4) {
   auto &K = Ver4.LegK;
   momentum DiQ = *K[INL] - *K[OUTL];
   momentum ExQ = *K[INL] - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(K, ExQ, 0.0, 0);
-  // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
+  // Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
+  //                  VerQTheta.Interaction(K, ExQ, 0.0, 0);
+  Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
     double Tau = Var.Tau[Ver4.T[1][INR]] - Var.Tau[Ver4.T[1][INL]];
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
-    Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
-    // Ver4.Weight[1] = 0.0;
-    // Ver4.Weight[2] = 0.0;
+    // Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
+    // Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
+    Ver4.Weight[1] = 0.0;
+    Ver4.Weight[2] = 0.0;
   }
   return;
 }
@@ -106,7 +109,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else if (chan == T) {
           Transfer = *LegK0[INL] - *LegK0[OUTL];
           double Q = Transfer.norm();
-          if (Q < 0.2 * Para.Kf) {
+          if (Q < 0.5 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();
@@ -138,7 +141,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else {
           Transfer = *LegK0[INL] - *LegK0[OUTR];
           double Q = Transfer.norm();
-          if (Q < 0.2 * Para.Kf) {
+          if (Q < 0.5 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();

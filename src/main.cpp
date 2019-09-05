@@ -52,11 +52,11 @@ void InitPara() {
   Para.GroupName = {
       "0", // 0 loop
       "1", // 1 loop
-      "2", // 2 loop
-      "3", // 3 loop
+           // "2", // 2 loop
+           // "3", // 3 loop
            // "4", // 4 loop
   };
-  Para.ReWeight = {1, 1.0, 1.0, 0.5, 1.0};
+  Para.ReWeight = {0.2, 1.0, 1.0, 0.5, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = selfenergy::BARE;
 
@@ -94,7 +94,7 @@ void InitPara() {
 
   for (int i = 0; i < AngBinSize; i++) {
     Para.AngleTable[i] = diag::Index2Angle(i, AngBinSize);
-    Para.dAngleTable[i] = 2.0 * PI / AngBinSize;
+    Para.dAngleTable[i] = 2.0 / AngBinSize;
   }
 
   // initialize external momentum

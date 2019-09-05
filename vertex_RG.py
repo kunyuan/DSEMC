@@ -24,7 +24,7 @@ Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [0, 1, 2, 3]
+Order = [0, 1, ]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 # folder = "./3_Beta{0}_lambda{2}/".format(Beta, rs, Lambda)
@@ -40,10 +40,14 @@ ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
-kF = np.sqrt(2.0)/rs  # 2D
+# kF = np.sqrt(2.0)/rs  # 2D
 # Bubble=0.11635  #2D, Beta=0.5, rs=1
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
-Bubble = 0.0795775  # 2D, Beta=20, rs=1
+# Bubble = 0.0795775  # 2D, Beta=20, rs=1
+
+#############  3D  ######################################
+kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
+Bubble=0.0971916  #3D, Beta=10, rs=1
 
 
 def AngleIntegation(Data, l):
@@ -51,9 +55,11 @@ def AngleIntegation(Data, l):
     shape = Data.shape[1:]
     Result = np.zeros(shape)
     for x in range(AngleBinSize):
-        Result += Data[x, ...] * \
-            np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
-    return Result/2.0/np.pi
+        # Result += Data[x, ...] * \
+        #     np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
+        Result +=Data[x, ...]*2.0/AngleBinSize
+    return Result/np.pi
+    # return Result
 
 
 for order in Order:
@@ -139,6 +145,7 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
+            qData*=0.0;
         for order in Order[1:]:
             i += 1
             if(chan == 1):
@@ -170,8 +177,8 @@ elif (XType == "Mom"):
         # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
         # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
         # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-        ErrorPlot(ax, ExtMomBin, qData,
-                  ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
+        # ErrorPlot(ax, ExtMomBin, qData,
+        #           ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
@@ -183,7 +190,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    ax.plot(x, y0, 'k-', lw=2, label="original")
+    # ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 

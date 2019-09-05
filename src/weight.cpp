@@ -69,6 +69,13 @@ void weight::Initialization() {
   // Var.LoopMom[0].fill(0.0);
   Var.LoopMom[0] = Para.ExtMomTable[Var.CurrExtMomBin];
 
+  for (int i = 1; i < D; i++) {
+    Var.LoopMom[1][i] = 0.0;
+    Var.LoopMom[2][i] = 0.0;
+  }
+  Var.LoopMom[1][0] = Para.Kf;
+  Var.LoopMom[2][0] = Para.Kf;
+
   // initialize external tau
   // Var.Tau[0] = 0.0;
   // Var.Tau[1] = 1.0e-10; // do not make Tau[1]==Tau[0], otherwise the Green's
