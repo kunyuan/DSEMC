@@ -11,7 +11,7 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Lambda = 2
+Lambda = 2.0
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -20,7 +20,7 @@ XType = "Mom"
 OrderByOrder = False
 
 # 0: I, 1: T, 2: U, 3: S
-Channel = [1, ]
+Channel = [1, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
@@ -47,7 +47,7 @@ ExtMomBinSize = None
 
 #############  3D  ######################################
 kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
-Bubble=0.0971916  #3D, Beta=10, rs=1
+Bubble = 0.0971916  # 3D, Beta=10, rs=1
 
 
 def AngleIntegation(Data, l):
@@ -57,7 +57,7 @@ def AngleIntegation(Data, l):
     for x in range(AngleBinSize):
         # Result += Data[x, ...] * \
         #     np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
-        Result +=Data[x, ...]*2.0/AngleBinSize
+        Result += Data[x, ...]*2.0/AngleBinSize
     return Result/np.pi
     # return Result
 
@@ -145,7 +145,7 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            qData*=0.0;
+            qData *= 0.0
         for order in Order[1:]:
             i += 1
             if(chan == 1):

@@ -37,6 +37,7 @@ markov::markov() : Var(Weight.Var), Groups(Weight.Groups) {
   UpdatesName[CHANGE_MOM] = NAME(CHANGE_MOM);
   UpdatesName[CHANGE_TAU] = NAME(CHANGE_TAU);
   UpdatesName[CHANGE_SCALE] = NAME(CHANGE_SCALE);
+  UpdatesName[CHANGE_CHANNEL] = NAME(CHANGE_CHANNEL);
 
   // for(int i=0;i<MCUpdates;i++)
   // UpdatesName[(Updates)i]=NAME((Updates))
