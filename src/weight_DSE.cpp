@@ -67,10 +67,10 @@ void weight::Ver0(ver4 &Ver4) {
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    // Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
-    // Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
-    Ver4.Weight[1] = 0.0;
-    Ver4.Weight[2] = 0.0;
+    Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
+    Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
+    // Ver4.Weight[1] = 0.0;
+    // Ver4.Weight[2] = 0.0;
   }
   return;
 }
@@ -109,7 +109,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else if (chan == T) {
           Transfer = *LegK0[INL] - *LegK0[OUTL];
           double Q = Transfer.norm();
-          if (Q < 0.5 * Para.Kf) {
+          if (Q < 0.2 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();
@@ -141,7 +141,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else {
           Transfer = *LegK0[INL] - *LegK0[OUTR];
           double Q = Transfer.norm();
-          if (Q < 0.5 * Para.Kf) {
+          if (Q < 0.2 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();

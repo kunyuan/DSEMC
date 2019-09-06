@@ -148,7 +148,7 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK,
       //   return 0.0;
       // else
 
-      if (k < 0.5 * Para.Kf) {
+      if (k < 0.2 * Para.Kf) {
         return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
         // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
         //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&

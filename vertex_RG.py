@@ -24,7 +24,7 @@ Channel = [1, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [0, 1, ]
+Order = [0, 1, 2, 3]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 # folder = "./3_Beta{0}_lambda{2}/".format(Beta, rs, Lambda)
@@ -177,8 +177,8 @@ elif (XType == "Mom"):
         # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
         # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
         # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-        # ErrorPlot(ax, ExtMomBin, qData,
-        #           ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
+        ErrorPlot(ax, ExtMomBin, qData,
+                  ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
@@ -190,7 +190,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    # ax.plot(x, y0, 'k-', lw=2, label="original")
+    ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
