@@ -16,7 +16,7 @@ const bool DEBUGMODE = true;
 // array.h
 ///////////  Global Constants ////////////////////
 // D=2 or D=3
-const int D = 3;
+const int D = 2;
 // number of q bins of the external momentum
 const int ExtMomBinSize = 32;
 // number of bins for the angle between InL and InR legs
@@ -68,6 +68,8 @@ struct parameter {
 
   std::array<momentum, ExtMomBinSize>
       ExtMomTable; // external bosonic Momentum (transfer momentum)
+  std::array<momentum, AngBinSize>
+      ExtLegKTable; // external fermionic Momentum (LegK momentum)
   std::array<double, ScaleBinSize + 1> ScaleTable;
   std::array<double, ScaleBinSize + 1> dScaleTable;
   std::array<double, AngBinSize> AngleTable;

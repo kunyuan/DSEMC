@@ -52,8 +52,8 @@ void InitPara() {
   Para.GroupName = {
       "0", // 0 loop
       "1", // 1 loop
-      "2", // 2 loop
-      "3", // 3 loop
+      // "2", // 2 loop
+          //  "3", // 3 loop
            // "4", // 4 loop
   };
   Para.ReWeight = {0.2, 1.0, 1.0, 0.5, 1.0};
@@ -104,6 +104,7 @@ void InitPara() {
     for (int j = 1; j < D; j++)
       Para.ExtMomTable[i][j] = 0.0;
   }
+
 
   LOG_INFO("Inverse Temperature: " << Para.Beta << "\n"
                                    << "UV Energy Scale: " << Para.UVScale

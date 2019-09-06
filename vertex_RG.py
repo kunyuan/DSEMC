@@ -20,7 +20,7 @@ XType = "Mom"
 OrderByOrder = False
 
 # 0: I, 1: T, 2: U, 3: S
-Channel = [1, 3]
+Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
@@ -40,14 +40,14 @@ ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
-# kF = np.sqrt(2.0)/rs  # 2D
+kF = np.sqrt(2.0)/rs  # 2D
 # Bubble=0.11635  #2D, Beta=0.5, rs=1
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
-# Bubble = 0.0795775  # 2D, Beta=20, rs=1
+Bubble = 0.0795775  # 2D, Beta=20, rs=1
 
 #############  3D  ######################################
-kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
-Bubble = 0.0971916  # 3D, Beta=10, rs=1
+# kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
+# Bubble = 0.0971916  # 3D, Beta=10, rs=1
 
 
 def AngleIntegation(Data, l):
@@ -58,8 +58,13 @@ def AngleIntegation(Data, l):
         # Result += Data[x, ...] * \
         #     np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
         Result += Data[x, ...]*2.0/AngleBinSize
-    return Result/np.pi
+    return Result/2.0
     # return Result
+
+
+def TauIntegration(Data):
+    return np.sum(Data, axis=-1) * \
+        Beta/kF**2/TauBinSize
 
 
 for order in Order:
@@ -145,7 +150,7 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            qData *= 0.0
+            # qData *= 0.0
         for order in Order[1:]:
             i += 1
             if(chan == 1):
@@ -157,6 +162,8 @@ elif (XType == "Mom"):
             # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
             # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
             # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+            # print qData.shape, len(ExtMomBin)
+            # print qData
             ErrorPlot(ax, ExtMomBin, qData,
                       ColorList[i], 's', "Loop {0}, Chan {1}".format(order, ChanName[chan]))
 
@@ -177,8 +184,8 @@ elif (XType == "Mom"):
         # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
         # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
         # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-        ErrorPlot(ax, ExtMomBin, qData,
-                  ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
+        # ErrorPlot(ax, ExtMomBin, qData,
+        #           ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
@@ -199,13 +206,15 @@ elif (XType == "Mom"):
     ax.set_xlabel("$q/k_F$", size=size)
 
 elif(XType == "Angle"):
-    for i in range(ScaleBinSize/8):
+    AngData = TauIntegration(DataWithAngle[(1, 1)])
+    for i in range(ExtMomBinSize/8):
         # print i, index
         # print ScaleBin[index]
         index = 8*i
-        ErrorPlot(ax, AngleBin, Data[index, :, 5],
-                  ColorList[i], 's', "Q {0}".format(ScaleBin[index]))
-    ax.set_xlim([0.0, AngleBin[-1]])
+        ErrorPlot(ax, AngleBin, AngData[:, index],
+                  ColorList[i], 's', "Q {0}".format(ExtMomBin[index]))
+    ax.set_xlim([AngleBin[0], AngleBin[-1]])
+    # ax.set_ylim([0.0, 0.15])
     ax.set_xlabel("$Angle$", size=size)
 # ax.set_xticks([0.0,0.04,0.08,0.12])
 # ax.set_yticks([0.35,0.4,0.45,0.5])

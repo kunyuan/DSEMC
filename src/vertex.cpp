@@ -54,8 +54,8 @@ verQTheta::verQTheta() {
   // PhyWeight =
   //     1.0 / Para.Beta / Para.Beta * ExtMomBinSize * 2.0 * PI * Para.Kf * 4.0;
 
-  PhyWeightT = ExtMomBinSize * PI * Para.Beta;
-  PhyWeightI = ExtMomBinSize * PI * Para.Beta;
+  PhyWeightT = ExtMomBinSize * Para.Beta*AngBinSize;
+  PhyWeightI = ExtMomBinSize * Para.Beta*AngBinSize;
   // PhyWeight = 2.0 * PI / TauBinSize * 64;
   // PhyWeight = 1.0;
 
@@ -204,21 +204,21 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
     // Normalization += WeightFactor;
   } else {
     // double Factor = 1.0 / pow(2.0 * PI, 2 * Order);
-    int AngleIndex = Angle2Index(Angle3D(InL, InR), AngBinSize);
+    double CosAng=Angle3D(InL, InR);
+    int AngleIndex = Angle2Index(CosAng, AngBinSize);
     if (Channel == 1) {
       if (dTau < 0.0)
         dTau += Para.Beta;
       // } else {
       int tBin = Tau2Index(dTau);
       DiffInterT(Order, AngleIndex, QIndex, tBin) +=
-          WeightFactor / Para.dAngleTable[AngleIndex] /
-          (Para.Beta / TauBinSize);
+          WeightFactor / (Para.Beta / TauBinSize);
     } else if (Channel == 3) {
       DiffInterS(Order, AngleIndex, QIndex) +=
-          WeightFactor / Para.dAngleTable[AngleIndex];
+          WeightFactor ;
     } else if (Channel == 0) {
       DiffInterI(Order, AngleIndex, QIndex) +=
-          WeightFactor / Para.dAngleTable[AngleIndex];
+          WeightFactor;
     }
   }
   return;
