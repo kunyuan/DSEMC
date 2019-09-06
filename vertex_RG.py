@@ -40,14 +40,14 @@ ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
-kF = np.sqrt(2.0)/rs  # 2D
+# kF = np.sqrt(2.0)/rs  # 2D
 # Bubble=0.11635  #2D, Beta=0.5, rs=1
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
-Bubble = 0.0795775  # 2D, Beta=20, rs=1
+# Bubble = 0.0795775  # 2D, Beta=20, rs=1
 
 #############  3D  ######################################
-# kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
-# Bubble = 0.0971916  # 3D, Beta=10, rs=1
+kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
+Bubble = 0.0971916  # 3D, Beta=10, rs=1
 
 
 def AngleIntegation(Data, l):
