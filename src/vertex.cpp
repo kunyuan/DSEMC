@@ -42,9 +42,6 @@ double verQ::Interaction(double Tau, const momentum &Mom, int VerType,
 // double norm2(const momentum &Mom) { return sqrt(sum2(Mom)); }
 verQTheta::verQTheta() {
 
-  if (D == 3)
-    return;
-
   _TestAngle2D();
   _TestAngleIndex();
 
@@ -57,8 +54,8 @@ verQTheta::verQTheta() {
   // PhyWeight =
   //     1.0 / Para.Beta / Para.Beta * ExtMomBinSize * 2.0 * PI * Para.Kf * 4.0;
 
-  PhyWeightT = ExtMomBinSize * 2.0 * PI * Para.Beta;
-  PhyWeightI = ExtMomBinSize * 2.0 * PI * Para.Beta;
+  PhyWeightT = ExtMomBinSize * Para.Beta * AngBinSize;
+  PhyWeightI = ExtMomBinSize * Para.Beta * AngBinSize;
   // PhyWeight = 2.0 * PI / TauBinSize * 64;
   // PhyWeight = 1.0;
 
@@ -133,11 +130,11 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
   return dChanS[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
 }
 
-double verQTheta::Interaction(const momentum &InL, const momentum &InR,
-                              const momentum &Transfer, double Tau, int VerType,
+double verQTheta::Interaction(const array<momentum *, 4> &LegK,
+                              const momentum &Q, double Tau, int VerType,
                               int VerOrder) {
 
-  double k = Transfer.norm();
+  double k = Q.norm();
   if (VerType == 0) {
     double coupling = 8.0 * PI / (k * k + Para.Mass2);
     if (VerOrder == 1)
@@ -149,13 +146,37 @@ double verQTheta::Interaction(const momentum &InL, const momentum &InR,
     // return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
-    return 0.0;
+    // return 0.0;
     if (k < Para.MaxExtMom) {
       if (Tau < 0.0)
         Tau += Para.Beta;
-      int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
+      int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
       int TauIndex = Tau2Index(Tau);
-      return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+      // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
+      //   return 0.0;
+      // else
+
+      if (k < 0.2 * Para.Kf) {
+        return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+        // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
+        //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[INL]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[INR]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[INR]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[OUTL]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[OUTL]).norm() < 1.2 * Para.Kf) &&
+        //       ((*LegK[OUTR]).norm() > 0.8 * Para.Kf &&
+        //        (*LegK[OUTR]).norm() < 1.2 * Para.Kf)) {
+        //     return EffInterT(AngBinSize / 2, Mom2Index(2.0 * Para.Kf),
+        //     TauIndex);
+        //     // return 0.5;
+        //     // return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf),
+        //     TauIndex);
+        //   } else
+        //     // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+        //     return 0.0;
+      } else
+        return 0.0;
       // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double Lower = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
       // double UpperTau = Index2Tau(TauIndex + 1);
@@ -191,27 +212,25 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
     // Normalization += WeightFactor;
   } else {
     // double Factor = 1.0 / pow(2.0 * PI, 2 * Order);
-    int AngleIndex = Angle2Index(Angle2D(InL, InR), AngBinSize);
+    double CosAng = Angle3D(InL, InR);
+    int AngleIndex = Angle2Index(CosAng, AngBinSize);
     if (Channel == 1) {
       if (dTau < 0.0)
         dTau += Para.Beta;
       // } else {
       int tBin = Tau2Index(dTau);
       DiffInterT(Order, AngleIndex, QIndex, tBin) +=
-          WeightFactor / Para.dAngleTable[AngleIndex] /
-          (Para.Beta / TauBinSize);
+          WeightFactor / (Para.Beta / TauBinSize);
     } else if (Channel == 3) {
-      DiffInterS(Order, AngleIndex, QIndex) +=
-          WeightFactor / Para.dAngleTable[AngleIndex];
+      DiffInterS(Order, AngleIndex, QIndex) += WeightFactor;
     } else if (Channel == 0) {
-      DiffInterI(Order, AngleIndex, QIndex) +=
-          WeightFactor / Para.dAngleTable[AngleIndex];
+      DiffInterI(Order, AngleIndex, QIndex) += WeightFactor;
     }
   }
   return;
 }
 
-void verQTheta::Update(double Ratio) {
+void verQTheta::Update(double Ratio, int Order) {
   for (int angle = 0; angle < AngBinSize; ++angle)
     for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
       // S channel
@@ -236,8 +255,8 @@ void verQTheta::Update(double Ratio) {
       for (int tindex = 0; tindex < TauBinSize; ++tindex) {
         OldValue = EffInterT(angle, qindex, tindex);
         NewValue = 0.0;
-        for (int order = 1; order < MaxOrder; ++order) {
-          // for (int order = 1; order < 2; ++order) {
+        // for (int order = 1; order < MaxOrder; ++order) {
+        for (int order = 1; order <= Order; ++order) {
           NewValue += DiffInterT(order, angle, qindex, tindex) / Normalization *
                       PhyWeightT;
         }
@@ -554,38 +573,27 @@ int diag::Mom2Index(const double &K) {
   return int(K / Para.MaxExtMom * ExtMomBinSize);
 };
 
-double diag::Angle2D(const momentum &K1, const momentum &K2) {
+double diag::Angle3D(const momentum &K1, const momentum &K2) {
   // Returns the angle in radians between vectors 'K1' and 'K2'
-  // double dotp = K1.dot(K2);
-  double dotp = K1[0] * K2[0] + K1[1] * K2[1];
-  double det = K1[0] * K2[1] - K1[1] * K2[0];
-  double Angle2D = atan2(det, dotp);
-
-  // cout<<endl;
-  // cout << K1[0] << "," << K1[1] << endl;
-  // cout << K2[0] << "," << K2[1] << endl;
-  // cout << "dotp:" << dotp << endl;
-  // cout << "det:" << det << endl;
-  // cout << "angle:" << Angle2D << endl;
-  if (Angle2D < 0)
-    Angle2D += 2.0 * PI;
-  // cout << "angleadjusted:" << Angle2D << endl;
-  // cout << endl;
+  double dotp = K1.dot(K2);
+  double Angle2D = dotp / K1.norm() / K2.norm();
   return Angle2D;
 }
 
 double diag::Index2Angle(const int &Index, const int &AngleNum) {
   // Map index [0...AngleNum-1] to the theta range [0.0, 2*pi)
-  return Index * 2.0 * PI / AngleNum;
+  return (Index + 0.5) * 2.0 / AngleNum - 1.0;
 }
 
 int diag::Angle2Index(const double &Angle, const int &AngleNum) {
   // Map theta range  [0.0, 2*pi) to index [0...AngleNum-1]
-  double dAngle = 2.0 * PI / AngleNum;
-  if (Angle >= 2.0 * PI - dAngle / 2.0 || Angle < dAngle / 2.0)
-    return 0;
-  else
-    return int(Angle / dAngle + 0.5);
+  // double dAngle = 2.0 * PI / AngleNum;
+  // if (Angle >= 2.0 * PI - dAngle / 2.0 || Angle < dAngle / 2.0)
+  //   return 0;
+  // else
+  //   return int(Angle / dAngle + 0.5);
+  double dAngle = 2.0 / AngleNum;
+  return int((Angle + 1.0) / dAngle);
 }
 
 double diag::Index2Scale(const int &Index) {
@@ -609,42 +617,44 @@ void diag::_TestAngle2D() {
   momentum K2 = {1.0, 0.0};
 
   ASSERT_ALLWAYS(
-      abs(Angle2D(K1, K2)) < 1.e-7,
+      abs(Angle3D(K1, K2) - 1.0) < 1.e-7,
       fmt::format("Angle between K1 and K2 are not zero! It is {:.13f}",
-                  Angle2D(K1, K2)));
+                  Angle3D(K1, K2)));
 
   K1 = {1.0, 0.0};
   K2 = {-1.0, 0.0};
   ASSERT_ALLWAYS(
-      abs(Angle2D(K1, K2) - PI) < 1.e-7,
+      abs(Angle3D(K1, K2) - (-1.0)) < 1.e-7,
       fmt::format("Angle between K1 and K2 are not Pi! Instead, it is {:.13f}",
-                  Angle2D(K1, K2)));
+                  Angle3D(K1, K2)));
 
   K1 = {1.0, 0.0};
   K2 = {1.0, -EPS};
   ASSERT_ALLWAYS(
-      abs(Angle2D(K1, K2) - 2.0 * PI) < 1.e-7,
+      abs(Angle3D(K1, K2) - 1.0) < 1.e-7,
       fmt::format("Angle between K1 and K2 are not 2.0*Pi! It is {:.13f}",
-                  Angle2D(K1, K2)));
+                  Angle3D(K1, K2)));
 }
 
 void diag::_TestAngleIndex() {
   // Test Angle functions
-  int AngleNum = 64;
-  ASSERT_ALLWAYS(abs(Index2Angle(0, AngleNum) - 0.0) < 1.0e-10,
-                 "Angle for index 0 should be zero!");
+  int AngleNum = 8;
+  cout << Index2Angle(0, AngleNum) << endl;
+  ASSERT_ALLWAYS(abs(Index2Angle(0, AngleNum) - (-1.0 + 1.0 / AngleNum)) <
+                     1.0e-10,
+                 "Angle for index 0 should be -1^+!");
 
   ASSERT_ALLWAYS(abs(Index2Angle(AngleNum - 1, AngleNum) -
-                     (2.0 * PI * (1.0 - 1.0 / AngleNum))) < 1.0e-10,
-                 "Angle for index AngleNum should be 2.0*pi-0^+!");
+                     (1.0 - 1.0 / AngleNum)) < 1.0e-10,
+                 "Angle for index AngleNum should be 1.0^-!");
 
-  ASSERT_ALLWAYS(Angle2Index(0.0, AngleNum) == 0,
-                 "Angle zero should have index 0!");
-  ASSERT_ALLWAYS(
-      Angle2Index(2.0 * PI * (1.0 - 0.5 / AngleNum) + EPS, AngleNum) == 0,
-      "Angle 2*pi-pi/AngleNum should have index 1!");
+  ASSERT_ALLWAYS(Angle2Index(1.0 - EPS, AngleNum) == AngleNum - 1,
+                 "cos(angle)=-1 should should be last element!");
+  // ASSERT_ALLWAYS(
+  //     Angle2Index(2.0 * PI * (1.0 - 0.5 / AngleNum) + EPS, AngleNum) == 0,
+  //     "Angle 2*pi-pi/AngleNum should have index 1!");
 
-  ASSERT_ALLWAYS(Angle2Index(2.0 * PI * (1.0 - 0.5 / AngleNum) - EPS,
-                             AngleNum) == AngleNum - 1,
-                 "Angle 2*pi-pi/AngleNum-0^+ should have index AngleNum!");
+  // ASSERT_ALLWAYS(Angle2Index(2.0 * PI * (1.0 - 0.5 / AngleNum) - EPS,
+  //                            AngleNum) == AngleNum - 1,
+  //                "Angle 2*pi-pi/AngleNum-0^+ should have index AngleNum!");
 }

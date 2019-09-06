@@ -45,6 +45,8 @@ void weight::Initialization() {
   for (int c = 0; c < 4; c++)
     for (int order = 1; order <= Groups.back().Order; order++) {
       vector<dse::channel> chan = {Chan[c]};
+      // Ver4Root[order][c] =
+      //     VerDiag.Build(Var.LoopMom, order, chan, dse::caltype::PARQUET);
       Ver4Root[order][c] =
           VerDiag.Build(Var.LoopMom, order, chan, dse::caltype::BARE);
       LOG_INFO(VerDiag.ToString(Ver4Root[order][c]));
@@ -71,6 +73,13 @@ void weight::Initialization() {
 
   // Var.LoopMom[0].fill(0.0);
   Var.LoopMom[0] = Para.ExtMomTable[Var.CurrExtMomBin];
+
+  for (int i = 1; i < D; i++) {
+    Var.LoopMom[1][i] = 0.0;
+    Var.LoopMom[2][i] = 0.0;
+  }
+  Var.LoopMom[1][0] = Para.Kf;
+  Var.LoopMom[2][0] = Para.Kf;
 
   // initialize external tau
   // Var.Tau[0] = 0.0;
@@ -127,9 +136,9 @@ void weight::Measure(double WeightFactor) {
   }
 }
 
-void weight::Update(double Ratio) {
+void weight::Update(double Ratio, int Order) {
   if (Para.Vertex4Type == MOM_ANGLE) {
-    VerQTheta.Update(Ratio);
+    VerQTheta.Update(Ratio, Order);
   }
 }
 

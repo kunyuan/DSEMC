@@ -53,8 +53,8 @@ void InitPara() {
       "0", // 0 loop
       "1", // 1 loop
       "2", // 2 loop
-           // "3", // 3 loop
-           // "4", // 4 loop
+      "3", // 3 loop
+      "4", // 4 loop
   };
   Para.Order = Para.GroupName.size() - 1;
   Para.ReWeight = {1, 2.0, 1.0, 1.0, 1.0};
@@ -96,7 +96,7 @@ void InitPara() {
 
   for (int i = 0; i < AngBinSize; i++) {
     Para.AngleTable[i] = diag::Index2Angle(i, AngBinSize);
-    Para.dAngleTable[i] = 2.0 * PI / AngBinSize;
+    Para.dAngleTable[i] = 2.0 / AngBinSize;
   }
 
   // initialize external momentum
@@ -207,9 +207,18 @@ void MonteCarlo() {
       }
     }
     if (Block % 10 == 0) {
-      // if (Flag == 0)
-      Markov.UpdateWeight(1.0);
+      // if (Block < 200)
+      Markov.UpdateWeight(1.0, Para.GroupName.size() - 1);
+      // else
+      //   Markov.UpdateWeight(1.0, 2);
       LOG_INFO("Update weight, " << Block);
+      // Flag = 1;
+      // Markov.ClearStatis();
+    }
+    if (Block == 100) {
+      // if (Flag == 0)
+      // Markov.UpdateWeight(1.0);
+      // LOG_INFO("Update weight, " << Block);
       // Flag = 1;
       // Markov.ClearStatis();
     }

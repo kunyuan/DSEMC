@@ -25,9 +25,11 @@ struct ver4 {
   int ID;
   int LoopNum;
   int TauNum;
-  caltype Type;
-  bool ReExpandBare;
-  bool RenormVer4;
+  int Side; // right side vertex is always a full gamma4
+
+  bool IsFullVer4;
+  bool RenormVer4;  // renormalize the current vertex
+  bool RexpandBare; // reexpand the coupling in the left vertex
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
@@ -90,8 +92,9 @@ struct pair {
 struct bubble {
   int InTL;
   bool IsProjected;
-  vector<channel> Channel;   // list of channels
-  array<momentum *, 4> LegK; // legK index
+  vector<channel> Channel; // list of channels except I
+  array<double, 4> ProjFactor;
+  array<array<momentum *, 4>, 4> LegK; // legK index for different channel
   array<gMatrix, 4> G;
   vector<pair> Pair; // different Tau arrangement and channel
 };
@@ -159,7 +162,7 @@ class verDiag {
 public:
   ver4 Build(array<momentum, MaxMomNum> &loopmom, int LoopNum,
              vector<channel> Channel, caltype Type);
-  string ToString(const ver4 &Vertex);
+  string ToString(const ver4 &Vertex, string indent = "", int Level = 0);
 
 private:
   int DiagNum = 0;
@@ -167,14 +170,14 @@ private:
   array<momentum, MaxMomNum> *LoopMom; // all momentum loop variables
 
   ver4 Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum, int LoopIndex,
-              vector<channel> Channel, caltype Type, int Side);
+              vector<channel> Channel, int Side, bool RenormVer4,
+              bool RexpandBare, bool IsFullVer4);
 
-  ver4 Ver0(ver4 Ver4, int InTL, int Side);
-  ver4 ChanI(ver4 Ver4, int InTL, int LoopNum, int LoopIndex, int Side,
-             bool IsProjected = false);
+  ver4 Ver0(ver4 Ver4, int InTL);
+  ver4 ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
+             int LoopIndex, bool IsProjected = false);
   ver4 ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
-               int LoopIndex, int Side, bool IsProjected = false);
-
+               int LoopIndex, bool IsProjected = false);
   momentum *NextMom();
 };
 

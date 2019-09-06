@@ -11,19 +11,21 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 rs = 1.0
-Mass2 = 2.0
-Lambda = 0.0
+Mass2 = 2
+Lambda = 2.0
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
 # XType = "Angle"
 
+OrderByOrder = False
+
 # 0: I, 1: T, 2: U, 3: S
-Channel = [0, 1, 3]
+Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [1, 2, ]
+Order = [0, 1, 2, 3, 4]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Mass2)
 
@@ -43,15 +45,26 @@ kF = np.sqrt(2.0)/rs  # 2D
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
 Bubble = 0.0795775  # 2D, Beta=20, rs=1
 
+#############  3D  ######################################
+# kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
+# Bubble = 0.0971916  # 3D, Beta=10, rs=1
+
 
 def AngleIntegation(Data, l):
     # l: angular momentum
     shape = Data.shape[1:]
     Result = np.zeros(shape)
     for x in range(AngleBinSize):
-        Result += Data[x, ...] * \
-            np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
-    return Result/2.0/np.pi
+        # Result += Data[x, ...] * \
+        #     np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
+        Result += Data[x, ...]*2.0/AngleBinSize
+    return Result/2.0
+    # return Result
+
+
+def TauIntegration(Data):
+    return np.sum(Data, axis=-1) * \
+        Beta/kF**2/TauBinSize
 
 
 for order in Order:
@@ -135,10 +148,11 @@ elif(XType == "Tau"):
 elif (XType == "Mom"):
     i = 0
     bare = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda+Mass2)
+    # bare *=0.0
     for chan in Channel:
         if(chan == 1):
             qData = np.array(bare)
-        for order in Order:
+        for order in Order[1:]:
             i += 1
             if(chan == 1):
                 qData -= np.sum(Data[(order, chan)], axis=1) * \
@@ -163,7 +177,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    # ax.plot(x, y0, 'k-', lw=2, label="original")
+    ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
@@ -172,13 +186,15 @@ elif (XType == "Mom"):
     ax.set_xlabel("$q/k_F$", size=size)
 
 elif(XType == "Angle"):
-    for i in range(ScaleBinSize/8):
+    AngData = TauIntegration(DataWithAngle[(1, 1)])
+    for i in range(ExtMomBinSize/8):
         # print i, index
         # print ScaleBin[index]
         index = 8*i
-        ErrorPlot(ax, AngleBin, Data[index, :, 5],
-                  ColorList[i], 's', "Q {0}".format(ScaleBin[index]))
-    ax.set_xlim([0.0, AngleBin[-1]])
+        ErrorPlot(ax, AngleBin, AngData[:, index],
+                  ColorList[i], 's', "Q {0}".format(ExtMomBin[index]))
+    ax.set_xlim([AngleBin[0], AngleBin[-1]])
+    # ax.set_ylim([0.0, 0.15])
     ax.set_xlabel("$Angle$", size=size)
 # ax.set_xticks([0.0,0.04,0.08,0.12])
 # ax.set_yticks([0.35,0.4,0.45,0.5])

@@ -18,8 +18,7 @@ double weight::Evaluate(int LoopNum, int Channel) {
   if (LoopNum == 0) {
     // normalization
     // cout << Var.CurrOrder << endl;
-    return VerQTheta.Interaction(Var.LoopMom[1], Var.LoopMom[2], Var.LoopMom[0],
-                                 0.0, -2);
+    return 1.0;
   }
 
   ver4 &Root = Ver4Root[LoopNum][Channel];
@@ -52,21 +51,19 @@ double weight::Evaluate(int LoopNum, int Channel) {
 
 void weight::Ver0(ver4 &Ver4) {
   auto &K = Ver4.LegK;
-  const momentum &InL = *K[INL];
-  const momentum &InR = *K[INR];
-  momentum DiQ = InL - *K[OUTL];
-  momentum ExQ = InL - *K[OUTR];
+  momentum DiQ = *K[INL] - *K[OUTL];
+  momentum ExQ = *K[INL] - *K[OUTR];
   int VerIndex = Ver4.T[0][INL] / 2;
   Ver4.Weight[0] =
-      VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0, Var.VerOrder[VerIndex]) -
-      VerQTheta.Interaction(InL, InR, ExQ, 0.0, 0, Var.VerOrder[VerIndex]);
+      VerQTheta.Interaction(K, DiQ, 0.0, 0, Var.VerOrder[VerIndex]) -
+      VerQTheta.Interaction(K, ExQ, 0.0, 0, Var.VerOrder[VerIndex]);
   // cout << VerIndex << endl;
   // cout << Ver4.Weight[0] << endl;
   // Ver4.Weight[0] = VerQTheta.Interaction(InL, InR, DiQ, 0.0, 0);
-  if (Ver4.Type != dse::caltype::BARE) {
+  if (Ver4.RexpandBare) {
     double Tau = Var.Tau[Ver4.T[0][INR]] - Var.Tau[Ver4.T[0][INL]];
-    Ver4.Weight[1] = VerQTheta.Interaction(InL, InR, DiQ, Tau, 1);
-    Ver4.Weight[2] = -VerQTheta.Interaction(InL, InR, ExQ, Tau, 1);
+    Ver4.Weight[1] = VerQTheta.Interaction(K, DiQ, Tau, 1);
+    Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
   }
   return;
 }
@@ -86,21 +83,97 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 
 void weight::ChanUST(dse::ver4 &Ver4) {
   double Weight = 0.0;
+  double Ratio;
+  momentum Transfer;
+  array<momentum *, 4> &LegK0 = Ver4.LegK;
+
   for (auto &bubble : Ver4.Bubble) {
     auto &G = bubble.G;
-    const momentum &InL = *bubble.LegK[INL];
-    const momentum &OutL = *bubble.LegK[OUTL];
-    const momentum &InR = *bubble.LegK[INR];
-    const momentum &OutR = *bubble.LegK[OUTR];
     const momentum &K0 = *G[0].K;
     int InTL = bubble.InTL;
-    for (auto &chan : bubble.Channel)
+
+    for (auto &chan : bubble.Channel) {
+      bubble.ProjFactor[chan] = 1;
+      array<momentum *, 4> &LegK = bubble.LegK[chan];
+
+      if (bubble.IsProjected) {
+        if (chan == S) {
+          continue;
+        } else if (chan == T) {
+          Transfer = *LegK0[INL] - *LegK0[OUTL];
+          double Q = Transfer.norm();
+          if (Q < 0.2 * Para.Kf) {
+            Ratio = Para.Kf / (*LegK0[INL]).norm();
+            *LegK[INL] = *LegK0[INL] * Ratio;
+            Ratio = Para.Kf / (*LegK0[INR]).norm();
+            *LegK[INR] = *LegK0[INR] * Ratio;
+
+            *LegK[OUTL] = *LegK[INL] - Transfer;
+            *LegK[OUTR] = *LegK[INR] + Transfer;
+            // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
+            //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+
+            //     Ratio = 2.0 * Para.Kf / Q;
+            //     Transfer = Transfer * Ratio;
+            //     *LegK[INL] = Transfer * 0.5;
+            //     *LegK[INR] = Transfer * (-0.5);
+            //     *LegK[OUTL] = *LegK[INR];
+            //     *LegK[OUTR] = *LegK[INL];
+            //   } else {
+            //     bubble.ProjFactor[T] = 0.0;
+            //   }
+          } else
+            bubble.ProjFactor[T] = 0.0;
+        } else {
+          Transfer = *LegK0[INL] - *LegK0[OUTR];
+          double Q = Transfer.norm();
+          if (Q < 0.2 * Para.Kf) {
+            Ratio = Para.Kf / (*LegK0[INL]).norm();
+            *LegK[INL] = *LegK0[INL] * Ratio;
+            Ratio = Para.Kf / (*LegK0[INR]).norm();
+            *LegK[INR] = *LegK0[INR] * Ratio;
+
+            *LegK[OUTL] = *LegK[INR] + Transfer;
+            *LegK[OUTR] = *LegK[INL] - Transfer;
+            // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
+
+            //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+            //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+            //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+
+            //     Ratio = 2.0 * Para.Kf / Q;
+            //     Transfer = Transfer * Ratio;
+            //     *LegK[INL] = Transfer * 0.5;
+            //     *LegK[INR] = Transfer * (-0.5);
+            //     *LegK[OUTL] = *LegK[INL];
+            //     *LegK[OUTR] = *LegK[INR];
+            //   } else {
+            //     bubble.ProjFactor[U] = 0.0;
+            //   }
+          } else
+            bubble.ProjFactor[U] = 0.0;
+        }
+      }
+
       if (chan == T)
-        *G[T].K = OutL + K0 - InL;
+        *G[T].K = *LegK[OUTL] + K0 - *LegK[INL];
       else if (chan == U)
-        *G[U].K = OutR + K0 - InL;
+        *G[U].K = *LegK[OUTR] + K0 - *LegK[INL];
       else if (chan == S)
-        *G[S].K = InL + InR - K0;
+        *G[S].K = *LegK[INL] + *LegK[INR] - K0;
+    }
 
     for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
       for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
@@ -124,7 +197,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       Vertex4(RVer);
 
       for (auto &map : pair.Map) {
-        Weight = pair.SymFactor;
+        Weight = pair.SymFactor * bubble.ProjFactor[pair.Channel];
         Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
         Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
         Ver4.Weight[map.Tidx] += Weight;

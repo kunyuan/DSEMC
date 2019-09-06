@@ -70,6 +70,8 @@ struct parameter {
 
   std::array<momentum, ExtMomBinSize>
       ExtMomTable; // external bosonic Momentum (transfer momentum)
+  std::array<momentum, AngBinSize>
+      ExtLegKTable; // external fermionic Momentum (LegK momentum)
   std::array<double, ScaleBinSize + 1> ScaleTable;
   std::array<double, ScaleBinSize + 1> dScaleTable;
   std::array<double, AngBinSize> AngleTable;

@@ -115,7 +115,9 @@ void markov::Measure() {
   Weight.Measure(WeightFactor);
 };
 
-void markov::UpdateWeight(double Ratio) { Weight.Update(Ratio); }
+void markov::UpdateWeight(double Ratio, int Order) {
+  Weight.Update(Ratio, Order);
+}
 
 void markov::SaveToFile() {
   // return;
@@ -281,8 +283,8 @@ void markov::ChangeMomentum() {
   int LoopIndex = Random.irn(0, Var.CurrGroup->LoopNum - 1);
   // int LoopIndex = int(Random.urn() * (Var.CurrGroup->Order + 3));
 
-  // if loopIndex is a locked loop, skip
-  if (Var.CurrGroup->IsLockedLoop[LoopIndex])
+  // InL momentum is locked
+  if (LoopIndex == 1)
     return;
 
   Proposed[CHANGE_MOM][Var.CurrGroup->ID]++;
@@ -293,14 +295,16 @@ void markov::ChangeMomentum() {
 
   CurrMom = Var.LoopMom[LoopIndex];
 
-  if (Var.CurrGroup->IsExtTransferLoop[LoopIndex]) {
+  if (LoopIndex == 0) {
+    // transfer momentum
     Prop = ShiftExtTransferK(Var.CurrExtMomBin, NewExtMomBin);
     Var.LoopMom[LoopIndex] = Para.ExtMomTable[NewExtMomBin];
     if (Var.LoopMom[LoopIndex].norm() > Para.MaxExtMom) {
       Var.LoopMom[LoopIndex] = CurrMom;
       return;
     }
-  } else if (Var.CurrGroup->IsExtLegLoop[LoopIndex]) {
+  } else if (LoopIndex == 2) {
+    // InR momentum
     Prop = ShiftExtLegK(CurrMom, Var.LoopMom[LoopIndex]);
   } else {
     Prop = ShiftK(CurrMom, Var.LoopMom[LoopIndex]);
@@ -578,14 +582,19 @@ double markov::ShiftExtTransferK(const int &OldExtMomBin, int &NewExtMomBin) {
 };
 
 double markov::ShiftExtLegK(const momentum &OldExtMom, momentum &NewExtMom) {
-  if (D == 2) {
-    double Theta = Random.urn() * 2.0 * PI;
-    NewExtMom[0] = Para.Kf * cos(Theta);
-    NewExtMom[1] = Para.Kf * sin(Theta);
-    return 1.0;
-  } else {
-    ABORT("ShiftExtKOnKf for D=3 has not yet been implemented!");
-  }
+  // double Theta = Random.urn() * 1.0 * PI;
+  // NewExtMom[0] = Para.Kf * cos(Theta);
+  // NewExtMom[1] = Para.Kf * sin(Theta);
+  // return 1.0;
+
+  int NewKBin = Random.irn(0, AngBinSize - 1);
+
+  double AngCos = diag::Index2Angle(NewKBin, AngBinSize);
+  double theta = acos(AngCos);
+  NewExtMom[0] = Para.Kf * cos(theta);
+  NewExtMom[1] = Para.Kf * sin(theta);
+
+  return 1.0;
 };
 
 double markov::ShiftTau(const double &OldTau, double &NewTau) {

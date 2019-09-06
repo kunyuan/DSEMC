@@ -32,7 +32,7 @@ public:
   void ChangeVerOrder();
 
   void Measure();
-  void UpdateWeight(double Ratio);
+  void UpdateWeight(double Ratio, int Order);
   void ClearStatis();
   void SaveToFile();
 

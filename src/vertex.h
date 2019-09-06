@@ -37,13 +37,12 @@ private:
 class verQTheta {
 public:
   verQTheta();
-  double Interaction(const momentum &InL, const momentum &InR,
-                     const momentum &Transfer, double Tau, int VerType,
-                     int VerOrder = 1);
+  double Interaction(const array<momentum *, 4> &LegK, const momentum &Q,
+                     double Tau, int VerType, int VerOrder = 1);
 
   void Measure(const momentum &InL, const momentum &InR, const int QIndex,
                int Order, double Tau, int Channel, double WeightFactor);
-  void Update(double Ratio = 1.0);
+  void Update(double Ratio, int Order);
   void Save();
   void ClearStatis();
   void ResetIRScale(int IRScaleBin);
@@ -107,7 +106,7 @@ public:
   //   void _TestAngle2D();
 };
 
-double Angle2D(const momentum &K1, const momentum &K2);
+double Angle3D(const momentum &K1, const momentum &K2);
 double Index2Angle(const int &Index, const int &AngleNum);
 int Angle2Index(const double &Angle, const int &AngleNum);
 void _TestAngleIndex();
