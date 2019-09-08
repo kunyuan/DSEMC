@@ -12,7 +12,7 @@ size = 12
 
 rs = 1.0
 Mass2 = 2.0
-Lambda = 1.0
+Lambda = 0.5
 Beta = 20
 # XType = "Tau"
 XType = "Mom"
@@ -40,14 +40,14 @@ ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
-kF = np.sqrt(2.0)/rs  # 2D
+# kF = np.sqrt(2.0)/rs  # 2D
 # Bubble=0.11635  #2D, Beta=0.5, rs=1
 # Bubble = 0.15916/2  # 2D, Beta=10, rs=1
-Bubble = 0.0795775  # 2D, Beta=20, rs=1
+# Bubble = 0.0795775  # 2D, Beta=20, rs=1
 
 #############  3D  ######################################
-# kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
-# Bubble = 0.0971916  # 3D, Beta=10, rs=1
+kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
+Bubble = 0.0971916  # 3D, Beta=10, rs=1
 
 
 def AngleIntegation(Data, l):
@@ -177,7 +177,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+Mass2+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    ax.plot(x, y0, 'k-', lw=2, label="original")
+    # ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
