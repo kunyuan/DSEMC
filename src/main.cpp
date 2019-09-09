@@ -114,9 +114,9 @@ void InitPara() {
                                    << "UV Energy Scale: " << Para.UVScale
                                    << "\n"
                                    << "UV Coupling: " << Para.UVCoupling << "\n"
-                                   << "r_s: " << Para.Rs << "\n"
+                                   << "r_s: " << Para.Rs << "\n    << "Fermi Ene"
                                    << "Fermi Mom: " << Para.Kf << "\n"
-                                   << "Fermi Energy: " << Para.Ef << "\n");
+                               rgy: " << Para.Ef << "\n");
 
   Para.PrinterTimer = 5;
   Para.SaveFileTimer = 60;
