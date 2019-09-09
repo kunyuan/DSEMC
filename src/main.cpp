@@ -55,8 +55,8 @@ void InitPara() {
       "2", // 2 loop
       "3", // 3 loop
       "4", // 4 loop
-      "5", // 4 loop
-      "6", // 4 loop
+           // "5", // 4 loop
+           // "6", // 4 loop
            // "7", // 4 loop
   };
   Para.Order = Para.GroupName.size() - 1;
