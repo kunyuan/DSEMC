@@ -41,6 +41,24 @@ kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
 Bubble = 0.0971916  # 3D, Beta=10, rs=1
 Step = None
 
+
+def AngleIntegation(Data, l):
+    # l: angular momentum
+    shape = Data.shape[1:]
+    Result = np.zeros(shape)
+    for x in range(AngleBinSize):
+        # Result += Data[x, ...] * \
+        #     np.cos(l*AngleBin[x])*2.0*np.pi/AngleBinSize
+        Result += Data[x, ...]*2.0/AngleBinSize
+    return Result/2.0
+    # return Result
+
+
+def TauIntegration(Data):
+    return np.sum(Data, axis=-1) * \
+        Beta/kF**2/TauBinSize
+
+
 while True:
 
     time.sleep(SleepTime)
@@ -98,6 +116,7 @@ while True:
                     Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
                 DataWithAngle[(order, chan)] = Data0
+                Data[(order, chan)] = AngleIntegation(Data0, 0)
 
             # average the angle distribution
             # Data[(order, chan)] = AngleIntegation(Data0, 0)
@@ -108,7 +127,15 @@ while True:
                 for qidx in range(ExtMomBinSize):
                     for tidx in range(TauBinSize):
                         file.write("{0} ".format(
-                            DataWithAngle[0, 1][angle, qidx, tidx]))
+                            DataWithAngle[(0, 1)][angle, qidx, tidx]))
+
+        qData = np.sum(Data[(0, 1)], axis=1) * \
+            Beta/kF**2/TauBinSize
+
+        print qData
+
+        with open("data.dat", "a") as file:
+            file.write("{0}\n".format(qData[0]))
 
     if Step >= TotalStep:
         print "End of Simulation!"
