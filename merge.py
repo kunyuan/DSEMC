@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 rs = 1.0
-Lambda = 2.0
+Lambda = 2
 Beta = 20
 SleepTime = 5
 TotalStep = 101
@@ -69,10 +69,7 @@ while True:
             files = os.listdir(folder)
             Num = 0
             Data0 = None
-            if(order == 0):
-                FileName = "vertex{0}_pid[0-9]+.dat".format(chan)
-            else:
-                FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
+            FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
 
             for f in files:
                 if re.match(FileName, f):
@@ -81,7 +78,6 @@ while True:
                         with open(folder+f, "r") as file:
                             line1 = file.readline()
                             Step = int(line1.split(":")[-1])/1000000
-
                             line2 = file.readline()
                             if TauBin is None:
                                 TauBin = np.fromstring(

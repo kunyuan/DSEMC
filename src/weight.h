@@ -53,7 +53,7 @@ public:
   void Update(double Ratio, int Order);
   void ClearStatis();
   void LoadWeight();
-  void Save();
+  void Save(bool Simple = false);
 
   // run test in MC updates
   int DynamicTest();

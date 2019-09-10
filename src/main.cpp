@@ -191,12 +191,15 @@ void MonteCarlo() {
           Markov.DynamicTest();
           Markov.PrintDeBugMCInfo();
           Markov.PrintMCInfo();
+          Interrupt.Delay(); // the process can not be killed in saving
+          Markov.SaveToFile(true);
+          Interrupt.Resume(); // after this point, the process can be killed
           LOG_INFO(ProgressBar((double)Block / Para.TotalStep));
         }
 
         if (SaveFileTimer.check(Para.SaveFileTimer)) {
           Interrupt.Delay(); // the process can not be killed in saving
-          Markov.SaveToFile();
+          Markov.SaveToFile(false);
           Interrupt.Resume(); // after this point, the process can be killed
         }
 
@@ -234,7 +237,7 @@ void MonteCarlo() {
   LOG_INFO("Simulation is ended!");
   Markov.PrintMCInfo();
   Interrupt.Delay(); // the process can not be killed in saving
-  Markov.SaveToFile();
+  Markov.SaveToFile(false);
   Interrupt.Resume(); // after this point, the process can be killed
   LOG_INFO("Quit Markov.");
 }

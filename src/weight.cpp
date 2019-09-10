@@ -135,9 +135,9 @@ void weight::Update(double Ratio, int Order) {
   }
 }
 
-void weight::Save() {
+void weight::Save(bool Simple) {
   if (Para.Type == RG && Para.Vertex4Type == MOM_ANGLE) {
-    VerQTheta.Save();
+    VerQTheta.Save(Simple);
   }
 }
 

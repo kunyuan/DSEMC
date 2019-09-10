@@ -33,7 +33,7 @@ public:
   void Measure();
   void UpdateWeight(double Ratio, int Order);
   void ClearStatis();
-  void SaveToFile();
+  void SaveToFile(bool Simple);
 
   int DynamicTest();
 

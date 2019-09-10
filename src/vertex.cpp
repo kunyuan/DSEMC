@@ -107,6 +107,8 @@ verQTheta::verQTheta() {
 }
 
 double &verQTheta::EffInterT(int Angle, int ExtQ, int Tau) {
+  // ASSERT_ALLWAYS(ExtQ < ExtMomBinSize, "Q too large " << ExtQ);
+  // ASSERT_ALLWAYS(Tau < TauBinSize, "Tau too large " << Tau);
   return ChanT[Angle * AngleIndex + ExtQ * QIndex + Tau];
 }
 
@@ -133,6 +135,8 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
 double verQTheta::Interaction(const array<momentum *, 4> &LegK,
                               const momentum &Q, double Tau, int VerType) {
 
+  // cout << (*LegK[INL])[0] << endl;
+
   double k = Q.norm();
   if (VerType == 0) {
     return -8.0 * PI / (k * k + Para.Mass2) / Para.Beta;
@@ -147,6 +151,18 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK,
       // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
       //   return 0.0;
       // else
+      if (AngleIndex >= AngBinSize) {
+        // cout << (*LegK[INL])[0] << endl;
+        // cout << (*LegK[INL])[1] << endl;
+        // cout << (*LegK[INL])[2] << endl;
+        ABORT("Angle too large!" << AngleIndex);
+      }
+      // if (ExtQ >= ExtMomBinSize) {
+      //   ABORT("Q too large " << ExtQ);
+      // }
+      if (TauIndex >= TauBinSize) {
+        ABORT("Tau too large " << TauIndex);
+      }
 
       if (k < 0.2 * Para.Kf) {
         return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
@@ -213,10 +229,14 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
       int tBin = Tau2Index(dTau);
       DiffInterT(Order, AngleIndex, QIndex, tBin) +=
           WeightFactor / (Para.Beta / TauBinSize);
+      DiffInterT(0, AngleIndex, QIndex, tBin) +=
+          WeightFactor / (Para.Beta / TauBinSize);
     } else if (Channel == 3) {
       DiffInterS(Order, AngleIndex, QIndex) += WeightFactor;
+      DiffInterS(0, AngleIndex, QIndex) += WeightFactor;
     } else if (Channel == 0) {
       DiffInterI(Order, AngleIndex, QIndex) += WeightFactor;
+      DiffInterI(0, AngleIndex, QIndex) += WeightFactor;
     }
   }
   return;
@@ -258,13 +278,16 @@ void verQTheta::Update(double Ratio, int Order) {
     }
 }
 
-void verQTheta::Save() {
+void verQTheta::Save(bool Simple) {
 
   for (int chan = 0; chan < 4; chan++) {
     if (chan == 2)
       // we do not measure U channel
       continue;
     for (int order = 0; order < 5; order++) {
+      if (Simple == true)
+        if (order != 0)
+          continue;
       string FileName =
           fmt::format("vertex{0}_{1}_pid{2}.dat", order, chan, Para.PID);
       ofstream VerFile;
@@ -310,44 +333,44 @@ void verQTheta::Save() {
     }
   }
 
-  for (int chan = 0; chan < 4; chan++) {
-    if (chan == 2)
-      continue;
-    string FileName = fmt::format("vertex{0}_pid{1}.dat", chan, Para.PID);
-    ofstream VerFile;
-    VerFile.open(FileName, ios::out | ios::trunc);
-    if (VerFile.is_open()) {
-      VerFile << fmt::sprintf(
-          "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n", Para.PID,
-          Para.ObsType, Para.Rs, Para.Beta, Para.Counter);
-      VerFile << "# TauTable: ";
-      for (int tau = 0; tau < TauBinSize; ++tau)
-        VerFile << Index2Tau(tau) << " ";
-      VerFile << endl;
-      VerFile << "# AngleTable: ";
-      for (int angle = 0; angle < AngBinSize; ++angle)
-        VerFile << Para.AngleTable[angle] << " ";
-      VerFile << endl;
-      VerFile << "# ExtMomBinTable: ";
-      for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
-        VerFile << Para.ExtMomTable[qindex][0] << " ";
-      VerFile << endl;
+  // for (int chan = 0; chan < 4; chan++) {
+  //   if (chan == 2)
+  //     continue;
+  //   string FileName = fmt::format("vertex{0}_pid{1}.dat", chan, Para.PID);
+  //   ofstream VerFile;
+  //   VerFile.open(FileName, ios::out | ios::trunc);
+  //   if (VerFile.is_open()) {
+  //     VerFile << fmt::sprintf(
+  //         "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n", Para.PID,
+  //         Para.ObsType, Para.Rs, Para.Beta, Para.Counter);
+  //     VerFile << "# TauTable: ";
+  //     for (int tau = 0; tau < TauBinSize; ++tau)
+  //       VerFile << Index2Tau(tau) << " ";
+  //     VerFile << endl;
+  //     VerFile << "# AngleTable: ";
+  //     for (int angle = 0; angle < AngBinSize; ++angle)
+  //       VerFile << Para.AngleTable[angle] << " ";
+  //     VerFile << endl;
+  //     VerFile << "# ExtMomBinTable: ";
+  //     for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
+  //       VerFile << Para.ExtMomTable[qindex][0] << " ";
+  //     VerFile << endl;
 
-      for (int angle = 0; angle < AngBinSize; ++angle)
-        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
-          if (chan == 0)
-            VerFile << EffInterI(angle, qindex) << "  ";
-          else if (chan == 3)
-            VerFile << EffInterS(angle, qindex) << "  ";
-          else if (chan == 1)
-            for (int tindex = 0; tindex < TauBinSize; ++tindex)
-              VerFile << EffInterT(angle, qindex, tindex) << "  ";
-        }
-      VerFile.close();
-    } else {
-      LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
-    }
-  }
+  //     for (int angle = 0; angle < AngBinSize; ++angle)
+  //       for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+  //         if (chan == 0)
+  //           VerFile << EffInterI(angle, qindex) << "  ";
+  //         else if (chan == 3)
+  //           VerFile << EffInterS(angle, qindex) << "  ";
+  //         else if (chan == 1)
+  //           for (int tindex = 0; tindex < TauBinSize; ++tindex)
+  //             VerFile << EffInterT(angle, qindex, tindex) << "  ";
+  //       }
+  //     VerFile.close();
+  //   } else {
+  //     LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
+  //   }
+  // }
 }
 
 void verQTheta::ClearStatis() {
@@ -609,8 +632,12 @@ int diag::Angle2Index(const double &Angle, const int &AngleNum) {
   //   return 0;
   // else
   //   return int(Angle / dAngle + 0.5);
+  // if (Angle > 1.0 - EPS)
+  //   return AngleNum - 1;
+  // else {
   double dAngle = 2.0 / AngleNum;
   return int((Angle + 1.0) / dAngle);
+  // }
 }
 
 double diag::Index2Scale(const int &Index) {

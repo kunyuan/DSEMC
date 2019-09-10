@@ -55,11 +55,11 @@ double weight::Evaluate(int LoopNum, int Channel) {
 }
 
 void weight::Ver0(ver4 &Ver4) {
-  auto &K = Ver4.LegK;
+  array<momentum *, 4> &K = Ver4.LegK;
   momentum DiQ = *K[INL] - *K[OUTL];
   momentum ExQ = *K[INL] - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(K, ExQ, 0.0, 0);
+  Ver4.Weight[0] = VerQTheta.Interaction(Ver4.LegK, DiQ, 0.0, 0) -
+                   VerQTheta.Interaction(Ver4.LegK, ExQ, 0.0, 0);
   // Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
