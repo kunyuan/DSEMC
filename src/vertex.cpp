@@ -54,8 +54,8 @@ verQTheta::verQTheta() {
   // PhyWeight =
   //     1.0 / Para.Beta / Para.Beta * ExtMomBinSize * 2.0 * PI * Para.Kf * 4.0;
 
-  PhyWeightT = ExtMomBinSize * Para.Beta*AngBinSize;
-  PhyWeightI = ExtMomBinSize * Para.Beta*AngBinSize;
+  PhyWeightT = ExtMomBinSize * Para.Beta * AngBinSize;
+  PhyWeightI = ExtMomBinSize * Para.Beta * AngBinSize;
   // PhyWeight = 2.0 * PI / TauBinSize * 64;
   // PhyWeight = 1.0;
 
@@ -204,7 +204,7 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
     // Normalization += WeightFactor;
   } else {
     // double Factor = 1.0 / pow(2.0 * PI, 2 * Order);
-    double CosAng=Angle3D(InL, InR);
+    double CosAng = Angle3D(InL, InR);
     int AngleIndex = Angle2Index(CosAng, AngBinSize);
     if (Channel == 1) {
       if (dTau < 0.0)
@@ -214,11 +214,9 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
       DiffInterT(Order, AngleIndex, QIndex, tBin) +=
           WeightFactor / (Para.Beta / TauBinSize);
     } else if (Channel == 3) {
-      DiffInterS(Order, AngleIndex, QIndex) +=
-          WeightFactor ;
+      DiffInterS(Order, AngleIndex, QIndex) += WeightFactor;
     } else if (Channel == 0) {
-      DiffInterI(Order, AngleIndex, QIndex) +=
-          WeightFactor;
+      DiffInterI(Order, AngleIndex, QIndex) += WeightFactor;
     }
   }
   return;
@@ -364,6 +362,31 @@ void verQTheta::ClearStatis() {
           DiffInterI(order, inin, qIndex) = 0.0;
         }
     }
+}
+
+void verQTheta::LoadWeight() {
+  try {
+    int chan = 1;
+    string FileName = fmt::format("weight{0}.dat", chan);
+    ifstream VerFile;
+    VerFile.open(FileName, ios::in);
+    if (VerFile.is_open()) {
+      for (int angle = 0; angle < AngBinSize; ++angle)
+        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+          if (chan == 0)
+            VerFile >> EffInterI(angle, qindex);
+          else if (chan == 3)
+            VerFile >> EffInterS(angle, qindex);
+          else if (chan == 1)
+            for (int tindex = 0; tindex < TauBinSize; ++tindex)
+              VerFile >> EffInterT(angle, qindex, tindex);
+        }
+      VerFile.close();
+    }
+
+  } catch (int e) {
+    LOG_INFO("Can not load weight file!");
+  }
 }
 
 fermi::fermi() {

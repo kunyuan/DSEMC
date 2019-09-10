@@ -53,7 +53,7 @@ void InitPara() {
       "0", // 0 loop
       "1", // 1 loop
       "2", // 2 loop
-           "3", // 3 loop
+      "3", // 3 loop
            // "4", // 4 loop
   };
   Para.ReWeight = {0.2, 1.0, 1.0, 0.5, 1.0};
@@ -105,7 +105,6 @@ void InitPara() {
       Para.ExtMomTable[i][j] = 0.0;
   }
 
-
   LOG_INFO("Inverse Temperature: " << Para.Beta << "\n"
                                    << "UV Energy Scale: " << Para.UVScale
                                    << "\n"
@@ -117,6 +116,7 @@ void InitPara() {
   Para.PrinterTimer = 5;
   Para.SaveFileTimer = 60;
   Para.ReweightTimer = 30;
+  Para.MessageTimer = 5;
 }
 
 void MonteCarlo() {
@@ -136,8 +136,12 @@ void MonteCarlo() {
   LOG_INFO("Start simulation ...")
   long int WaitStep = 1000000;
   int Flag = 0;
+  int Block = 0;
+  while (true) {
+    Block++;
+    if (Block > Para.TotalStep)
+      break;
 
-  for (int Block = 0; Block < Para.TotalStep; Block++) {
     for (int i = 0; i < 1000000; i++) {
       Para.Counter++;
       // if (Para.Counter == 140737351830544) {
@@ -200,14 +204,18 @@ void MonteCarlo() {
           Markov.AdjustGroupReWeight();
           Para.ReweightTimer *= 1.5;
         }
+
+        if (MessageTimer.check(Para.MessageTimer)) {
+          Markov.Weight.LoadWeight();
+        }
       }
     }
     if (Block % 10 == 0) {
       // if (Block < 200)
-      Markov.UpdateWeight(1.0, Para.GroupName.size() - 1);
+      // Markov.UpdateWeight(1.0, Para.GroupName.size() - 1);
       // else
       //   Markov.UpdateWeight(1.0, 2);
-      LOG_INFO("Update weight, " << Block);
+      // LOG_INFO("Update weight, " << Block);
       // Flag = 1;
       // Markov.ClearStatis();
     }

@@ -52,6 +52,7 @@ public:
   void Measure(double WeightFactor);
   void Update(double Ratio, int Order);
   void ClearStatis();
+  void LoadWeight();
   void Save();
 
   // run test in MC updates

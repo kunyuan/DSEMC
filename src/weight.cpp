@@ -146,3 +146,5 @@ void weight::ClearStatis() {
     VerQTheta.ClearStatis();
   }
 }
+
+void weight::LoadWeight() { VerQTheta.LoadWeight(); }

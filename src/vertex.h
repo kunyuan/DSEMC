@@ -45,6 +45,7 @@ public:
   void Update(double Ratio, int Order);
   void Save();
   void ClearStatis();
+  void LoadWeight();
   void ResetIRScale(int IRScaleBin);
   double *ChanT;
   double *dChanT;
