@@ -10,15 +10,10 @@ mat.rcParams.update({'font.size': 16})
 mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
-rs = 1.0
-Lambda = 2.0
-Beta = 20
 # XType = "Tau"
 XType = "Mom"
 # XType = "Angle"
-
 OrderByOrder = False
-
 # 0: I, 1: T, 2: U, 3: S
 Channel = [1, ]
 # Channel = [3]
@@ -26,17 +21,27 @@ ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
 Order = [0, 1, 2, 3]
 
+rs = None
+Lambda = None
+Beta = None
+TotalStep = None
+BetaStr = None
+rsStr = None
+LambdaStr = None
+
+with open("inlist", "r") as file:
+    line = file.readline()
+    para = line.split(" ")
+    BetaStr = para[0]
+    Beta = float(BetaStr)
+    rsStr = para[1]
+    rs = float(rsStr)
+    LambdaStr = para[2]
+    Lambda = float(LambdaStr)
+    TotalStep = float(para[4])
+
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
 # folder = "./3_Beta{0}_lambda{2}/".format(Beta, rs, Lambda)
-
-Data = {}  # key: (order, channel)
-DataWithAngle = {}  # key: (order, channel)
-TauBin = None
-AngleBin = None
-ExtMomBin = None
-AngleBinSize = None
-TauBinSize = None
-ExtMomBinSize = None
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
@@ -48,6 +53,15 @@ ExtMomBinSize = None
 #############  3D  ######################################
 kF = (9.0*np.pi/4.0)**(1.0/3.0)/rs
 Bubble = 0.0971916  # 3D, Beta=10, rs=1
+
+Data = {}  # key: (order, channel)
+DataWithAngle = {}  # key: (order, channel)
+TauBin = None
+AngleBin = None
+ExtMomBin = None
+AngleBinSize = None
+TauBinSize = None
+ExtMomBinSize = None
 
 
 def AngleIntegation(Data, l):
