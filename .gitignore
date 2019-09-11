@@ -52,3 +52,4 @@ callgrind*
 .ipynb*
 in00
 inlist
+*.data

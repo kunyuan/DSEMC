@@ -151,20 +151,20 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK,
       // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
       //   return 0.0;
       // else
-      if (AngleIndex >= AngBinSize) {
-        // cout << (*LegK[INL])[0] << endl;
-        // cout << (*LegK[INL])[1] << endl;
-        // cout << (*LegK[INL])[2] << endl;
-        ABORT("Angle too large!" << AngleIndex);
-      }
+      // if (AngleIndex >= AngBinSize) {
+      //   // cout << (*LegK[INL])[0] << endl;
+      //   // cout << (*LegK[INL])[1] << endl;
+      //   // cout << (*LegK[INL])[2] << endl;
+      //   ABORT("Angle too large!" << AngleIndex);
+      // }
       // if (ExtQ >= ExtMomBinSize) {
       //   ABORT("Q too large " << ExtQ);
       // }
-      if (TauIndex >= TauBinSize) {
-        ABORT("Tau too large " << TauIndex);
-      }
+      // if (TauIndex >= TauBinSize) {
+      //   ABORT("Tau too large " << TauIndex);
+      // }
 
-      if (k < 0.2 * Para.Kf) {
+      if (k < 0.05 * Para.Kf) {
         return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
         // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
         //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&
@@ -296,6 +296,7 @@ void verQTheta::Save(bool Simple) {
         VerFile << fmt::sprintf(
             "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n", Para.PID,
             Para.ObsType, Para.Rs, Para.Beta, Para.Counter);
+        VerFile << "# Norm: " << Normalization << endl;
         VerFile << "# TauTable: ";
         for (int tau = 0; tau < TauBinSize; ++tau)
           VerFile << Index2Tau(tau) << " ";
@@ -312,17 +313,12 @@ void verQTheta::Save(bool Simple) {
         for (int angle = 0; angle < AngBinSize; ++angle)
           for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
             if (chan == 0)
-              VerFile << DiffInterI(order, angle, qindex) / Normalization *
-                             PhyWeightI
-                      << "  ";
+              VerFile << DiffInterI(order, angle, qindex) * PhyWeightI << "  ";
             else if (chan == 3)
-              VerFile << DiffInterS(order, angle, qindex) / Normalization *
-                             PhyWeightI
-                      << "  ";
+              VerFile << DiffInterS(order, angle, qindex) * PhyWeightI << "  ";
             else if (chan == 1) {
               for (int tindex = 0; tindex < TauBinSize; ++tindex)
-                VerFile << DiffInterT(order, angle, qindex, tindex) /
-                               Normalization * PhyWeightT
+                VerFile << DiffInterT(order, angle, qindex, tindex) * PhyWeightT
                         << "  ";
             }
           }
@@ -332,45 +328,6 @@ void verQTheta::Save(bool Simple) {
       }
     }
   }
-
-  // for (int chan = 0; chan < 4; chan++) {
-  //   if (chan == 2)
-  //     continue;
-  //   string FileName = fmt::format("vertex{0}_pid{1}.dat", chan, Para.PID);
-  //   ofstream VerFile;
-  //   VerFile.open(FileName, ios::out | ios::trunc);
-  //   if (VerFile.is_open()) {
-  //     VerFile << fmt::sprintf(
-  //         "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Step: %d\n", Para.PID,
-  //         Para.ObsType, Para.Rs, Para.Beta, Para.Counter);
-  //     VerFile << "# TauTable: ";
-  //     for (int tau = 0; tau < TauBinSize; ++tau)
-  //       VerFile << Index2Tau(tau) << " ";
-  //     VerFile << endl;
-  //     VerFile << "# AngleTable: ";
-  //     for (int angle = 0; angle < AngBinSize; ++angle)
-  //       VerFile << Para.AngleTable[angle] << " ";
-  //     VerFile << endl;
-  //     VerFile << "# ExtMomBinTable: ";
-  //     for (int qindex = 0; qindex < ExtMomBinSize; ++qindex)
-  //       VerFile << Para.ExtMomTable[qindex][0] << " ";
-  //     VerFile << endl;
-
-  //     for (int angle = 0; angle < AngBinSize; ++angle)
-  //       for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
-  //         if (chan == 0)
-  //           VerFile << EffInterI(angle, qindex) << "  ";
-  //         else if (chan == 3)
-  //           VerFile << EffInterS(angle, qindex) << "  ";
-  //         else if (chan == 1)
-  //           for (int tindex = 0; tindex < TauBinSize; ++tindex)
-  //             VerFile << EffInterT(angle, qindex, tindex) << "  ";
-  //       }
-  //     VerFile.close();
-  //   } else {
-  //     LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
-  //   }
-  // }
 }
 
 void verQTheta::ClearStatis() {
@@ -390,7 +347,7 @@ void verQTheta::ClearStatis() {
 void verQTheta::LoadWeight() {
   try {
     int chan = 1;
-    string FileName = fmt::format("weight{0}.dat", chan);
+    string FileName = fmt::format("../weight{0}.data", chan);
     ifstream VerFile;
     VerFile.open(FileName, ios::in);
     if (VerFile.is_open()) {

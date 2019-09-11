@@ -5,11 +5,28 @@ import glob
 import time
 import numpy as np
 
-rs = 1.0
-Lambda = 2
-Beta = 20
-SleepTime = 5
-TotalStep = 101
+SleepTime = 10
+
+rs = None
+Lambda = None
+Beta = None
+TotalStep = None
+BetaStr = None
+rsStr = None
+LambdaStr = None
+
+with open("inlist", "r") as file:
+    line = file.readline()
+    para = line.split(" ")
+    BetaStr = para[0]
+    Beta = float(BetaStr)
+    rsStr = para[1]
+    rs = float(rsStr)
+    LambdaStr = para[2]
+    Lambda = float(LambdaStr)
+    TotalStep = float(para[4])
+
+print rs, Beta, Lambda, TotalStep
 
 # 0: I, 1: T, 2: U, 3: S
 Channel = [1, ]
@@ -18,16 +35,16 @@ ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
 Order = [0, ]
 
-folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
+folder = "./Beta{0}_rs{1}_lambda{2}/".format(BetaStr, rsStr, LambdaStr)
 
-Data = {}  # key: (order, channel)
-DataWithAngle = {}  # key: (order, channel)
 TauBin = None
 AngleBin = None
 ExtMomBin = None
 AngleBinSize = None
 TauBinSize = None
 ExtMomBinSize = None
+Data = {}  # key: (order, channel)
+DataWithAngle = {}  # key: (order, channel)
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
@@ -68,16 +85,24 @@ while True:
 
             files = os.listdir(folder)
             Num = 0
+            Norm = 0
             Data0 = None
             FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
 
             for f in files:
                 if re.match(FileName, f):
                     print "Loading ", f
+                    Norm0 = -1
+                    d = None
                     try:
                         with open(folder+f, "r") as file:
+                            line0 = file.readline()
+                            Step = int(line0.split(":")[-1])/1000000
+                            # print "Step:", Step
                             line1 = file.readline()
-                            Step = int(line1.split(":")[-1])/1000000
+                            # print line1
+                            Norm0 = float(line1.split(":")[-1])
+                            # print "Norm: ", Norm0
                             line2 = file.readline()
                             if TauBin is None:
                                 TauBin = np.fromstring(
@@ -94,31 +119,45 @@ while True:
                                     line4.split(":")[1], sep=' ')
                                 ExtMomBinSize = len(ExtMomBin)
                                 ExtMomBin /= kF
-                        Num += 1
+                        # Num += 1
+                        # print "Load data..."
                         d = np.loadtxt(folder+f)
-                        if Data0 is None:
-                            Data0 = d
-                        else:
-                            Data0 += d
+
+                        if d is not None and Norm0 > 0:
+                            if Data0 is None:
+                                Data0 = d
+                            else:
+                                Data0 += d
+
+                            Norm += Norm0
+
+                    # print "Norm", Norm
+
                     except:
                         print "fail to load ", folder+f
 
-            if Num > 0 and Data0 is not None:
-                Data0 /= Num
+            if Norm > 0 and Data0 is not None:
+                print "Total Weight: ", Data0[0]
+                Data0 /= Norm
                 if(chan == 1):
                     Data0 = Data0.reshape(
                         (AngleBinSize, ExtMomBinSize, TauBinSize))
                 else:
                     Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
-                DataWithAngle[(order, chan)] = Data0
-                Data[(order, chan)] = AngleIntegation(Data0, 0)
+                if DataWithAngle.has_key((order, chan)):
+                    DataWithAngle[(order, chan)] = DataWithAngle[(
+                        order, chan)]*0.0+Data0*1.0
+                else:
+                    DataWithAngle[(order, chan)] = Data0
+                Data[(order, chan)] = AngleIntegation(
+                    DataWithAngle[(order, chan)], 0)
 
             # average the angle distribution
             # Data[(order, chan)] = AngleIntegation(Data0, 0)
     if len(DataWithAngle) > 0:
         print "Write Weight file."
-        with open(folder+"weight1.dat", "w") as file:
+        with open("weight1.data", "w") as file:
             for angle in range(AngleBinSize):
                 for qidx in range(ExtMomBinSize):
                     for tidx in range(TauBinSize):
@@ -128,10 +167,12 @@ while True:
         qData = np.sum(Data[(0, 1)], axis=1) * \
             Beta/kF**2/TauBinSize
 
-        print qData
+        qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
 
-        with open("data.dat", "a") as file:
+        with open("data.data", "a") as file:
             file.write("{0}\n".format(qData[0]))
+
+        print qData
 
     if Step >= TotalStep:
         print "End of Simulation!"

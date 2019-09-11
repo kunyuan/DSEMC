@@ -69,6 +69,7 @@ for index, eachline in enumerate(inlist):
             os.system("./"+execute+" < "+infilepath+"/" +
                       infile+" > "+outfilepath+"/"+outfile+" &")
             os.chdir("..")
+
         elif Cluster == "condor":
             with open(jobfilepath+"/"+jobfile, "w") as fjob:
                 fjob.write("executable = {0}\n".format(execute))

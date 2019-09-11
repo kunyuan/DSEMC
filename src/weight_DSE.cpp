@@ -93,6 +93,9 @@ void weight::ChanUST(dse::ver4 &Ver4) {
   double Ratio;
   momentum Transfer;
   array<momentum *, 4> &LegK0 = Ver4.LegK;
+  // if (Para.Counter == 181406 && Ver4.ID == 2 && Ver4.LoopNum == 1) {
+  //   cout << "here" << endl;
+  // }
 
   for (auto &bubble : Ver4.Bubble) {
     auto &G = bubble.G;
@@ -109,7 +112,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else if (chan == T) {
           Transfer = *LegK0[INL] - *LegK0[OUTL];
           double Q = Transfer.norm();
-          if (Q < 0.2 * Para.Kf) {
+          if (Q < 0.05 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();
@@ -136,12 +139,14 @@ void weight::ChanUST(dse::ver4 &Ver4) {
             //   } else {
             //     bubble.ProjFactor[T] = 0.0;
             //   }
-          } else
+          } else {
             bubble.ProjFactor[T] = 0.0;
+            continue;
+          }
         } else {
           Transfer = *LegK0[INL] - *LegK0[OUTR];
           double Q = Transfer.norm();
-          if (Q < 0.2 * Para.Kf) {
+          if (Q < 0.05 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();
@@ -169,8 +174,10 @@ void weight::ChanUST(dse::ver4 &Ver4) {
             //   } else {
             //     bubble.ProjFactor[U] = 0.0;
             //   }
-          } else
+          } else {
             bubble.ProjFactor[U] = 0.0;
+            continue;
+          }
         }
       }
 
@@ -186,18 +193,22 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
         G[0](lt, rt) = Fermi.Green(dTau, K0, UP, 0, Var.CurrScale);
-        for (auto &chan : bubble.Channel)
-          if (chan == S)
-            // LVer to RVer
-            G[S](lt, rt) = Fermi.Green(dTau, *G[S].K, UP, 0, Var.CurrScale);
-          else
-            // RVer to LVer
-            G[chan](rt, lt) =
-                Fermi.Green(-dTau, *G[chan].K, UP, 0, Var.CurrScale);
+        for (auto &chan : bubble.Channel) {
+          if (abs(bubble.ProjFactor[chan]) > EPS)
+            if (chan == S)
+              // LVer to RVer
+              G[S](lt, rt) = Fermi.Green(dTau, *G[S].K, UP, 0, Var.CurrScale);
+            else
+              // RVer to LVer
+              G[chan](rt, lt) =
+                  Fermi.Green(-dTau, *G[chan].K, UP, 0, Var.CurrScale);
+        }
       }
 
     // for vertex4 with one or more loops
     for (auto &pair : bubble.Pair) {
+      if (abs(bubble.ProjFactor[pair.Channel]) < EPS)
+        continue;
       ver4 &LVer = pair.LVer;
       ver4 &RVer = pair.RVer;
       Vertex4(LVer);

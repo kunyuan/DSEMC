@@ -56,7 +56,7 @@ void InitPara() {
       "3", // 3 loop
            // "4", // 4 loop
   };
-  Para.ReWeight = {0.2, 1.0, 1.0, 0.5, 1.0};
+  Para.ReWeight = {1.0, 1.0, 1.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = selfenergy::BARE;
 
@@ -137,6 +137,10 @@ void MonteCarlo() {
   long int WaitStep = 1000000;
   int Flag = 0;
   int Block = 0;
+
+  LOG_INFO("Loading Weight...")
+  Markov.Weight.LoadWeight();
+
   while (true) {
     Block++;
     if (Block > Para.TotalStep)
@@ -209,6 +213,7 @@ void MonteCarlo() {
         }
 
         if (MessageTimer.check(Para.MessageTimer)) {
+          LOG_INFO("Loading Weight...")
           Markov.Weight.LoadWeight();
         }
       }

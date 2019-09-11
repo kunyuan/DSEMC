@@ -386,13 +386,23 @@ string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
                   "RexpandBare: {4}, RenormVer4: {5}, IsFullVer4: {6}\n",
                   Level, SideStr, Ver4.ID, Ver4.LoopNum, Ver4.RexpandBare,
                   Ver4.RenormVer4, Ver4.IsFullVer4);
-  if (Ver4.Bubble.size() > 0)
-    Info += indent + "├─T: ";
-  else
-    Info += indent + "└─T: ";
+  Info += indent + "├─T: ";
   for (auto &t : Ver4.T)
     Info +=
         fmt::format("({0}, {1}, {2}, {3}), ", t[INL], t[OUTL], t[INR], t[OUTR]);
+
+  Info += "\n";
+  if (Ver4.Bubble.size() > 0)
+    Info += indent + "├─LegK: ";
+  else
+    Info += indent + "└─LegK: ";
+
+  momentum *start = &(*LoopMom)[0];
+  // momentum *InL = Ver4.LegK[INL];
+
+  Info += fmt::format("{0}, {1}, {2}, {3}", Ver4.LegK[INL] - start,
+                      Ver4.LegK[OUTL] - start, Ver4.LegK[INR] - start,
+                      Ver4.LegK[OUTR] - start);
 
   // Info += "\n" + indent;
   // Info += "---------------------------------------------------------\n";

@@ -72,17 +72,25 @@ for order in Order:
 
         files = os.listdir(folder)
         Num = 0
+        Norm = 0
         Data0 = None
-        if(order == 0):
-            FileName = "vertex{0}_pid[0-9]+.dat".format(chan)
-        else:
-            FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
+        # if(order == 0):
+        #     FileName = "vertex{0}_pid[0-9]+.dat".format(chan)
+        # else:
+        #     FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
+
+        FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
 
         for f in files:
             if re.match(FileName, f):
                 print "Loading ", f
                 with open(folder+f, "r") as file:
+                    line0 = file.readline()
+                    Step = int(line0.split(":")[-1])/1000000
+                    # print "Step:", Step
                     line1 = file.readline()
+                    # print line1
+                    Norm += float(line1.split(":")[-1])
                     line2 = file.readline()
                     if TauBin is None:
                         TauBin = np.fromstring(line2.split(":")[1], sep=' ')
@@ -102,7 +110,7 @@ for order in Order:
                     Data0 = d
                 else:
                     Data0 += d
-        Data0 /= Num
+        Data0 /= Norm
         if(chan == 1):
             Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
         else:
@@ -184,8 +192,8 @@ elif (XType == "Mom"):
         # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
         # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
         # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-        # ErrorPlot(ax, ExtMomBin, qData,
-        #           ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
+        ErrorPlot(ax, ExtMomBin, qData,
+                  ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
