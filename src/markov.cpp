@@ -114,51 +114,7 @@ void markov::Measure() {
   Weight.Measure(WeightFactor);
 };
 
-void markov::UpdateWeight(double Ratio, int Order) {
-  Weight.Update(Ratio, Order);
-}
-
-void markov::SaveToFile(bool Simple) {
-  // return;
-
-  // for (auto &group : Groups) {
-  //   ofstream PolarFile;
-  //   string FileName = fmt::format("group{0}_pid{1}.dat", group.Name,
-  //   Para.PID); PolarFile.open(FileName, ios::out | ios::trunc); if
-  //   (PolarFile.is_open()) {
-  //     PolarFile << fmt::sprintf(
-  //         "#PID:%d, Type:%d, rs:%.3f, Beta: %.3f, Group: %s, Step: %d\n",
-  //         Para.PID, Para.ObsType, Para.Rs, Para.Beta, group.Name,
-  //         Para.Counter);
-
-  //     for (int j = 0; j < Polar[group.ID].size(); j++)
-  //       PolarFile << fmt::sprintf("%13.6f\t%13.6f\n", Para.ExtMomTable[j][0],
-  //                                 Polar[group.ID][j]);
-  //     PolarFile.close();
-  //   } else {
-  //     LOG_WARNING("Polarization for PID " << Para.PID << " fails to save!");
-  //   }
-  // }
-
-  // ofstream StaticPolarFile;
-  // string FileName = fmt::sprintf("output%d.dat", Para.PID);
-  // StaticPolarFile.open(FileName, ios::out | ios::trunc);
-  // if (StaticPolarFile.is_open()) {
-  //   for (auto &group : Groups) {
-  //     StaticPolarFile << fmt::sprintf(
-  //         "PID:%-4d  Type:%-2d  Group:%-4s  rs:%-.3f  "
-  //         "Beta:%-.3f  Lambda:%-.3f  Polar: % 13.6f\n",
-  //         Para.PID, Para.ObsType, group.Name, Para.Rs, Para.Beta, Para.Mass2,
-  //         PolarStatic[group.ID]);
-  //   }
-  //   StaticPolarFile.close();
-  // } else {
-  //   LOG_WARNING("Static Polarization for PID " << Para.PID
-  //                                              << " fails to save!");
-  // }
-
-  Weight.Save(Simple);
-};
+void markov::SaveToFile(bool Simple) { Weight.Save(Simple); };
 
 void markov::ClearStatis() { Weight.ClearStatis(); }
 

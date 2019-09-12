@@ -50,7 +50,6 @@ public:
   void RejectChange(group &);
 
   void Measure(double WeightFactor);
-  void Update(double Ratio, int Order);
   void ClearStatis();
   void LoadWeight();
   void Save(bool Simple = false);

@@ -151,12 +151,12 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan,
         LegT[U] = {LvT[INL], RvT[OUTR], RvT[INR], LvT[OUTL]};
         LegT[S] = {LvT[INL], RvT[OUTL], LvT[INR], RvT[OUTR]};
       } else {
-        LegT[T] = {LvT[INL], LvT[INL], RvT[INR], RvT[INR]};
-        LegT[U] = {LvT[INL], RvT[INR], RvT[INR], LvT[INL]};
+        // LegT[T] = {LvT[INL], LvT[INL], RvT[INR], RvT[INR]};
+        // LegT[U] = {LvT[INL], RvT[INR], RvT[INR], LvT[INL]};
         LegT[S] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
 
-        // LegT[T] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
-        // LegT[U] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
+        LegT[T] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
+        LegT[U] = {LvT[INL], LvT[INL], LvT[INL], LvT[INL]};
       }
 
       // add T array into the T pool of the vertex

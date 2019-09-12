@@ -218,15 +218,6 @@ void MonteCarlo() {
         }
       }
     }
-    if (Block % 10 == 0) {
-      // if (Block < 200)
-      // Markov.UpdateWeight(1.0, Para.GroupName.size() - 1);
-      // else
-      //   Markov.UpdateWeight(1.0, 2);
-      // LOG_INFO("Update weight, " << Block);
-      // Flag = 1;
-      // Markov.ClearStatis();
-    }
     if (Block == 100) {
       // if (Flag == 0)
       // Markov.UpdateWeight(1.0);

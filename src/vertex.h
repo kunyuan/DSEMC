@@ -57,8 +57,8 @@ public:
   double *ChanI;
   double *dChanI;
 
-  double &EffInterT(int Angle, int ExtQ, int Tau);
-  double &DiffInterT(int Order, int Angle, int ExtQ, int Tau);
+  double &EffInterT(int Angle, int ExtQ);
+  double &DiffInterT(int Order, int Angle, int ExtQ);
 
   double &EffInterS(int Angle, int ExtQ);
   double &DiffInterS(int Order, int Angle, int ExtQ);
