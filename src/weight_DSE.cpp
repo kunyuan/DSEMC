@@ -67,8 +67,8 @@ void weight::Ver0(ver4 &Ver4) {
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[0] = +VerQTheta.Interaction(K, DiQ, 0.0, 1) -
-                     VerQTheta.Interaction(K, ExQ, 0.0, 1);
+    Ver4.Weight[0] += +VerQTheta.Interaction(K, DiQ, 0.0, 1) -
+                      VerQTheta.Interaction(K, ExQ, 0.0, 1);
     // Ver4.Weight[1] = 0.0;
     // Ver4.Weight[2] = 0.0;
 
@@ -220,7 +220,10 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       for (auto &map : pair.Map) {
         Weight = pair.SymFactor * bubble.ProjFactor[pair.Channel];
         Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
+        // cout << Weight << endl;
         Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
+        // cout << Weight << endl;
+        // cout << endl;
         Ver4.Weight[map.Tidx] += Weight;
       }
     }

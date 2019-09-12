@@ -56,11 +56,9 @@ Bubble = 0.0971916  # 3D, Beta=10, rs=1
 
 Data = {}  # key: (order, channel)
 DataWithAngle = {}  # key: (order, channel)
-TauBin = None
 AngleBin = None
 ExtMomBin = None
 AngleBinSize = None
-TauBinSize = None
 ExtMomBinSize = None
 
 
@@ -105,10 +103,6 @@ for order in Order:
                     line1 = file.readline()
                     # print line1
                     Norm += float(line1.split(":")[-1])
-                    line2 = file.readline()
-                    if TauBin is None:
-                        TauBin = np.fromstring(line2.split(":")[1], sep=' ')
-                        TauBinSize = len(TauBin)
                     line3 = file.readline()
                     if AngleBin is None:
                         AngleBin = np.fromstring(line3.split(":")[1], sep=' ')
@@ -125,10 +119,7 @@ for order in Order:
                 else:
                     Data0 += d
         Data0 /= Norm
-        if(chan == 1):
-            Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize, TauBinSize))
-        else:
-            Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
+        Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
         DataWithAngle[(order, chan)] = Data0
 
@@ -158,26 +149,16 @@ if(XType == "Scale"):
                   ColorList[i], 's', "Q {0}".format(ExtMomBin[index]))
     ax.set_xlim([0.0, ScaleBin[-2]])
     ax.set_xlabel("$Scale$", size=size)
-elif(XType == "Tau"):
-    chan = 1
-    for i in range(ExtMomBinSize/8):
-        index = 8*i
-        for order in Order:
-            ErrorPlot(ax, TauBin, Data[(order, chan)][index, :],
-                      ColorList[2*i], 's', "Loop {0}, Q {1}".format(order, ExtMomBin[index]))
-    ax.set_xlim([0.0, TauBin[-1]+0.1])
-    ax.set_xlabel("$Tau$", size=size)
 elif (XType == "Mom"):
     i = 0
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            # qData *= 0.0
+            qData *= 0.0
         for order in Order[1:]:
             i += 1
             if(chan == 1):
-                qData -= np.sum(Data[(order, chan)], axis=1) * \
-                    Beta/kF**2/TauBinSize
+                qData -= Data[(order, chan)]
             else:
                 qData = Data[(order, chan)]
 
@@ -192,14 +173,8 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            qData -= np.sum(Data[(0, chan)], axis=1) * \
-                Beta/kF**2/TauBinSize
-            # qData -= np.sum(Data[(1, chan)], axis=1) * \
-            #     Beta/kF**2/TauBinSize
-            # qData -= np.sum(Data[(2, chan)], axis=1) * \
-            #     Beta/kF**2/TauBinSize
-            # qData -= np.sum(Data[(3, chan)], axis=1) * \
-            #     Beta/kF**2/TauBinSize
+            qData *= 0.0
+            qData -= Data[(0, chan)]
         else:
             qData = Data[(0, chan)]
 
@@ -219,7 +194,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    ax.plot(x, y0, 'k-', lw=2, label="original")
+    # ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 

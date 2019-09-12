@@ -176,7 +176,7 @@ void markov::ChangeGroup() {
 
   // if (Name == INCREASE_ORDER) {
   //   cout << "time:" << Var.Tau[2] << ", " << Var.Tau[3] << endl;
-  //   cout << NewWeight << endl;
+  // cout << NewWeight << endl;
   // }
   // if (NewGroup.Order == 2)
   //   cout << NewWeight << endl;
