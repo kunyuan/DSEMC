@@ -153,8 +153,6 @@ while True:
                 Data[(order, chan)] = AngleIntegation(
                     DataWithAngle[(order, chan)], 0)
 
-            # average the angle distribution
-            # Data[(order, chan)] = AngleIntegation(Data0, 0)
     if len(DataWithAngle) > 0:
         print "Write Weight file."
         with open("weight1.data", "w") as file:

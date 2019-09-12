@@ -40,7 +40,7 @@ with open("inlist", "r") as file:
     Lambda = float(LambdaStr)
     TotalStep = float(para[4])
 
-folder = "./Beta{0}_rs{1}_lambda{2}/".format(Beta, rs, Lambda)
+folder = "./Beta{0}_rs{1}_lambda{2}/".format(int(Beta), rs, Lambda)
 # folder = "./3_Beta{0}_lambda{2}/".format(Beta, rs, Lambda)
 
 ##############   2D    ##################################
