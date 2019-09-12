@@ -135,12 +135,11 @@ void markov::ChangeGroup() {
     // change to a new group with one higher order
     Name = INCREASE_ORDER;
     static momentum NewMom;
-    double NewTau1, NewTau2;
+    double NewTau;
     // Generate New Tau
-    Prop = GetNewTau(NewTau1, NewTau2);
+    Prop = GetNewTau(NewTau);
     int NewTauIndex = Var.CurrGroup->TauNum;
-    Var.Tau[NewTauIndex] = NewTau1;
-    Var.Tau[NewTauIndex + 1] = NewTau2;
+    Var.Tau[NewTauIndex] = NewTau;
     // Generate New Mom
     Prop *= GetNewK(NewMom);
     Var.LoopMom[Var.CurrGroup->LoopNum] = NewMom;
@@ -158,8 +157,8 @@ void markov::ChangeGroup() {
 
     Name = DECREASE_ORDER;
     // Remove OldTau
-    int TauToRemove = Var.CurrGroup->TauNum - 2;
-    Prop = RemoveOldTau(Var.Tau[TauToRemove], Var.Tau[TauToRemove + 1]);
+    int TauToRemove = Var.CurrGroup->TauNum - 1;
+    Prop = RemoveOldTau(Var.Tau[TauToRemove]);
     // Remove OldMom
     int LoopToRemove = Var.CurrGroup->LoopNum - 1;
     Prop *= RemoveOldK(Var.LoopMom[LoopToRemove]);
@@ -320,26 +319,25 @@ void markov::ChangeChannel() {
   return;
 }
 
-double markov::GetNewTau(double &NewTau1, double &NewTau2) {
+double markov::GetNewTau(double &NewTau) {
   double Step = 1.0;
-  NewTau1 = Random.urn() * Para.Beta;
-  NewTau2 = Random.urn() * Para.Beta;
+  NewTau = Random.urn() * Para.Beta;
   // NewTau2 = (Random.urn() - 0.5) * Step + NewTau1;
   // if (NewTau2 < 0.0)
   //   NewTau2 += Para.Beta;
   // if (NewTau2 > Para.Beta)
   //   NewTau2 -= Para.Beta;
   // return Para.Beta * Step;
-  return Para.Beta * Para.Beta;
+  return Para.Beta;
 }
 
-double markov::RemoveOldTau(double &OldTau1, double &OldTau2) {
+double markov::RemoveOldTau(double &OldTau) {
   // double Step = 1.0;
   // if (abs(OldTau2 - OldTau1) > Step / 2.0)
   //   return 0.0;
   // else
   //   return 1.0 / Para.Beta / Step;
-  return 1.0 / Para.Beta / Para.Beta;
+  return 1.0 / Para.Beta;
 }
 
 double markov::GetNewK(momentum &NewMom) {

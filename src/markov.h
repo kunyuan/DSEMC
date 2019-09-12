@@ -55,9 +55,9 @@ private:
   double ShiftK(const momentum &, momentum &);
   double ShiftTau(const double &, double &);
 
-  double GetNewTau(double &, double &);
+  double GetNewTau(double &);
   double GetNewK(momentum &);
-  double RemoveOldTau(double &, double &);
+  double RemoveOldTau(double &);
   double RemoveOldK(momentum &);
 
   // MC updates information

@@ -8,6 +8,6 @@
 #ExtTransferLoopIndex: 0
 #ExtLegLoopIndex: 1 2
 #DummyLoopIndex: 
-#TauNum: 8
+#TauNum: 4
 #ExtTauIndex:
 #DummyTauIndex: 

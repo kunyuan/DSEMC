@@ -58,19 +58,22 @@ void weight::Ver0(ver4 &Ver4) {
   array<momentum *, 4> &K = Ver4.LegK;
   momentum DiQ = *K[INL] - *K[OUTL];
   momentum ExQ = *K[INL] - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(Ver4.LegK, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(Ver4.LegK, ExQ, 0.0, 0);
+  Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
+                   VerQTheta.Interaction(K, ExQ, 0.0, 0);
   // Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
-    double Tau = Var.Tau[Ver4.T[1][INR]] - Var.Tau[Ver4.T[1][INL]];
+    // double Tau = Var.Tau[Ver4.T[1][INR]] - Var.Tau[Ver4.T[1][INL]];
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
-    Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
+    Ver4.Weight[0] = +VerQTheta.Interaction(K, DiQ, 0.0, 1) -
+                     VerQTheta.Interaction(K, ExQ, 0.0, 1);
     // Ver4.Weight[1] = 0.0;
     // Ver4.Weight[2] = 0.0;
+
+    // Ver4.Weight[1] = +VerQTheta.Interaction(K, DiQ, Tau, 1);
+    // Ver4.Weight[2] = -VerQTheta.Interaction(K, ExQ, Tau, 1);
   }
   return;
 }
@@ -189,8 +192,8 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         *G[S].K = *LegK[INL] + *LegK[INR] - K0;
     }
 
-    for (int lt = InTL; lt < InTL + Ver4.TauNum - 2; ++lt)
-      for (int rt = InTL + 2; rt < InTL + Ver4.TauNum; ++rt) {
+    for (int lt = InTL; lt < InTL + Ver4.TauNum - 1; ++lt)
+      for (int rt = InTL + 1; rt < InTL + Ver4.TauNum; ++rt) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
         G[0](lt, rt) = Fermi.Green(dTau, K0, UP, 0, Var.CurrScale);
         for (auto &chan : bubble.Channel) {
@@ -243,10 +246,8 @@ void weight::ChanI(dse::ver4 &Ver4) {
     *G[8].K = *G[2].K + OutL - *G[0].K;
 
     for (auto &g : Env.G)
-      for (auto &in : g.InT)
-        for (auto &out : g.OutT)
-          g(in, out) = Fermi.Green(Var.Tau[out] - Var.Tau[in], *(g.K), UP, 0,
-                                   Var.CurrScale);
+      g.Weight = Fermi.Green(Var.Tau[g.OutT] - Var.Tau[g.InT], *(g.K), UP, 0,
+                             Var.CurrScale);
 
     for (auto &subVer : Env.Ver)
       Vertex4(subVer);
@@ -257,7 +258,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
       auto &SubVer = Env.Ver;
       auto &GT = map.GT;
       auto &G = Env.G;
-      ComWeight = G[0](GT[0]) * G[1](GT[1]) * G[2](GT[2]) * G[3](GT[3]);
+      ComWeight = G[0].Weight * G[1].Weight * G[2].Weight * G[3].Weight;
       // cout << "G: " << ComWeight << endl;
       ComWeight *= SubVer[0].Weight[map.LDVerTidx];
       // cout << "Ver: " << SubVer[0].Weight[map.LDVerT] << endl;
@@ -267,14 +268,14 @@ void weight::ChanI(dse::ver4 &Ver4) {
       Weight *= SubVer[1].Weight[map.LUVerTidx];
       Weight *= SubVer[3].Weight[map.RDVerTidx];
       Weight *= SubVer[6].Weight[map.RUVerTidx];
-      Weight *= G[4](GT[4]) * G[5](GT[5]);
+      Weight *= G[4].Weight * G[5].Weight;
       Ver4.Weight[map.Tidx[0]] += Weight;
 
       Weight = Env.SymFactor[1] * ComWeight;
       Weight *= SubVer[2].Weight[map.LUVerTidx];
       Weight *= SubVer[3].Weight[map.RDVerTidx];
       Weight *= SubVer[7].Weight[map.RUVerTidx];
-      Weight *= G[6](GT[6]) * G[5](GT[5]);
+      Weight *= G[6].Weight * G[5].Weight;
       Ver4.Weight[map.Tidx[1]] += Weight;
       // cout << Weight << endl;
 
@@ -282,7 +283,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
       Weight *= SubVer[1].Weight[map.LUVerTidx];
       Weight *= SubVer[4].Weight[map.RDVerTidx];
       Weight *= SubVer[8].Weight[map.RUVerTidx];
-      Weight *= G[4](GT[4]) * G[7](GT[7]);
+      Weight *= G[4].Weight * G[7].Weight;
       Ver4.Weight[map.Tidx[2]] += Weight;
       // cout << Weight << endl;
 
@@ -290,7 +291,7 @@ void weight::ChanI(dse::ver4 &Ver4) {
       Weight *= SubVer[2].Weight[map.LUVerTidx];
       Weight *= SubVer[5].Weight[map.RDVerTidx];
       Weight *= SubVer[9].Weight[map.RUVerTidx];
-      Weight *= G[6](GT[6]) * G[8](GT[8]);
+      Weight *= G[6].Weight * G[8].Weight;
       Ver4.Weight[map.Tidx[3]] += Weight;
       // cout << Weight << endl;
 

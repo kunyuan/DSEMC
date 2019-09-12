@@ -104,35 +104,18 @@ struct bubble {
 class g2Matrix {
 public:
   g2Matrix() {
-    _InShift = 0;
-    _OutShift = 0;
+    InT = 0;
+    OutT = 0;
   }
-  g2Matrix(int InShift, int OutShift, momentum *k) {
-    _InShift = InShift;
-    _OutShift = OutShift;
+  g2Matrix(int _InT, int _OutT, momentum *k) {
     K = k;
-    _G.resize(2 * 2);
-    for (auto &g : _G)
-      g = 0.0;
-    InT = {_InShift, _InShift + 1};
-    OutT = {_OutShift, _OutShift + 1};
+    InT = _InT;
+    OutT = _OutT;
   }
 
-  double &operator()(int in, int out) {
-    return _G[(in - _InShift) * 2 + out - _OutShift];
-  }
-
-  double &operator()(const array<int, 2> &t) {
-    return _G[(t[IN] - _InShift) * 2 + t[OUT] - _OutShift];
-  }
-
-  array<int, 2> InT, OutT; // possible InT and OutT
-  momentum *K;             // momentum on G
-
-private:
-  int _InShift;
-  int _OutShift;
-  vector<double> _G;
+  int InT, OutT; // possible InT and OutT
+  momentum *K;   // momentum on G
+  double Weight;
 };
 
 struct mapT4 {

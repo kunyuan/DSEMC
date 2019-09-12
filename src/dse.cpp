@@ -111,18 +111,20 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
 
 ver4 verDiag::Ver0(ver4 Ver4, int InTL) {
   ////////////// bare interaction ///////////
-  if (Ver4.Side == LEFT)
-    // Side==left, then make sure INL Tau are the last TauIndex
-    Ver4.T.push_back({InTL, InTL, InTL, InTL});
-  else
-    // Side==right, then make sure INR Tau are the last TauIndex
-    Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
+  // if (Ver4.Side == LEFT)
+  //   // Side==left, then make sure INL Tau are the last TauIndex
+  //   Ver4.T.push_back({InTL, InTL, InTL, InTL});
+  // else
+  //   // Side==right, then make sure INR Tau are the last TauIndex
+  //   Ver4.T.push_back({InTL + 1, InTL + 1, InTL + 1, InTL + 1});
 
-  if (Ver4.RexpandBare == true) {
-    //////////// dressed interaction ///////////
-    Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
-    Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
-  }
+  // if (Ver4.RexpandBare == true) {
+  //   //////////// dressed interaction ///////////
+  //   Ver4.T.push_back({InTL, InTL, InTL + 1, InTL + 1});
+  //   Ver4.T.push_back({InTL, InTL + 1, InTL + 1, InTL});
+  // }
+
+  Ver4.T.push_back({InTL, InTL, InTL, InTL});
   return Ver4;
 }
 
@@ -220,7 +222,7 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       Pair.SymFactor = SymFactor[c];
       ////////////////////   Right SubVer  ///////////////////
       int oR = LoopNum - 1 - ol;
-      int RInTL = InTL + 2 * (ol + 1);
+      int RInTL = InTL + (ol + 1);
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
@@ -306,9 +308,9 @@ ver4 verDiag::ChanI(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   auto &G = Env.G;
 
   int LDInTL = InTL;
-  int LUInTL = InTL + 2;
-  int RDInTL = InTL + 4;
-  int RUInTL = InTL + 6;
+  int LUInTL = InTL + 1;
+  int RDInTL = InTL + 2;
+  int RUInTL = InTL + 3;
 
   /////// Initialize G Tau and K Table  /////////
   G[0] = g2Matrix(LDInTL, RDInTL, &(*LoopMom)[LoopIndex]);
@@ -425,7 +427,8 @@ string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
       Info += "\n" + indent + ". │\n";
       Info += ToString(pp.LVer, indent + ". ", Level + 1);
       // Info +=
-      //     indent + ".....................................................\n";
+      //     indent +
+      //     ".....................................................\n";
 
       Info += indent + ". │\n";
       Info += ToString(pp.RVer, indent + ". ", Level + 1);
@@ -456,7 +459,8 @@ string verDiag::ToString(const ver4 &Ver4, string indent, int Level) {
   }
 
   // Info += "=======================================================\n";
-  // Info += indent + "----------------------------------------------------\n";
+  // Info += indent +
+  // "----------------------------------------------------\n";
   return Info;
 }
 
