@@ -43,7 +43,7 @@ void weight::Initialization() {
   // vector<dse::channel> Chan = {dse::T, dse::U, dse::S};
   dse::channel Chan[4] = {dse::I, dse::T, dse::U, dse::S};
   for (int c = 0; c < 4; c++)
-    for (int order = 1; order <= Groups.back().Order; order++) {
+    for (int order = 1; order <= Para.Order; order++) {
       vector<dse::channel> chan = {Chan[c]};
       Ver4Root[order][c] =
           VerDiag.Build(Var.LoopMom, order, chan, dse::caltype::PARQUET);
@@ -61,8 +61,8 @@ void weight::Initialization() {
   }
 
   // initialize spin variables
-  for (auto &sp : Var.LoopSpin)
-    sp = (spin)(Random.irn(0, 1));
+  // for (auto &sp : Var.LoopSpin)
+  //   sp = (spin)(Random.irn(0, 1));
 
   Var.CurrExtMomBin = 0;
 

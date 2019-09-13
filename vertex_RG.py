@@ -19,8 +19,9 @@ Channel = [1, ]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-Order = [0, 1, 2, 3]
+# Order = [0, 1, 2, 3]
 
+MaxOrder = None
 rs = None
 Lambda = None
 Beta = None
@@ -32,13 +33,16 @@ LambdaStr = None
 with open("inlist", "r") as file:
     line = file.readline()
     para = line.split(" ")
-    BetaStr = para[0]
+    MaxOrder = int(para[0])
+    BetaStr = para[1]
     Beta = float(BetaStr)
-    rsStr = para[1]
+    rsStr = para[2]
     rs = float(rsStr)
-    LambdaStr = para[2]
+    LambdaStr = para[3]
     Lambda = float(LambdaStr)
-    TotalStep = float(para[4])
+    TotalStep = float(para[5])
+
+Order = range(0, MaxOrder+1)
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(int(Beta), rs, Lambda)
 # folder = "./3_Beta{0}_lambda{2}/".format(Beta, rs, Lambda)
@@ -74,9 +78,9 @@ def AngleIntegation(Data, l):
     # return Result
 
 
-def TauIntegration(Data):
-    return np.sum(Data, axis=-1) * \
-        Beta/kF**2/TauBinSize
+# def TauIntegration(Data):
+#     return np.sum(Data, axis=-1) * \
+#         Beta/kF**2/TauBinSize
 
 
 for order in Order:

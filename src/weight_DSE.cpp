@@ -110,6 +110,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       array<momentum *, 4> &LegK = bubble.LegK[chan];
 
       if (bubble.IsProjected) {
+        bubble.ProjFactor[chan] = 0;
         if (chan == S) {
           continue;
         } else if (chan == T) {
@@ -121,8 +122,8 @@ void weight::ChanUST(dse::ver4 &Ver4) {
             Ratio = Para.Kf / (*LegK0[INR]).norm();
             *LegK[INR] = *LegK0[INR] * Ratio;
 
-            *LegK[OUTL] = *LegK[INL] - Transfer;
-            *LegK[OUTR] = *LegK[INR] + Transfer;
+            *LegK[OUTL] = *LegK[INL];
+            *LegK[OUTR] = *LegK[INR];
             // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
             //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
             //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
@@ -142,45 +143,42 @@ void weight::ChanUST(dse::ver4 &Ver4) {
             //   } else {
             //     bubble.ProjFactor[T] = 0.0;
             //   }
-          } else {
-            bubble.ProjFactor[T] = 0.0;
-            continue;
+            // bubble.ProjFactor[T] = exp(-Q * Q / 0.05);
+            bubble.ProjFactor[T] = 1.0;
           }
-        } else {
-          Transfer = *LegK0[INL] - *LegK0[OUTR];
-          double Q = Transfer.norm();
-          if (Q < 0.05 * Para.Kf) {
-            Ratio = Para.Kf / (*LegK0[INL]).norm();
-            *LegK[INL] = *LegK0[INL] * Ratio;
-            Ratio = Para.Kf / (*LegK0[INR]).norm();
-            *LegK[INR] = *LegK0[INR] * Ratio;
+        }
+      } else {
+        Transfer = *LegK0[INL] - *LegK0[OUTR];
+        double Q = Transfer.norm();
+        if (Q < 0.05 * Para.Kf) {
+          Ratio = Para.Kf / (*LegK0[INL]).norm();
+          *LegK[INL] = *LegK0[INL] * Ratio;
+          Ratio = Para.Kf / (*LegK0[INR]).norm();
+          *LegK[INR] = *LegK0[INR] * Ratio;
 
-            *LegK[OUTL] = *LegK[INR] + Transfer;
-            *LegK[OUTR] = *LegK[INL] - Transfer;
-            // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
+          *LegK[OUTL] = *LegK[INR];
+          *LegK[OUTR] = *LegK[INL];
+          bubble.ProjFactor[U] = 1.0;
+          // } else if (Q > 1.8 * Para.Kf && Q < 2.2 * Para.Kf) {
 
-            //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
-            //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
-            //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
-            //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
-            //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
-            //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
-            //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
-            //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
+          //   if (((*LegK0[INL]).norm() > 0.8 * Para.Kf &&
+          //        (*LegK0[INL]).norm() < 1.2 * Para.Kf) &&
+          //       ((*LegK0[INR]).norm() > 0.8 * Para.Kf &&
+          //        (*LegK0[INR]).norm() < 1.2 * Para.Kf) &&
+          //       ((*LegK0[OUTL]).norm() > 0.8 * Para.Kf &&
+          //        (*LegK0[OUTL]).norm() < 1.2 * Para.Kf) &&
+          //       ((*LegK0[OUTR]).norm() > 0.8 * Para.Kf &&
+          //        (*LegK0[OUTR]).norm() < 1.2 * Para.Kf)) {
 
-            //     Ratio = 2.0 * Para.Kf / Q;
-            //     Transfer = Transfer * Ratio;
-            //     *LegK[INL] = Transfer * 0.5;
-            //     *LegK[INR] = Transfer * (-0.5);
-            //     *LegK[OUTL] = *LegK[INL];
-            //     *LegK[OUTR] = *LegK[INR];
-            //   } else {
-            //     bubble.ProjFactor[U] = 0.0;
-            //   }
-          } else {
-            bubble.ProjFactor[U] = 0.0;
-            continue;
-          }
+          //     Ratio = 2.0 * Para.Kf / Q;
+          //     Transfer = Transfer * Ratio;
+          //     *LegK[INL] = Transfer * 0.5;
+          //     *LegK[INR] = Transfer * (-0.5);
+          //     *LegK[OUTL] = *LegK[INL];
+          //     *LegK[OUTR] = *LegK[INR];
+          //   } else {
+          //     bubble.ProjFactor[U] = 0.0;
+          //   }
         }
       }
 

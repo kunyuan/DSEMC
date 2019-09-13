@@ -18,13 +18,13 @@ LambdaStr = None
 with open("inlist", "r") as file:
     line = file.readline()
     para = line.split(" ")
-    BetaStr = para[0]
+    BetaStr = para[1]
     Beta = float(BetaStr)
-    rsStr = para[1]
+    rsStr = para[2]
     rs = float(rsStr)
-    LambdaStr = para[2]
+    LambdaStr = para[3]
     Lambda = float(LambdaStr)
-    TotalStep = float(para[4])
+    TotalStep = float(para[5])
 
 print rs, Beta, Lambda, TotalStep
 
@@ -43,6 +43,7 @@ AngleBinSize = None
 ExtMomBinSize = None
 Data = {}  # key: (order, channel)
 DataWithAngle = {}  # key: (order, channel)
+DataErr = {}  # key: (order, channel)
 
 ##############   2D    ##################################
 ###### Bare Green's function    #########################
@@ -85,6 +86,7 @@ while True:
             Num = 0
             Norm = 0
             Data0 = None
+            DataList = []
             FileName = "vertex{0}_{1}_pid[0-9]+.dat".format(order, chan)
 
             for f in files:
@@ -122,6 +124,9 @@ while True:
                             else:
                                 Data0 += d
 
+                            d = d.reshape((AngleBinSize, ExtMomBinSize))/Norm0
+                            DataList.append(AngleIntegation(d, 0))
+
                             Norm += Norm0
 
                     # print "Norm", Norm
@@ -132,19 +137,21 @@ while True:
             if Norm > 0 and Data0 is not None:
                 print "Total Weight: ", Data0[0]
                 Data0 /= Norm
-                if(chan == 1):
-                    Data0 = Data0.reshape(
-                        (AngleBinSize, ExtMomBinSize))
-                else:
-                    Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
+                Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
                 if DataWithAngle.has_key((order, chan)):
                     DataWithAngle[(order, chan)] = DataWithAngle[(
                         order, chan)]*0.0+Data0*1.0
                 else:
                     DataWithAngle[(order, chan)] = Data0
+
                 Data[(order, chan)] = AngleIntegation(
                     DataWithAngle[(order, chan)], 0)
+
+                DataErr[(order, chan)] = np.std(np.array(
+                    DataList), axis=0)/np.sqrt(len(DataList))
+
+                # print "err", np.std(np.array(DataList))
 
     if len(DataWithAngle) > 0:
         print "Write Weight file."
@@ -161,7 +168,11 @@ while True:
         with open("data.data", "a") as file:
             file.write("{0}\n".format(qData[0]))
 
-        print qData
+        # print qData
+        print "  Q/kF,    Gamma4,    Error"
+        for i in range(len(qData)):
+            print "{0:6.2f}, {1:10.6f}, {2:10.6f}".format(
+                ExtMomBin[i], qData[i], DataErr[(0, 1)][i])
 
     if Step >= TotalStep:
         print "End of Simulation!"

@@ -134,56 +134,62 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK,
     return -8.0 * PI / (k * k + Para.Mass2);
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
-    // return 0.0;
-    if (k < Para.MaxExtMom) {
+    if (k < 0.05 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
-      // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
-      //   return 0.0;
-      // else
-      // if (AngleIndex >= AngBinSize) {
-      //   // cout << (*LegK[INL])[0] << endl;
-      //   // cout << (*LegK[INL])[1] << endl;
-      //   // cout << (*LegK[INL])[2] << endl;
-      //   ABORT("Angle too large!" << AngleIndex);
-      // }
-      // if (ExtQ >= ExtMomBinSize) {
-      //   ABORT("Q too large " << ExtQ);
-      // }
-      // if (TauIndex >= TauBinSize) {
-      //   ABORT("Tau too large " << TauIndex);
-      // }
-
-      if (k < 0.05 * Para.Kf) {
-        return EffInterT(AngleIndex, Mom2Index(k));
-        // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
-        //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&
-        //        (*LegK[INL]).norm() < 1.2 * Para.Kf) &&
-        //       ((*LegK[INR]).norm() > 0.8 * Para.Kf &&
-        //        (*LegK[INR]).norm() < 1.2 * Para.Kf) &&
-        //       ((*LegK[OUTL]).norm() > 0.8 * Para.Kf &&
-        //        (*LegK[OUTL]).norm() < 1.2 * Para.Kf) &&
-        //       ((*LegK[OUTR]).norm() > 0.8 * Para.Kf &&
-        //        (*LegK[OUTR]).norm() < 1.2 * Para.Kf)) {
-        //     return EffInterT(AngBinSize / 2, Mom2Index(2.0 * Para.Kf),
-        //     TauIndex);
-        //     // return 0.5;
-        //     // return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf),
-        //     TauIndex);
-        //   } else
-        //     // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
-        //     return 0.0;
-      } else
-        return 0.0;
-      // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
-      // double Lower = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
-      // double UpperTau = Index2Tau(TauIndex + 1);
-      // double LowerTau = Index2Tau(TauIndex);
-      // // cout << Upper << " : " << Lower << endl;
-      // return Lower + (Upper - Lower) / (UpperTau - LowerTau) * (Tau -
-      // LowerTau);
-    } else {
+      return EffInterT(AngleIndex, 0);
+    } else
       return 0.0;
-    }
+    // return 0.0;
+    // if (k < Para.MaxExtMom) {
+    //   int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]),
+    //   AngBinSize);
+    // if ((k > 0.2 * Para.Kf && k < 1.8 * Para.Kf) || k > 2.2 * Para.Kf)
+    //   return 0.0;
+    // else
+    // if (AngleIndex >= AngBinSize) {
+    //   // cout << (*LegK[INL])[0] << endl;
+    //   // cout << (*LegK[INL])[1] << endl;
+    //   // cout << (*LegK[INL])[2] << endl;
+    //   ABORT("Angle too large!" << AngleIndex);
+    // }
+    // if (ExtQ >= ExtMomBinSize) {
+    //   ABORT("Q too large " << ExtQ);
+    // }
+    // if (TauIndex >= TauBinSize) {
+    //   ABORT("Tau too large " << TauIndex);
+    // }
+
+    // if (k < 0.05 * Para.Kf) {
+    // return EffInterT(AngleIndex, 0)/();
+    // else if (k > 1.8 * Para.Kf && k < 2.2 * Para.Kf) {
+    //   if (((*LegK[INL]).norm() > 0.8 * Para.Kf &&
+    //        (*LegK[INL]).norm() < 1.2 * Para.Kf) &&
+    //       ((*LegK[INR]).norm() > 0.8 * Para.Kf &&
+    //        (*LegK[INR]).norm() < 1.2 * Para.Kf) &&
+    //       ((*LegK[OUTL]).norm() > 0.8 * Para.Kf &&
+    //        (*LegK[OUTL]).norm() < 1.2 * Para.Kf) &&
+    //       ((*LegK[OUTR]).norm() > 0.8 * Para.Kf &&
+    //        (*LegK[OUTR]).norm() < 1.2 * Para.Kf)) {
+    //     return EffInterT(AngBinSize / 2, Mom2Index(2.0 * Para.Kf),
+    //     TauIndex);
+    //     // return 0.5;
+    //     // return EffInterT(AngleIndex, Mom2Index(2.0 * Para.Kf),
+    //     TauIndex);
+    //   } else
+    //     // return EffInterT(AngleIndex, Mom2Index(k), TauIndex);
+    //     return 0.0;
+    // } else
+    //   return 0.0;
+    // double Upper = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
+    // double Lower = EffInter(AngleIndex, Mom2Index(k), Tau2Index(Tau));
+    // double UpperTau = Index2Tau(TauIndex + 1);
+    // double LowerTau = Index2Tau(TauIndex);
+    // // cout << Upper << " : " << Lower << endl;
+    // return Lower + (Upper - Lower) / (UpperTau - LowerTau) * (Tau -
+    // LowerTau);
+    // } else {
+    //   return 0.0;
+    // }
   } else if (VerType == -1) {
     return 1.0;
   } else if (VerType == -2) {
@@ -232,7 +238,7 @@ void verQTheta::Save(bool Simple) {
       // we do not measure U channel
       continue;
 
-    for (int order = 0; order < 5; order++) {
+    for (int order = 0; order <= Para.Order; order++) {
       if (Simple == true)
         if (order != 0)
           continue;

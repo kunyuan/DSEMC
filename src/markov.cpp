@@ -42,8 +42,8 @@ markov::markov() : Var(Weight.Var), Groups(Weight.Groups) {
   // for(int i=0;i<MCUpdates;i++)
   // UpdatesName[(Updates)i]=NAME((Updates))
 
-  InitialArray(&Accepted[0][0], 1.0e-10, MCUpdates * MaxGroupNum);
-  InitialArray(&Proposed[0][0], 1.0e-10, MCUpdates * MaxGroupNum);
+  InitialArray(&Accepted[0][0], 1.0e-10, MCUpdates * (MaxOrder + 1));
+  InitialArray(&Proposed[0][0], 1.0e-10, MCUpdates * (MaxOrder + 1));
 
   ///==== initialize observable =======================//
   for (auto &g : Groups) {
@@ -134,6 +134,8 @@ void markov::ChangeGroup() {
   } else if (NewGroup.Order == Var.CurrGroup->Order + 1) {
     // change to a new group with one higher order
     Name = INCREASE_ORDER;
+    if (Var.CurrGroup->Order == Para.Order)
+      return;
     static momentum NewMom;
     double NewTau;
     // Generate New Tau

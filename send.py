@@ -30,7 +30,7 @@ for index, eachline in enumerate(inlist):
     #     break
 
     homedir = os.getcwd() + \
-        "/Beta{0}_rs{1}_lambda{2}".format(para[0], para[1], para[2])
+        "/Beta{0}_rs{1}_lambda{2}".format(para[1], para[2], para[3])
     if(os.path.exists(homedir) != True):
         os.system("mkdir "+homedir)
 

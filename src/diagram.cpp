@@ -91,24 +91,14 @@ group diag::ReadOneGroup(istream &DiagFile) {
   _CheckKeyWord(DiagFile, "Type"); // group type, simply skip
 
   Group.HugenNum = _ExtractNumbers<int>(DiagFile, "DiagNum")[0];
-  ASSERT_ALLWAYS(Group.HugenNum <= MaxDiagNum,
-                 "Diagram Number must be smaller than " << MaxDiagNum);
 
   Group.Order = _ExtractNumbers<int>(DiagFile, "Order")[0];
-  ASSERT_ALLWAYS(Group.Order <= MaxOrder,
-                 "Order Number must be smaller than " << MaxOrder);
 
   Group.GNum = _ExtractNumbers<int>(DiagFile, "GNum")[0];
-  ASSERT_ALLWAYS(Group.GNum <= MaxGNum,
-                 "G Number must be smaller than " << MaxGNum);
 
   Group.Ver4Num = _ExtractNumbers<int>(DiagFile, "Ver4Num")[0];
-  ASSERT_ALLWAYS(Group.Ver4Num <= MaxVer4Num,
-                 "Ver4 Number must be smaller than " << MaxVer4Num);
 
   Group.LoopNum = _ExtractNumbers<int>(DiagFile, "LoopNum")[0];
-  ASSERT_ALLWAYS(Group.LoopNum <= MaxLoopNum,
-                 "Loop Number must be smaller than " << MaxLoopNum);
 
   vector<int> ExtLoop = _ExtractNumbers<int>(DiagFile, "ExtLoopIndex");
   Group.ExtLoopNum = ExtLoop.size();

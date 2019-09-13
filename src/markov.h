@@ -62,8 +62,8 @@ private:
 
   // MC updates information
   std::string UpdatesName[MCUpdates];
-  double Accepted[MCUpdates][MaxGroupNum];
-  double Proposed[MCUpdates][MaxGroupNum];
+  double Accepted[MCUpdates][MaxOrder + 1];
+  double Proposed[MCUpdates][MaxOrder + 1];
 
   enum Updates {
     INCREASE_ORDER = 0,

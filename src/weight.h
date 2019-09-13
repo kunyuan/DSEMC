@@ -26,7 +26,7 @@ struct variable {
   double CurrWeight[MaxTauNum];
   array<momentum, MaxMomNum> LoopMom; // all momentum loop variables
   array<double, MaxTauNum> Tau;       // all tau variables
-  array<int, MaxLoopNum> LoopSpin;    // all spin variables
+  // array<int, MaxMomNum> LoopSpin;     // all spin variables
 };
 
 class weight {

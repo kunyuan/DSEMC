@@ -25,9 +25,9 @@ parameter Para; // parameters as a global variable
 RandomFactory Random;
 
 int main(int argc, const char *argv[]) {
-  cout << "Beta, Rs, Mass2, MaxExtMom(*kF), TotalStep(*1e6), Seed, "
+  cout << "Order, Beta, Rs, Mass2, MaxExtMom(*kF), TotalStep(*1e6), Seed, "
           "PID\n";
-  cin >> Para.Beta >> Para.Rs >> Para.Mass2 >> Para.MaxExtMom >>
+  cin >> Para.Order >> Para.Beta >> Para.Rs >> Para.Mass2 >> Para.MaxExtMom >>
       Para.TotalStep >> Para.Seed >> Para.PID;
   InitPara(); // initialize global parameters
   MonteCarlo();
@@ -54,9 +54,13 @@ void InitPara() {
       "1", // 1 loop
       "2", // 2 loop
       "3", // 3 loop
-           // "4", // 4 loop
+      "4", // 4 loop
+      "5", // 4 loop
+      "6", // 4 loop
+      "7", // 4 loop
+      "8", // 4 loop
   };
-  Para.ReWeight = {2.0, 1.0, 1.0, 1.0, 1.0};
+  Para.ReWeight = {2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = selfenergy::BARE;
 
@@ -100,10 +104,12 @@ void InitPara() {
   // initialize external momentum
   for (int i = 0; i < ExtMomBinSize; i++) {
     // the external momentum only has x component
-    Para.ExtMomTable[i][0] = (i + 0.5) * Para.MaxExtMom / ExtMomBinSize;
-    for (int j = 1; j < D; j++)
+    // Para.ExtMomTable[i][0] = i * Para.MaxExtMom / ExtMomBinSize;
+    for (int j = 0; j < D; j++)
       Para.ExtMomTable[i][j] = 0.0;
   }
+  Para.ExtMomTable[0][0] = 0.0;
+  Para.ExtMomTable[1][0] = 2. * Para.Kf;
 
   LOG_INFO("Inverse Temperature: " << Para.Beta << "\n"
                                    << "UV Energy Scale: " << Para.UVScale

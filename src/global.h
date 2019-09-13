@@ -18,7 +18,7 @@ const bool DEBUGMODE = true;
 // D=2 or D=3
 const int D = 3;
 // number of q bins of the external momentum
-const int ExtMomBinSize = 32;
+const int ExtMomBinSize = 2;
 // number of bins for the angle between InL and InR legs
 const int AngBinSize = 32;
 // number of energy scales, only useful in RG approach
@@ -48,6 +48,7 @@ struct parameter {
   ver4type Vertex4Type;
 
   // MC inputs
+  int Order;
   type Type;             // polarization, RG
   obstype ObsType;       // 0: static polarization, 1: equal-time polarization
   bool UseVer4;          // use vertex4 to calculate weight or not
@@ -77,15 +78,10 @@ struct parameter {
 };
 
 //////////   Diagram  ////////////////////////////
-const int MaxOrder = 5;            // Max diagram order
-const int MaxLevel = MaxOrder + 1; // Max diagram order
+const int MaxOrder = 9;              // Max diagram order
+const int MaxLoopNum = MaxOrder + 3; // Max diagram order
 const int MaxMomNum = get_power<2, MaxOrder + 1>::value * 8;
-const int MaxGroupNum = 8;   // Max number of diagram groups
-const int MaxDiagNum = 1024; // Max number of Hugenholtz diagrams in one group
-const int MaxLoopNum = MaxOrder + 3; // Max loop number in one group
-const int MaxTauNum = MaxOrder;      // Max tau number in one group
-const int MaxGNum = 2 * MaxOrder;    // Max G number in one group
-const int MaxVer4Num = MaxOrder;     // Max Ver4 number in one group
+const int MaxTauNum = MaxOrder + 1; // Max tau number in one group
 
 //////////   Generic Global Constants  /////////////////
 const double TM32 = 1.0 / (pow(2.0, 32));
