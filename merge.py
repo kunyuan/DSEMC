@@ -5,7 +5,7 @@ import glob
 import time
 import numpy as np
 
-SleepTime = 10
+SleepTime = 5
 
 rs = None
 Lambda = None
@@ -37,11 +37,9 @@ Order = [0, ]
 
 folder = "./Beta{0}_rs{1}_lambda{2}/".format(BetaStr, rsStr, LambdaStr)
 
-TauBin = None
 AngleBin = None
 ExtMomBin = None
 AngleBinSize = None
-TauBinSize = None
 ExtMomBinSize = None
 Data = {}  # key: (order, channel)
 DataWithAngle = {}  # key: (order, channel)
@@ -103,11 +101,6 @@ while True:
                             # print line1
                             Norm0 = float(line1.split(":")[-1])
                             # print "Norm: ", Norm0
-                            line2 = file.readline()
-                            if TauBin is None:
-                                TauBin = np.fromstring(
-                                    line2.split(":")[1], sep=' ')
-                                TauBinSize = len(TauBin)
                             line3 = file.readline()
                             if AngleBin is None:
                                 AngleBin = np.fromstring(
@@ -141,7 +134,7 @@ while True:
                 Data0 /= Norm
                 if(chan == 1):
                     Data0 = Data0.reshape(
-                        (AngleBinSize, ExtMomBinSize, TauBinSize))
+                        (AngleBinSize, ExtMomBinSize))
                 else:
                     Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
@@ -158,12 +151,10 @@ while True:
         with open("weight1.data", "w") as file:
             for angle in range(AngleBinSize):
                 for qidx in range(ExtMomBinSize):
-                    for tidx in range(TauBinSize):
-                        file.write("{0} ".format(
-                            DataWithAngle[(0, 1)][angle, qidx, tidx]))
+                    file.write("{0} ".format(
+                        DataWithAngle[(0, 1)][angle, qidx]))
 
-        qData = np.sum(Data[(0, 1)], axis=1) * \
-            Beta/kF**2/TauBinSize
+        qData = Data[(0, 1)]
 
         qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
 
