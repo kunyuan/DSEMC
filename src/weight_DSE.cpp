@@ -115,7 +115,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else if (chan == T) {
           Transfer = *LegK0[INL] - *LegK0[OUTL];
           double Q = Transfer.norm();
-          if (Q < 0.05 * Para.Kf) {
+          if (Q < 0.00 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();
@@ -149,7 +149,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         } else {
           Transfer = *LegK0[INL] - *LegK0[OUTR];
           double Q = Transfer.norm();
-          if (Q < 0.05 * Para.Kf) {
+          if (Q < 0.00 * Para.Kf) {
             Ratio = Para.Kf / (*LegK0[INL]).norm();
             *LegK[INL] = *LegK0[INL] * Ratio;
             Ratio = Para.Kf / (*LegK0[INR]).norm();

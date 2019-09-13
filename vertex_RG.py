@@ -154,7 +154,7 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            qData *= 0.0
+            # qData *= 0.0
         for order in Order[1:]:
             i += 1
             if(chan == 1):
@@ -173,7 +173,7 @@ elif (XType == "Mom"):
     for chan in Channel:
         if(chan == 1):
             qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
-            qData *= 0.0
+            # qData *= 0.0
             qData -= Data[(0, chan)]
         else:
             qData = Data[(0, chan)]
@@ -194,7 +194,7 @@ elif (XType == "Mom"):
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
     # ax.plot(x, yphy, 'k-', lw=2, label="physical")
-    # ax.plot(x, y0, 'k-', lw=2, label="original")
+    ax.plot(x, y0, 'k-', lw=2, label="original")
 
     # ax.plot(x, y0*y0*y, 'r-', lw=2, label="wrong")
 
