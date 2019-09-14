@@ -134,7 +134,8 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK,
     return -8.0 * PI / (k * k + Para.Mass2);
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
-    if (k < 0.05 * Para.Kf) {
+    // return 0.0;
+    if (k < 0.1 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
       return EffInterT(AngleIndex, 0);
     } else

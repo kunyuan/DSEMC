@@ -495,6 +495,11 @@ double markov::ShiftExtLegK(const momentum &OldExtMom, momentum &NewExtMom) {
   NewExtMom[0] = Para.Kf * cos(theta);
   NewExtMom[1] = Para.Kf * sin(theta);
 
+  // ASSERT_ALLWAYS(diag::Angle2Index(cos(theta), AngBinSize) == NewKBin,
+  //                "Not matched, " << NewKBin << " vs "
+  //                                << diag::Angle2Index(cos(theta),
+  //                                AngBinSize));
+
   return 1.0;
 };
 

@@ -11,8 +11,8 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 # XType = "Tau"
-XType = "Mom"
-# XType = "Angle"
+# XType = "Mom"
+XType = "Angle"
 OrderByOrder = False
 # 0: I, 1: T, 2: U, 3: S
 Channel = [1, ]
@@ -207,15 +207,21 @@ elif (XType == "Mom"):
     ax.set_xlabel("$q/k_F$", size=size)
 
 elif(XType == "Angle"):
-    AngData = TauIntegration(DataWithAngle[(1, 1)])
-    for i in range(ExtMomBinSize/8):
-        # print i, index
-        # print ScaleBin[index]
-        index = 8*i
-        ErrorPlot(ax, AngleBin, AngData[:, index],
-                  ColorList[i], 's', "Q {0}".format(ExtMomBin[index]))
+    AngData = DataWithAngle[(0, 1)]
+    # for i in range(ExtMomBinSize/8):
+    #     # print i, index
+    #     # print ScaleBin[index]
+    #     index = 8*i
+    #     ErrorPlot(ax, AngleBin, AngData[:, index],
+    #               ColorList[i], 's', "Q {0}".format(ExtMomBin[index]))
+
+    # ErrorPlot(ax, AngleBin, AngData[:, 0]/np.sin(np.arccos(AngleBin)),
+    #           ColorList[0], 's', "Q {0}".format(ExtMomBin[0]))
+
+    ErrorPlot(ax, AngleBin, AngData[:, 0],
+              ColorList[0], 's', "Q {0}".format(ExtMomBin[0]))
     ax.set_xlim([AngleBin[0], AngleBin[-1]])
-    # ax.set_ylim([0.0, 0.15])
+    # ax.set_ylim([0.0, 5.0])
     ax.set_xlabel("$Angle$", size=size)
 # ax.set_xticks([0.0,0.04,0.08,0.12])
 # ax.set_yticks([0.35,0.4,0.45,0.5])

@@ -5,7 +5,7 @@ import glob
 import time
 import numpy as np
 
-SleepTime = 5
+SleepTime = 60
 
 rs = None
 Lambda = None
@@ -108,6 +108,7 @@ while True:
                                 AngleBin = np.fromstring(
                                     line3.split(":")[1], sep=' ')
                                 AngleBinSize = len(AngleBin)
+                                print AngleBinSize
                             line4 = file.readline()
                             if ExtMomBin is None:
                                 ExtMomBin = np.fromstring(
@@ -124,10 +125,10 @@ while True:
                             else:
                                 Data0 += d
 
-                            d = d.reshape((AngleBinSize, ExtMomBinSize))/Norm0
-                            DataList.append(AngleIntegation(d, 0))
-
                             Norm += Norm0
+
+                            f = d.reshape((AngleBinSize, ExtMomBinSize))/Norm0
+                            DataList.append(AngleIntegation(f, 0))
 
                     # print "Norm", Norm
 
@@ -148,6 +149,7 @@ while True:
                 Data[(order, chan)] = AngleIntegation(
                     DataWithAngle[(order, chan)], 0)
 
+                print np.array(DataList)
                 DataErr[(order, chan)] = np.std(np.array(
                     DataList), axis=0)/np.sqrt(len(DataList))
 

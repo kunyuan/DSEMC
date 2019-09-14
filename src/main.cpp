@@ -59,8 +59,9 @@ void InitPara() {
       "6", // 4 loop
       "7", // 4 loop
       "8", // 4 loop
+      "9", // 4 loop
   };
-  Para.ReWeight = {2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+  Para.ReWeight = {2.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   // Para.SelfEnergyType = FOCK;
   Para.SelfEnergyType = selfenergy::BARE;
 
