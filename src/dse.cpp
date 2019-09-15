@@ -61,8 +61,6 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
   Ver4.IsFullVer4 = IsFullVer4;
   Ver4.RenormVer4 = RenormVer4;
   Ver4.RexpandBare = RexpandBare;
-  Ver4.ContainProj = false;
-  Ver4.Channel = Channel;
 
   // ASSERT_ALLWAYS(
   //     RexpandBare && RenormVer4,
@@ -177,14 +175,21 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
   Bubble.InTL = InTL;
   Bubble.Channel = Channel;
   array<double, 4> SymFactor = {0.0, -1.0, 1.0, -0.5};
+  bool HasT = bool(std::count(Channel.begin(), Channel.end(), T));
+  bool HasU = bool(std::count(Channel.begin(), Channel.end(), U));
+  bool HasS = bool(std::count(Channel.begin(), Channel.end(), S));
+  if (HasT || HasU)
+    Bubble.HasTU = true;
+  else
+    Bubble.HasTU = false;
+  if (HasS)
+    Bubble.HasS = true;
+  else
+    Bubble.HasS = false;
 
   if (IsProjected) {
-    Ver4.ContainProj = true;
     for (auto &s : SymFactor)
       s *= -1;
-    bool HasT = bool(std::count(Channel.begin(), Channel.end(), T));
-    bool HasU = bool(std::count(Channel.begin(), Channel.end(), U));
-    bool HasS = bool(std::count(Channel.begin(), Channel.end(), S));
     if (HasT || HasU) {
       Bubble.LegK[T][INL] = NextMom();
       Bubble.LegK[T][INR] = NextMom();

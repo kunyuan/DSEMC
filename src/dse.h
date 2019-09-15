@@ -30,16 +30,13 @@ struct ver4 {
   bool IsFullVer4;
   bool RenormVer4;  // renormalize the current vertex
   bool RexpandBare; // reexpand the coupling in the left vertex
-  bool ContainProj;
-  vector<channel> Channel;
 
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
 
-  array<momentum *, 4> LegK;     // external legK index
-  array<momentum *, 4> ProjLegK; // projected external legK index
-  vector<array<int, 4>> T;       // external T list
-  vector<double> Weight;         // size: equal to T.size()
+  array<momentum *, 4> LegK; // external legK index
+  vector<array<int, 4>> T;   // external T list
+  vector<double> Weight;     // size: equal to T.size()
 };
 
 //////////////// Bubble diagrams /////////////////////////////
@@ -95,6 +92,8 @@ struct pair {
 struct bubble {
   int InTL;
   bool IsProjected;
+  bool HasTU;
+  bool HasS;
   vector<channel> Channel; // list of channels except I
   array<double, 4> ProjFactor;
   array<array<momentum *, 4>, 4> LegK; // legK index for different channel

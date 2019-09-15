@@ -30,6 +30,10 @@ double weight::Evaluate(int LoopNum, int Channel) {
       // empty vertex
       return 0.0;
 
+    // if (Para.Counter == 12898) {
+    //   cout << Root.ID << endl;
+    // }
+
     if (Channel == dse::S) {
       *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
       *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
@@ -111,7 +115,7 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       else
         bubble.ProjFactor[chan] = 1.0;
 
-    if (bubble.IsProjected) {
+    if (bubble.IsProjected && bubble.HasTU) {
       DirQ = (*LegK0[INL] - *LegK0[OUTL]).norm();
       ExQ = (*LegK0[INL] - *LegK0[OUTR]).norm();
       if (DirQ < 1.0 * Para.Kf || ExQ < 1.0 * Para.Kf) {
@@ -146,6 +150,8 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         double dTau = Var.Tau[rt] - Var.Tau[lt];
         G[0](lt, rt) = Fermi.Green(dTau, K0, UP, 0, Var.CurrScale);
         for (auto &chan : bubble.Channel) {
+          // if (chan > 3)
+          //   ABORT("too many chan " << chan);
           if (abs(bubble.ProjFactor[chan]) > EPS)
             if (chan == S)
               // LVer to RVer

@@ -5,7 +5,7 @@ import glob
 import time
 import numpy as np
 
-SleepTime = 10
+SleepTime = 30
 
 rs = None
 Lambda = None
