@@ -126,10 +126,15 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         if (DirQ < 1.0 * Para.Kf) {
           // *bubble.LegK[T][OUTL] = *bubble.LegK[T][INL];
           // *bubble.LegK[T][OUTR] = *bubble.LegK[T][INR];
+          // double x=
           bubble.ProjFactor[T] = exp(-DirQ * DirQ / 0.1);
+          // if (DirQ < EPS)
+          //   bubble.ProjFactor[T] = 1.0;
         } else {
           // *bubble.LegK[U][OUTL] = *bubble.LegK[T][INR];
           // *bubble.LegK[U][OUTR] = *bubble.LegK[T][INL];
+          // if (ExQ < EPS)
+          // bubble.ProjFactor[U] = 1.0;
           bubble.ProjFactor[U] = exp(-ExQ * ExQ / 0.1);
         }
       }
