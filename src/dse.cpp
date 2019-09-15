@@ -225,17 +225,14 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       int Rlopidx = LoopIndex + 1 + ol;
 
       if (c == U || c == T) {
-        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U}, LEFT,
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, U, S}, LEFT,
                            Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, U, T}, RIGHT,
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, T, U, S}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       } else if (c == S) {
-        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1,
-                           {
-                               I,
-                           },
-                           LEFT, Ver4.RenormVer4, Ver4.RexpandBare, false);
-        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, S}, RIGHT,
+        Pair.LVer = Vertex(LLegK[c], InTL, ol, LoopIndex + 1, {I, T, U}, LEFT,
+                           Ver4.RenormVer4, Ver4.RexpandBare, false);
+        Pair.RVer = Vertex(RLegK[c], RInTL, oR, Rlopidx, {I, T, U, S}, RIGHT,
                            Ver4.RenormVer4, Ver4.RenormVer4, true);
       }
       Pair.Map = CreateMapT2(Ver4, Pair.LVer, Pair.RVer, c, IsProjected);
