@@ -68,6 +68,9 @@ verQTheta::verQTheta() {
   ChanT = new double[AngBinSize * ExtMomBinSize];
   dChanT = new double[MaxOrder * AngBinSize * ExtMomBinSize];
 
+  ChanU = new double[AngBinSize * ExtMomBinSize];
+  dChanU = new double[MaxOrder * AngBinSize * ExtMomBinSize];
+
   ChanS = new double[AngBinSize * ExtMomBinSize];
   dChanS = new double[MaxOrder * AngBinSize * ExtMomBinSize];
 
@@ -87,10 +90,12 @@ verQTheta::verQTheta() {
         // EffInter(inin, qIndex, tIndex) = 8.0 * PI / (k * k + Para.Mass2) /
         //                                  (1 + pow(t * 10.0, 2) * 10.0 / PI);
         EffInterT(inin, qIndex) = 0.0;
+        EffInterU(inin, qIndex) = 0.0;
         EffInterS(inin, qIndex) = 0.0;
         EffInterI(inin, qIndex) = 0.0;
         for (int order = 0; order < MaxOrder; ++order) {
           DiffInterT(order, inin, qIndex) = 0.0;
+          DiffInterU(order, inin, qIndex) = 0.0;
           DiffInterS(order, inin, qIndex) = 0.0;
           DiffInterI(order, inin, qIndex) = 0.0;
         }
@@ -106,6 +111,14 @@ double &verQTheta::EffInterT(int Angle, int ExtQ) {
 
 double &verQTheta::DiffInterT(int Order, int Angle, int ExtQ) {
   return dChanT[Order * OrderIndex + Angle * AngleIndex + ExtQ];
+}
+
+double &verQTheta::EffInterU(int Angle, int ExtQ) {
+  return ChanU[Angle * AngleIndex + ExtQ];
+}
+
+double &verQTheta::DiffInterU(int Order, int Angle, int ExtQ) {
+  return dChanU[Order * OrderIndex + Angle * AngleIndex + ExtQ];
 }
 
 double &verQTheta::EffInterI(int Angle, int ExtQ) {
@@ -124,20 +137,27 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
   return dChanS[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
 }
 
-double verQTheta::Interaction(const array<momentum *, 4> &LegK,
-                              const momentum &Q, double Tau, int VerType) {
+double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
+                              int VerType) {
 
   // cout << (*LegK[INL])[0] << endl;
+  momentum DiQ = *LegK[INL] - *LegK[OUTL];
+  momentum ExQ = *LegK[INL] - *LegK[OUTR];
 
-  double k = Q.norm();
+  double kDiQ = DiQ.norm();
+  double kExQ = ExQ.norm();
   if (VerType == 0) {
-    return -8.0 * PI / (k * k + Para.Mass2);
+    return -8.0 * PI / (kDiQ * kDiQ + Para.Mass2) +
+           8.0 * PI / (kExQ * kExQ + Para.Mass2);
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
     // return 0.0;
-    if (k < 1.0 * Para.Kf) {
+    if (kDiQ < 1.0 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
-      return EffInterT(AngleIndex, 0) * exp(-k * k / 0.1);
+      return EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
+    } else if (kExQ < 1.0 * Para.Kf) {
+      int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
+      return EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
     } else
       return 0.0;
     // return 0.0;
@@ -221,6 +241,9 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
     if (Channel == 1) {
       DiffInterT(Order, AngleIndex, QIndex) += WeightFactor;
       DiffInterT(0, AngleIndex, QIndex) += WeightFactor;
+    } else if (Channel == 2) {
+      DiffInterU(Order, AngleIndex, QIndex) += WeightFactor;
+      DiffInterU(0, AngleIndex, QIndex) += WeightFactor;
     } else if (Channel == 3) {
       DiffInterS(Order, AngleIndex, QIndex) += WeightFactor;
       DiffInterS(0, AngleIndex, QIndex) += WeightFactor;
@@ -235,10 +258,6 @@ void verQTheta::Measure(const momentum &InL, const momentum &InR,
 void verQTheta::Save(bool Simple) {
 
   for (int chan = 0; chan < 4; chan++) {
-    if (chan == 2)
-      // we do not measure U channel
-      continue;
-
     for (int order = 0; order <= Para.Order; order++) {
       if (Simple == true)
         if (order != 0)
@@ -272,9 +291,10 @@ void verQTheta::Save(bool Simple) {
               VerFile << DiffInterI(order, angle, qindex) * PhyWeightI << "  ";
             else if (chan == 3)
               VerFile << DiffInterS(order, angle, qindex) * PhyWeightI << "  ";
-            else if (chan == 1) {
+            else if (chan == 1)
               VerFile << DiffInterT(order, angle, qindex) * PhyWeightT << "  ";
-            }
+            else if (chan == 2)
+              VerFile << DiffInterU(order, angle, qindex) * PhyWeightT << "  ";
           }
         VerFile.close();
       } else {
@@ -291,6 +311,7 @@ void verQTheta::ClearStatis() {
       double k = Index2Mom(qIndex);
       for (int order = 0; order < MaxOrder; ++order) {
         DiffInterT(order, inin, qIndex) = 0.0;
+        DiffInterU(order, inin, qIndex) = 0.0;
         DiffInterS(order, inin, qIndex) = 0.0;
         DiffInterI(order, inin, qIndex) = 0.0;
       }
@@ -299,23 +320,25 @@ void verQTheta::ClearStatis() {
 
 void verQTheta::LoadWeight() {
   try {
-    int chan = 1;
-    string FileName = fmt::format("../weight{0}.data", chan);
-    ifstream VerFile;
-    VerFile.open(FileName, ios::in);
-    if (VerFile.is_open()) {
-      for (int angle = 0; angle < AngBinSize; ++angle)
-        for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
-          if (chan == 0)
-            VerFile >> EffInterI(angle, qindex);
-          else if (chan == 3)
-            VerFile >> EffInterS(angle, qindex);
-          else if (chan == 1)
-            VerFile >> EffInterT(angle, qindex);
-        }
-      VerFile.close();
+    for (int chan = 0; chan < 4; chan++) {
+      string FileName = fmt::format("../weight{0}.data", chan);
+      ifstream VerFile;
+      VerFile.open(FileName, ios::in);
+      if (VerFile.is_open()) {
+        for (int angle = 0; angle < AngBinSize; ++angle)
+          for (int qindex = 0; qindex < ExtMomBinSize; ++qindex) {
+            if (chan == 0)
+              VerFile >> EffInterI(angle, qindex);
+            else if (chan == 3)
+              VerFile >> EffInterS(angle, qindex);
+            else if (chan == 1)
+              VerFile >> EffInterT(angle, qindex);
+            else if (chan == 2)
+              VerFile >> EffInterU(angle, qindex);
+          }
+        VerFile.close();
+      }
     }
-
   } catch (int e) {
     LOG_INFO("Can not load weight file!");
   }

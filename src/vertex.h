@@ -37,8 +37,7 @@ private:
 class verQTheta {
 public:
   verQTheta();
-  double Interaction(const array<momentum *, 4> &LegK, const momentum &Q,
-                     double Tau, int VerType);
+  double Interaction(const array<momentum *, 4> &LegK, double Tau, int VerType);
 
   void Measure(const momentum &InL, const momentum &InR, const int QIndex,
                int Order, double Tau, int Channel, double WeightFactor);
@@ -51,6 +50,9 @@ public:
   double *dChanT;
   double *intChanT;
 
+  double *ChanU;
+  double *dChanU;
+
   double *ChanS;
   double *dChanS;
 
@@ -59,6 +61,9 @@ public:
 
   double &EffInterT(int Angle, int ExtQ);
   double &DiffInterT(int Order, int Angle, int ExtQ);
+
+  double &EffInterU(int Angle, int ExtQ);
+  double &DiffInterU(int Order, int Angle, int ExtQ);
 
   double &EffInterS(int Angle, int ExtQ);
   double &DiffInterS(int Order, int Angle, int ExtQ);

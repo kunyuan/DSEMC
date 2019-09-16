@@ -11,11 +11,11 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 # XType = "Tau"
-XType = "Mom"
-# XType = "Angle"
+# XType = "Mom"
+XType = "Angle"
 OrderByOrder = False
 # 0: I, 1: T, 2: U, 3: S
-Channel = [1, 3]
+Channel = [0, 1, 2, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
@@ -77,6 +77,19 @@ def AngleIntegation(Data, l):
     return Result/2.0
     # return Result
 
+
+def Mirror(x, y):
+    # print x
+    # print len(x)
+    x2 = np.zeros(len(x)*2)
+    # x2[:len(x)] = -x[::-1]
+    # x2[len(x):] = x
+    x2[:len(x)] = x
+    x2[len(x):] = -x[::-1]
+    y2 = np.zeros(len(y)*2)
+    y2[:len(y)] = y
+    y2[len(y):] = y[::-1]
+    return x2, y2
 
 # def TauIntegration(Data):
 #     return np.sum(Data, axis=-1) * \
@@ -207,8 +220,13 @@ elif (XType == "Mom"):
     ax.set_xlabel("$q/k_F$", size=size)
 
 elif(XType == "Angle"):
-    for chan in Channel:
-        AngData = DataWithAngle[(0, chan)]
+    AngTotal = None
+    for chan in Channel[0:]:
+        AngData = -DataWithAngle[(0, chan)]
+        if AngTotal is None:
+            AngTotal = AngData
+        else:
+            AngTotal += AngData
         # for i in range(ExtMomBinSize/8):
         #     # print i, index
         #     # print ScaleBin[index]
@@ -219,10 +237,25 @@ elif(XType == "Angle"):
         # ErrorPlot(ax, AngleBin, AngData[:, 0]/np.sin(np.arccos(AngleBin)),
         #           ColorList[0], 's', "Q {0}".format(ExtMomBin[0]))
 
-        ErrorPlot(ax, AngleBin, AngData[:, 0],
-                  ColorList[chan], 's', "Q {0}, {1}".format(ExtMomBin[0], ChanName[chan]))
+        x2, y2 = Mirror(np.arccos(AngleBin), AngData[:, 0])
 
-    ax.set_xlim([AngleBin[0], AngleBin[-1]])
+        ErrorPlot(ax, x2, y2, ColorList[chan+1], 's',
+                  "q/kF={0}, {1}".format(ExtMomBin[0], ChanName[chan]))
+        # ErrorPlot(ax, np.arccos(AngleBin), AngData[:, 0], ColorList[chan+1], 's',
+        #           "Q {0}, {1}".format(ExtMomBin[0], ChanName[chan]))
+    # print np.arccos(AngleBin)
+    # AngTotal *= -0.0
+
+    AngHalf = np.arccos(AngleBin)/2.0
+    # AngTotal[:, 0] += 8.0*np.pi/Lambda-8.0 * \
+    #     np.pi / ((2.0*kF*np.sin(AngHalf))**2+Lambda)
+    x2, y2 = Mirror(np.arccos(AngleBin), AngTotal[:, 0])
+    ErrorPlot(ax, x2, y2, ColorList[0], 's',
+              "q/kF={0}, Total".format(ExtMomBin[0]))
+    # ErrorPlot(ax, np.arccos(AngleBin), AngTotal[:, 0], ColorList[0], 's',
+    #           "Q {0}, Total".format(ExtMomBin[0]))
+
+    ax.set_xlim([-np.arccos(AngleBin[0]), np.arccos(AngleBin[0])])
     # ax.set_ylim([0.0, 5.0])
     ax.set_xlabel("$Angle$", size=size)
 # ax.set_xticks([0.0,0.04,0.08,0.12])

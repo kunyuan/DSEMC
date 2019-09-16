@@ -301,10 +301,10 @@ void markov::ChangeChannel() {
   int OldChannel = Var.CurrChannel;
   Var.CurrChannel = int(Random.urn() * 4);
   // Var.CurrChannel = dse::T;
-  if (Var.CurrChannel == dse::U) {
-    Var.CurrChannel = OldChannel;
-    return;
-  }
+  // if (Var.CurrChannel == dse::U) {
+  //   Var.CurrChannel = OldChannel;
+  //   return;
+  // }
 
   Proposed[CHANGE_CHANNEL][Var.CurrGroup->ID] += 1;
 

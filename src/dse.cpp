@@ -36,10 +36,15 @@ ver4 verDiag::Build(array<momentum, MaxMomNum> &loopMom, int LoopNum,
   MomNum = MaxLoopNum;
   LoopMom = &loopMom;
   array<momentum *, 4> LegK;
-  if (Channel.size() == 1 && Channel[0] == S) {
-    LegK = {&(*LoopMom)[1], &(*LoopMom)[2], NextMom(), NextMom()};
-  } else {
+  // if (Channel.size() == 1 && Channel[0] == S) {
+  //   LegK = {&(*LoopMom)[1], &(*LoopMom)[2], NextMom(), NextMom()};
+  // } else {
+  //   LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2], NextMom()};
+  // }
+
+  if (Channel.size() == 1) {
     LegK = {&(*LoopMom)[1], NextMom(), &(*LoopMom)[2], NextMom()};
+    // LegK = {&(*LoopMom)[1], &(*LoopMom)[1], &(*LoopMom)[2], &(*LoopMom)[2]};
   }
 
   if (Type == PARQUET)
@@ -201,7 +206,9 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       Bubble.LegK[U][OUTR] = Bubble.LegK[T][INL];
     }
     if (HasS)
-      Bubble.LegK[S] = {Bubble.LegK[T][INL], NextMom(), NextMom(), NextMom()};
+      // Bubble.LegK[S] = {Bubble.LegK[T][INL], NextMom(), NextMom(),
+      // NextMom()};
+      Bubble.LegK[S] = {NextMom(), NextMom(), NextMom(), NextMom()};
   } else
     for (auto &c : Channel)
       Bubble.LegK[c] = Ver4.LegK;
@@ -233,8 +240,8 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
       // if (ol == 1 && c == T && LoopNum == 2)
       //   continue;
 
-      if (IsProjected && c == S)
-        continue;
+      // if (IsProjected && c == S)
+      //   continue;
 
       pair Pair;
       Pair.Channel = c;

@@ -29,7 +29,7 @@ with open("inlist", "r") as file:
 print rs, Beta, Lambda, TotalStep
 
 # 0: I, 1: T, 2: U, 3: S
-Channel = [1, ]
+Channel = [0, 1, 2, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
@@ -68,11 +68,6 @@ def AngleIntegation(Data, l):
         Result += Data[x, ...]*2.0/AngleBinSize
     return Result/2.0
     # return Result
-
-
-def TauIntegration(Data):
-    return np.sum(Data, axis=-1) * \
-        Beta/kF**2/TauBinSize
 
 
 while True:
@@ -140,6 +135,7 @@ while True:
                 Data0 /= Norm
                 Data0 = Data0.reshape((AngleBinSize, ExtMomBinSize))
 
+                # print "Channel: ", chan
                 if DataWithAngle.has_key((order, chan)):
                     DataWithAngle[(order, chan)] = DataWithAngle[(
                         order, chan)]*0.0+Data0*1.0
@@ -149,7 +145,7 @@ while True:
                 Data[(order, chan)] = AngleIntegation(
                     DataWithAngle[(order, chan)], 0)
 
-                print np.array(DataList)
+                # print np.array(DataList)
                 DataErr[(order, chan)] = np.std(np.array(
                     DataList), axis=0)/np.sqrt(len(DataList))
 
@@ -157,24 +153,36 @@ while True:
 
     if len(DataWithAngle) > 0:
         print "Write Weight file."
-        with open("weight1.data", "w") as file:
-            for angle in range(AngleBinSize):
-                for qidx in range(ExtMomBinSize):
-                    file.write("{0} ".format(
-                        DataWithAngle[(0, 1)][angle, qidx]))
-
-        qData = Data[(0, 1)]
-
-        qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+        for chan in Channel:
+            with open("weight{0}.data".format(chan), "w") as file:
+                for angle in range(AngleBinSize):
+                    for qidx in range(ExtMomBinSize):
+                        file.write("{0} ".format(
+                            DataWithAngle[(0, chan)][angle, qidx]))
 
         with open("data.data", "a") as file:
-            file.write("{0}\n".format(qData[0]))
+            file.write("{0:10.6f} {1:10.6f} {2:10.6f} {3:10.6f}\n".format(
+                Data[(0, 1)][0], Data[(0, 1)][0], Data[(0, 2)][0], Data[(0, 3)][0]))
 
+        qData = Data[(0, 1)]
+        qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
         # print qData
-        print "  Q/kF,    Gamma4,    Error"
+        print "  Q/kF,    T,    Error"
         for i in range(len(qData)):
             print "{0:6.2f}, {1:10.6f}, {2:10.6f}".format(
                 ExtMomBin[i], qData[i], DataErr[(0, 1)][i])
+
+        qData = Data[(0, 2)]
+        print "  Q/kF,    U,    Error"
+        for i in range(len(qData)):
+            print "{0:6.2f}, {1:10.6f}, {2:10.6f}".format(
+                ExtMomBin[i], qData[i], DataErr[(0, 2)][i])
+
+        qData = Data[(0, 3)]
+        print "  Q/kF,    S,    Error"
+        for i in range(len(qData)):
+            print "{0:6.2f}, {1:10.6f}, {2:10.6f}".format(
+                ExtMomBin[i], qData[i], DataErr[(0, 3)][i])
 
     if Step >= TotalStep:
         print "End of Simulation!"

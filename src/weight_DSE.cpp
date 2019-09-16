@@ -34,13 +34,16 @@ double weight::Evaluate(int LoopNum, int Channel) {
     //   cout << Root.ID << endl;
     // }
 
-    if (Channel == dse::S) {
-      *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
-      *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
-    } else {
-      *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
-      *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
-    }
+    *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
+    *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
+
+    // if (Channel == dse::S) {
+    //   *Root.LegK[INR] = Var.LoopMom[0] - Var.LoopMom[1];
+    //   *Root.LegK[OUTR] = Var.LoopMom[0] - Var.LoopMom[2];
+    // } else {
+    //   *Root.LegK[OUTL] = Var.LoopMom[1] - Var.LoopMom[0];
+    //   *Root.LegK[OUTR] = Var.LoopMom[2] + Var.LoopMom[0];
+    // }
 
     Vertex4(Root);
 
@@ -60,10 +63,9 @@ double weight::Evaluate(int LoopNum, int Channel) {
 
 void weight::Ver0(ver4 &Ver4) {
   array<momentum *, 4> &K = Ver4.LegK;
-  momentum DiQ = *K[INL] - *K[OUTL];
-  momentum ExQ = *K[INL] - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(K, DiQ, 0.0, 0) -
-                   VerQTheta.Interaction(K, ExQ, 0.0, 0);
+  // momentum DiQ = *K[INL] - *K[OUTL];
+  // momentum ExQ = *K[INL] - *K[OUTR];
+  Ver4.Weight[0] = VerQTheta.Interaction(K, 0.0, 0);
   // Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
@@ -71,8 +73,7 @@ void weight::Ver0(ver4 &Ver4) {
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[0] += +VerQTheta.Interaction(K, DiQ, 0.0, 1) -
-                      VerQTheta.Interaction(K, ExQ, 0.0, 1);
+    Ver4.Weight[0] += +VerQTheta.Interaction(K, 0.0, 1);
     // Ver4.Weight[1] = 0.0;
     // Ver4.Weight[2] = 0.0;
 
@@ -98,7 +99,6 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 void weight::ChanUST(dse::ver4 &Ver4) {
   double Weight = 0.0;
   double Ratio;
-  double DirQ, ExQ, InQ;
   array<momentum *, 4> &LegK0 = Ver4.LegK;
 
   // if (Ver4.ContainProj) {
@@ -116,8 +116,8 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         bubble.ProjFactor[chan] = 1.0;
 
     if (bubble.IsProjected && bubble.HasTU) {
-      DirQ = (*LegK0[INL] - *LegK0[OUTL]).norm();
-      ExQ = (*LegK0[INL] - *LegK0[OUTR]).norm();
+      double DirQ = (*LegK0[INL] - *LegK0[OUTL]).norm();
+      double ExQ = (*LegK0[INL] - *LegK0[OUTR]).norm();
       if (DirQ < 1.0 * Para.Kf || ExQ < 1.0 * Para.Kf) {
         Ratio = Para.Kf / (*LegK0[INL]).norm();
         *bubble.LegK[T][INL] = *LegK0[INL] * Ratio;
@@ -138,6 +138,48 @@ void weight::ChanUST(dse::ver4 &Ver4) {
           bubble.ProjFactor[U] = exp(-ExQ * ExQ / 0.1);
         }
       }
+    }
+
+    if (bubble.IsProjected && bubble.HasS) {
+      // double InL = (*LegK0[INL]).norm();
+      // double OutL = (*LegK0[OUTL]).norm();
+      // double InR = (*LegK0[INR]).norm();
+      // double OutR = (*LegK0[OUTR]).norm();
+
+      // double DirQ = (*LegK0[INL] - *LegK0[OUTL]).norm();
+      // if (DirQ < 1.0 * Para.Kf) {
+      //   Ratio = Para.Kf / (*LegK0[INL]).norm();
+      //   *bubble.LegK[S][INL] = *LegK0[INL] * Ratio;
+      //   Ratio = Para.Kf / (*LegK0[INR]).norm();
+      //   *bubble.LegK[S][INR] = *LegK0[INR] * Ratio;
+      //   *bubble.LegK[S][OUTL] = *bubble.LegK[S][INL];
+      //   *bubble.LegK[S][OUTR] = *bubble.LegK[S][INR];
+      //   bubble.ProjFactor[S] = exp(-DirQ * DirQ / 0.1);
+      // }
+      // if ((InL < 1.1 * Para.Kf && InL > 0.9 * Para.Kf) &&
+      //     (OutL < 1.1 * Para.Kf && OutL > 0.9 * Para.Kf) &&
+      //     (InR < 1.1 * Para.Kf && InR > 0.9 * Para.Kf) &&
+      //     (OutR < 1.1 * Para.Kf && OutR > 0.9 * Para.Kf)) {
+      //   Ratio = Para.Kf / (*LegK0[INL]).norm();
+      //   *bubble.LegK[S][INL] = *LegK0[INL] * Ratio;
+      //   Ratio = Para.Kf / (*LegK0[INR]).norm();
+      //   *bubble.LegK[S][INR] = *LegK0[INR] * Ratio;
+      //   Ratio = Para.Kf / (*LegK0[OUTL]).norm();
+      //   *bubble.LegK[S][OUTL] = *LegK0[OUTL] * Ratio;
+      //   Ratio = Para.Kf / (*LegK0[OUTR]).norm();
+      //   *bubble.LegK[S][OUTR] = *LegK0[OUTR] * Ratio;
+      //   bubble.ProjFactor[S] = 1.0;
+      // }
+      //   double InQ = (*LegK0[INL] + *LegK0[INR]).norm();
+      //   if (InQ < 1.0 * Para.Kf) {
+      //     Ratio = Para.Kf / (*LegK0[INL]).norm();
+      //     *bubble.LegK[S][INL] = *LegK0[INL] * Ratio;
+      //     Ratio = Para.Kf / (*LegK0[OUTL]).norm();
+      //     *bubble.LegK[S][OUTL] = *LegK0[OUTL] * Ratio;
+      //     *bubble.LegK[S][INR] = *bubble.LegK[S][INL] * (-1.0);
+      //     *bubble.LegK[S][OUTR] = *bubble.LegK[S][OUTL] * (-1.0);
+      //     bubble.ProjFactor[S] = exp(-InQ * InQ / 0.1);
+      //   }
     }
 
     for (auto &chan : bubble.Channel) {
