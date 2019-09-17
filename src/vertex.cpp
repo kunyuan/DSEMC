@@ -152,14 +152,17 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
     // return 1.0 / Para.Beta;
   } else if (VerType == 1) {
     // return 0.0;
-    if (kDiQ < 1.0 * Para.Kf) {
+    double EffInt = 0.0;
+    if (kDiQ < 1.0 * Para.Kf || kExQ < 1.0 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
-      return EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
-    } else if (kExQ < 1.0 * Para.Kf) {
-      int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
-      return EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
+      if (kDiQ < 1.0 * Para.Kf)
+        EffInt += EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
+      if (kExQ < 1.0 * Para.Kf)
+        EffInt -= EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
+      return EffInt;
     } else
       return 0.0;
+
     // return 0.0;
     // if (k < Para.MaxExtMom) {
     //   int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]),

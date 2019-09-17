@@ -120,7 +120,7 @@ void InitPara() {
                                    << "Fermi Mom: " << Para.Kf << "\n"
                                    << "Fermi Energy: " << Para.Ef << "\n");
 
-  Para.PrinterTimer = 5;
+  Para.PrinterTimer = 10;
   Para.SaveFileTimer = 10;
   Para.ReweightTimer = 30;
   Para.MessageTimer = 10;
