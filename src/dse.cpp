@@ -208,7 +208,9 @@ ver4 verDiag::ChanUST(ver4 Ver4, vector<channel> Channel, int InTL, int LoopNum,
     if (HasS)
       // Bubble.LegK[S] = {Bubble.LegK[T][INL], NextMom(), NextMom(),
       // NextMom()};
-      Bubble.LegK[S] = {NextMom(), NextMom(), NextMom(), NextMom()};
+      // Bubble.LegK[S] = {NextMom(), NextMom(), NextMom(), NextMom()};
+      // no projection for S channel for now
+      Bubble.LegK[S] = Ver4.LegK;
   } else
     for (auto &c : Channel)
       Bubble.LegK[c] = Ver4.LegK;

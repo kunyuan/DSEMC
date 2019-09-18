@@ -130,7 +130,8 @@ void weight::ChanUST(dse::ver4 &Ver4) {
           bubble.ProjFactor[T] = exp(-DirQ * DirQ / 0.1);
           // if (DirQ < EPS)
           //   bubble.ProjFactor[T] = 1.0;
-        } else {
+        }
+        if (ExQ < 1.0 * Para.Kf) {
           // *bubble.LegK[U][OUTL] = *bubble.LegK[T][INR];
           // *bubble.LegK[U][OUTR] = *bubble.LegK[T][INL];
           // if (ExQ < EPS)
