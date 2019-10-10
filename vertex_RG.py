@@ -11,23 +11,25 @@ mat.rcParams["font.family"] = "Times New Roman"
 size = 12
 
 # XType = "Tau"
-XType = "Mom"
-# XType = "Angle"
+# XType = "Mom"
+XType = "Angle"
 OrderByOrder = False
 # 0: I, 1: T, 2: U, 3: S
-Channel = [0, 1, 2, 3]
+Channel = [1, 2, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...
-# Order = [0, 1, 2, 3]
+Order = [1, 2, 3]
 
 MaxOrder = None
 rs = None
 Lambda = None
 Beta = None
+Charge2 = None
 TotalStep = None
 BetaStr = None
 rsStr = None
+ChargeStr = None
 LambdaStr = None
 
 with open("inlist", "r") as file:
@@ -40,6 +42,8 @@ with open("inlist", "r") as file:
     rs = float(rsStr)
     LambdaStr = para[3]
     Lambda = float(LambdaStr)
+    ChargeStr = para[4]
+    Charge2 = float(ChargeStr)
     TotalStep = float(para[5])
 
 Order = range(0, MaxOrder+1)
@@ -170,7 +174,7 @@ elif (XType == "Mom"):
     i = 0
     for chan in Channel:
         if(chan == 1):
-            qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
+            qData = 8.0*np.pi*Charge2/(ExtMomBin**2*kF**2+Lambda)
             # qData *= 0.0
         for order in Order[1:]:
             i += 1
@@ -189,7 +193,7 @@ elif (XType == "Mom"):
 
     for chan in Channel:
         if(chan == 1):
-            qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)
+            qData = 8.0*np.pi*Charge2/(ExtMomBin**2*kF**2+Lambda)
             # qData *= 0.0
             qData -= Data[(0, chan)]
         else:
@@ -198,15 +202,15 @@ elif (XType == "Mom"):
         # qData = np.sum(qData, axis=1)*Beta/kF**2/TauBinSize
         # qData0 = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData0
         # qData=8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
-        ErrorPlot(ax, ExtMomBin, qData,
-                  ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
+        # ErrorPlot(ax, ExtMomBin, qData,
+        #           ColorList[0], 'o', "Chan {1}".format(0, ChanName[chan]))
 
     x = np.arange(0, 3.0, 0.001)
     y = x*0.0+Bubble
     for i in range(len(x)):
         if x[i] > 2.0:
             y[i] = Bubble*(1-np.sqrt(1-4/x[i]**2))
-    y0 = 8.0*np.pi/(x*x*kF*kF+Lambda)
+    y0 = 8.0*np.pi*Charge2/(x*x*kF*kF+Lambda)
     # ym=y0-y0*y0*y
     yphy = 8.0*np.pi/(x*x*kF*kF+Lambda+y*8.0*np.pi)
 
@@ -241,6 +245,9 @@ elif(XType == "Angle"):
 
         ErrorPlot(ax, x2, y2, ColorList[chan+1], 's',
                   "q/kF={0}, {1}".format(ExtMomBin[0], ChanName[chan]))
+
+        # ErrorPlot(ax, AngleBin, AngData[:, 0], ColorList[chan+1], 's',
+        #           "q/kF={0}, {1}".format(ExtMomBin[0], ChanName[chan]))
         # ErrorPlot(ax, np.arccos(AngleBin), AngData[:, 0], ColorList[chan+1], 's',
         #           "Q {0}, {1}".format(ExtMomBin[0], ChanName[chan]))
     # print np.arccos(AngleBin)
@@ -252,6 +259,7 @@ elif(XType == "Angle"):
     x2, y2 = Mirror(np.arccos(AngleBin), AngTotal[:, 0])
     ErrorPlot(ax, x2, y2, ColorList[0], 's',
               "q/kF={0}, Total".format(ExtMomBin[0]))
+
     # ErrorPlot(ax, np.arccos(AngleBin), AngTotal[:, 0], ColorList[0], 's',
     #           "Q {0}, Total".format(ExtMomBin[0]))
 

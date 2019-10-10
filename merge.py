@@ -10,9 +10,11 @@ SleepTime = 10
 rs = None
 Lambda = None
 Beta = None
+Charge2 = None
 TotalStep = None
 BetaStr = None
 rsStr = None
+ChargeStr = None
 LambdaStr = None
 
 with open("inlist", "r") as file:
@@ -24,7 +26,9 @@ with open("inlist", "r") as file:
     rs = float(rsStr)
     LambdaStr = para[3]
     Lambda = float(LambdaStr)
-    TotalStep = float(para[5])
+    ChargeStr = para[4]
+    Charge2 = float(ChargeStr)
+    TotalStep = float(para[6])
 
 print rs, Beta, Lambda, TotalStep
 
@@ -165,7 +169,7 @@ while True:
                 Data[(0, 1)][0], Data[(0, 1)][0], Data[(0, 2)][0], Data[(0, 3)][0]))
 
         qData = Data[(0, 1)]
-        qData = 8.0*np.pi/(ExtMomBin**2*kF**2+Lambda)-qData
+        qData = 8.0*np.pi*Charge2/(ExtMomBin**2*kF**2+Lambda)-qData
         # print qData
         print "  Q/kF,    T,    Error"
         for i in range(len(qData)):
