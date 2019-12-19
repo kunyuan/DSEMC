@@ -15,7 +15,7 @@ size = 12
 XType = "Angle"
 OrderByOrder = False
 # 0: I, 1: T, 2: U, 3: S
-Channel = [1, 2, 3]
+Channel = [0, 1, 2, 3]
 # Channel = [3]
 ChanName = {0: "I", 1: "T", 2: "U", 3: "S"}
 # 0: total, 1: order 1, ...

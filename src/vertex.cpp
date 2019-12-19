@@ -156,9 +156,9 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
     if (kDiQ < 1.0 * Para.Kf || kExQ < 1.0 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
       if (kDiQ < 1.0 * Para.Kf)
-        EffInt += EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.3);
+        EffInt += EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
       if (kExQ < 1.0 * Para.Kf)
-        EffInt -= EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.3);
+        EffInt -= EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
       return EffInt;
     } else
       return 0.0;
