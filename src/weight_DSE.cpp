@@ -26,7 +26,7 @@ double weight::Evaluate(int LoopNum, int Channel) {
     //   return 0.0;
 
     ver4 &Root = Ver4Root[LoopNum][Channel];
-    if (Root.Weight.size() == 0)
+    if (Root.WeightDir.size() == 0)
       // empty vertex
       return 0.0;
 
@@ -48,8 +48,10 @@ double weight::Evaluate(int LoopNum, int Channel) {
     Vertex4(Root);
 
     double Weight = 0.0;
-    for (auto &w : Root.Weight)
-      Weight += w;
+    for (auto &w : Root.WeightDir)
+      Weight += w[IRR] + w[RED];
+    for (auto &w : Root.WeightEx)
+      Weight += w[IRR] + w[RED];
     // if (LoopNum == 3 && Channel == dse::I) {
     //   cout << "loopnum: " << Root.LoopNum << endl;
     //   cout << "channel: " << Root.Channel[0] << endl;
@@ -65,7 +67,7 @@ void weight::Ver0(ver4 &Ver4) {
   array<momentum *, 4> &K = Ver4.LegK;
   // momentum DiQ = *K[INL] - *K[OUTL];
   // momentum ExQ = *K[INL] - *K[OUTR];
-  Ver4.Weight[0] = VerQTheta.Interaction(K, 0.0, 0);
+  Ver4.WeightDir[0][IRR] = VerQTheta.Interaction(K, 0.0, 0);
   // Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // cout << Ver4.T[0][INR] << ", " << Ver4.T[0][INL] << endl;
@@ -73,7 +75,7 @@ void weight::Ver0(ver4 &Ver4) {
     // cout << Ver4.T[1][INR] << ", " << Ver4.T[1][INL] << "; " <<
     // Ver4.T[2][INR]
     //      << ", " << Ver4.T[2][INL] << endl;
-    Ver4.Weight[0] += +VerQTheta.Interaction(K, 0.0, 1);
+    Ver4.WeightEx[0][IRR] += +VerQTheta.Interaction(K, 0.0, 1);
     // Ver4.Weight[1] = 0.0;
     // Ver4.Weight[2] = 0.0;
 
@@ -87,8 +89,14 @@ void weight::Vertex4(dse::ver4 &Ver4) {
   if (Ver4.LoopNum == 0) {
     Ver0(Ver4);
   } else {
-    for (auto &w : Ver4.Weight)
-      w = 0.0;
+    for (auto &w : Ver4.WeightDir) {
+      w[IRR] = 0.0;
+      w[RED] = 0.0;
+    }
+    for (auto &w : Ver4.WeightEx) {
+      w[IRR] = 0.0;
+      w[RED] = 0.0;
+    }
     ChanUST(Ver4);
     if (Ver4.LoopNum >= 3)
       ChanI(Ver4);
@@ -97,7 +105,7 @@ void weight::Vertex4(dse::ver4 &Ver4) {
 }
 
 void weight::ChanUST(dse::ver4 &Ver4) {
-  double Weight = 0.0;
+  double Weight = 0.0, WeightDir = 0.0, WeightEx = 0.0;
   double Ratio;
   array<momentum *, 4> &LegK0 = Ver4.LegK;
 
@@ -224,10 +232,14 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         Weight = pair.SymFactor * bubble.ProjFactor[pair.Channel];
         Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
         // cout << Weight << endl;
-        Weight *= LVer.Weight[map.LVerTidx] * RVer.Weight[map.RVerTidx];
-        // cout << Weight << endl;
-        // cout << endl;
-        Ver4.Weight[map.Tidx] += Weight;
+        // WeightDir = LVer.WeightDir[map.LVerTidx][] *
+        // RVer.WeightDir[map.RVerTidx]; cout << Weight << endl; cout << endl;
+        if (pair.Channel == T) {
+          // Ver4.WeightDir[map.Tidx][IRR] += Weight *
+          //                                  LVer.WeightDir[map.LVerTidx][IRR]
+          //                                  *
+          //                                  RVer.WeightDir[map.RVerTidx][IRR];
+        }
       }
     }
   }

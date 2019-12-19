@@ -34,9 +34,10 @@ struct ver4 {
   vector<bubble> Bubble;     // bubble diagrams and its counter diagram
   vector<envelope> Envelope; // envelop diagrams and its counter diagram
 
-  array<momentum *, 4> LegK; // external legK index
-  vector<array<int, 4>> T;   // external T list
-  vector<double> Weight;     // size: equal to T.size()
+  array<momentum *, 4> LegK;          // external legK index
+  vector<array<int, 4>> T;            // external T list
+  vector<array<double, 2>> WeightDir; // size: equal to T.size()
+  vector<array<double, 2>> WeightEx;  // size: equal to T.size()
 };
 
 //////////////// Bubble diagrams /////////////////////////////
