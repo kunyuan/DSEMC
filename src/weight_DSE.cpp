@@ -248,83 +248,83 @@ void weight::ChanUST(dse::ver4 &Ver4) {
 void weight::ChanI(dse::ver4 &Ver4) {
   if (Ver4.LoopNum != 3)
     return;
-  for (auto &Env : Ver4.Envelope) {
-    const momentum &InL = *Env.LegK[INL];
-    const momentum &OutL = *Env.LegK[OUTL];
-    const momentum &InR = *Env.LegK[INR];
-    const momentum &OutR = *Env.LegK[OUTR];
+  // for (auto &Env : Ver4.Envelope) {
+  //   const momentum &InL = *Env.LegK[INL];
+  //   const momentum &OutL = *Env.LegK[OUTL];
+  //   const momentum &InR = *Env.LegK[INR];
+  //   const momentum &OutR = *Env.LegK[OUTR];
 
-    auto &G = Env.G;
+  //   auto &G = Env.G;
 
-    *G[3].K = *G[0].K + *G[1].K - InL;
-    *G[4].K = *G[1].K + *G[2].K - OutL;
-    *G[5].K = *G[0].K + InR - *G[2].K;
-    *G[6].K = *G[1].K + *G[2].K - OutR;
-    *G[7].K = *G[2].K + OutR - *G[0].K;
-    *G[8].K = *G[2].K + OutL - *G[0].K;
+  //   *G[3].K = *G[0].K + *G[1].K - InL;
+  //   *G[4].K = *G[1].K + *G[2].K - OutL;
+  //   *G[5].K = *G[0].K + InR - *G[2].K;
+  //   *G[6].K = *G[1].K + *G[2].K - OutR;
+  //   *G[7].K = *G[2].K + OutR - *G[0].K;
+  //   *G[8].K = *G[2].K + OutL - *G[0].K;
 
-    for (auto &g : Env.G)
-      g.Weight = Fermi.Green(Var.Tau[g.OutT] - Var.Tau[g.InT], *(g.K), UP, 0,
-                             Var.CurrScale);
+  //   for (auto &g : Env.G)
+  //     g.Weight = Fermi.Green(Var.Tau[g.OutT] - Var.Tau[g.InT], *(g.K), UP, 0,
+  //                            Var.CurrScale);
 
-    for (auto &subVer : Env.Ver)
-      Vertex4(subVer);
+  //   for (auto &subVer : Env.Ver)
+  //     Vertex4(subVer);
 
-    double Weight = 0.0;
-    double ComWeight = 0.0;
-    for (auto &map : Env.Map) {
-      auto &SubVer = Env.Ver;
-      auto &GT = map.GT;
-      auto &G = Env.G;
-      ComWeight = G[0].Weight * G[1].Weight * G[2].Weight * G[3].Weight;
-      // cout << "G: " << ComWeight << endl;
-      ComWeight *= SubVer[0].Weight[map.LDVerTidx];
-      // cout << "Ver: " << SubVer[0].Weight[map.LDVerT] << endl;
-      // cout << "T: " << map.LDVerT << endl;
+  //   double Weight = 0.0;
+  //   double ComWeight = 0.0;
+  //   for (auto &map : Env.Map) {
+  //     auto &SubVer = Env.Ver;
+  //     auto &GT = map.GT;
+  //     auto &G = Env.G;
+  //     ComWeight = G[0].Weight * G[1].Weight * G[2].Weight * G[3].Weight;
+  //     // cout << "G: " << ComWeight << endl;
+  //     ComWeight *= SubVer[0].Weight[map.LDVerTidx];
+  //     // cout << "Ver: " << SubVer[0].Weight[map.LDVerT] << endl;
+  //     // cout << "T: " << map.LDVerT << endl;
 
-      Weight = Env.SymFactor[0] * ComWeight;
-      Weight *= SubVer[1].Weight[map.LUVerTidx];
-      Weight *= SubVer[3].Weight[map.RDVerTidx];
-      Weight *= SubVer[6].Weight[map.RUVerTidx];
-      Weight *= G[4].Weight * G[5].Weight;
-      Ver4.Weight[map.Tidx[0]] += Weight;
+  //     Weight = Env.SymFactor[0] * ComWeight;
+  //     Weight *= SubVer[1].Weight[map.LUVerTidx];
+  //     Weight *= SubVer[3].Weight[map.RDVerTidx];
+  //     Weight *= SubVer[6].Weight[map.RUVerTidx];
+  //     Weight *= G[4].Weight * G[5].Weight;
+  //     Ver4.Weight[map.Tidx[0]] += Weight;
 
-      Weight = Env.SymFactor[1] * ComWeight;
-      Weight *= SubVer[2].Weight[map.LUVerTidx];
-      Weight *= SubVer[3].Weight[map.RDVerTidx];
-      Weight *= SubVer[7].Weight[map.RUVerTidx];
-      Weight *= G[6].Weight * G[5].Weight;
-      Ver4.Weight[map.Tidx[1]] += Weight;
-      // cout << Weight << endl;
+  //     Weight = Env.SymFactor[1] * ComWeight;
+  //     Weight *= SubVer[2].Weight[map.LUVerTidx];
+  //     Weight *= SubVer[3].Weight[map.RDVerTidx];
+  //     Weight *= SubVer[7].Weight[map.RUVerTidx];
+  //     Weight *= G[6].Weight * G[5].Weight;
+  //     Ver4.Weight[map.Tidx[1]] += Weight;
+  //     // cout << Weight << endl;
 
-      Weight = Env.SymFactor[2] * ComWeight;
-      Weight *= SubVer[1].Weight[map.LUVerTidx];
-      Weight *= SubVer[4].Weight[map.RDVerTidx];
-      Weight *= SubVer[8].Weight[map.RUVerTidx];
-      Weight *= G[4].Weight * G[7].Weight;
-      Ver4.Weight[map.Tidx[2]] += Weight;
-      // cout << Weight << endl;
+  //     Weight = Env.SymFactor[2] * ComWeight;
+  //     Weight *= SubVer[1].Weight[map.LUVerTidx];
+  //     Weight *= SubVer[4].Weight[map.RDVerTidx];
+  //     Weight *= SubVer[8].Weight[map.RUVerTidx];
+  //     Weight *= G[4].Weight * G[7].Weight;
+  //     Ver4.Weight[map.Tidx[2]] += Weight;
+  //     // cout << Weight << endl;
 
-      Weight = Env.SymFactor[3] * ComWeight;
-      Weight *= SubVer[2].Weight[map.LUVerTidx];
-      Weight *= SubVer[5].Weight[map.RDVerTidx];
-      Weight *= SubVer[9].Weight[map.RUVerTidx];
-      Weight *= G[6].Weight * G[8].Weight;
-      Ver4.Weight[map.Tidx[3]] += Weight;
-      // cout << Weight << endl;
+  //     Weight = Env.SymFactor[3] * ComWeight;
+  //     Weight *= SubVer[2].Weight[map.LUVerTidx];
+  //     Weight *= SubVer[5].Weight[map.RDVerTidx];
+  //     Weight *= SubVer[9].Weight[map.RUVerTidx];
+  //     Weight *= G[6].Weight * G[8].Weight;
+  //     Ver4.Weight[map.Tidx[3]] += Weight;
+  //     // cout << Weight << endl;
 
-      // if (map.LDVerT == 0 && map.LUVerT == 0 && map.RDVerT == 0 &&
-      //     map.RUVerT == 0) {
-      // cout << "Com: " << ComWeight << endl;
-      // cout << "G[4]: " << G[4](GT[4]) << endl;
-      // cout << "G[5]: " << G[5](GT[5]) << endl;
-      // cout << SubVer[1].Weight[map.LUVerT] << endl;
-      // cout << SubVer[3].Weight[map.RDVerT] << endl;
-      // cout << SubVer[6].Weight[map.RUVerT] << endl;
-      // cout << "First: " << Weight << endl;
-      // }
-    }
-  }
+  //     // if (map.LDVerT == 0 && map.LUVerT == 0 && map.RDVerT == 0 &&
+  //     //     map.RUVerT == 0) {
+  //     // cout << "Com: " << ComWeight << endl;
+  //     // cout << "G[4]: " << G[4](GT[4]) << endl;
+  //     // cout << "G[5]: " << G[5](GT[5]) << endl;
+  //     // cout << SubVer[1].Weight[map.LUVerT] << endl;
+  //     // cout << SubVer[3].Weight[map.RDVerT] << endl;
+  //     // cout << SubVer[6].Weight[map.RUVerT] << endl;
+  //     // cout << "First: " << Weight << endl;
+  //     // }
+  //   }
+  // }
 
   return;
 }
