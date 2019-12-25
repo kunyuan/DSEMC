@@ -19,26 +19,6 @@ extern parameter Para;
 //   return Sum2;
 // }
 
-double verQ::Interaction(double Tau, const momentum &Mom, int VerType,
-                         double Scale) {
-  if (VerType >= 0) {
-    double interaction = 8.0 * PI / (Mom.squaredNorm() + Para.Mass2);
-    if (VerType > 0) {
-      // the interaction contains counter-terms
-      interaction *=
-          pow(Para.Mass2 / (Mom.squaredNorm() + Para.Mass2), VerType);
-      interaction *= pow(-1, VerType);
-    }
-    return interaction;
-  } else if (VerType == -1) {
-    return 1.0;
-  } else if (VerType == -2) {
-    return 0.0;
-  } else {
-    ABORT("VerType can not be " << VerType);
-  }
-}
-
 // double norm2(const momentum &Mom) { return sqrt(sum2(Mom)); }
 verQTheta::verQTheta() {
 
@@ -137,8 +117,8 @@ double &verQTheta::DiffInterS(int Order, int Angle, int ExtQ) {
   return dChanS[Order * OrderIndexI + Angle * AngleIndexI + ExtQ];
 }
 
-double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
-                              int VerType) {
+void verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
+                            int VerType, double &WeightDir, double &WeightEx) {
 
   // cout << (*LegK[INL])[0] << endl;
   momentum DiQ = *LegK[INL] - *LegK[OUTL];
@@ -146,22 +126,20 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
 
   double kDiQ = DiQ.norm();
   double kExQ = ExQ.norm();
-  if (VerType == 0) {
-    return -8.0 * PI * Para.Charge2 / (kDiQ * kDiQ + Para.Mass2) +
-           8.0 * PI * Para.Charge2 / (kExQ * kExQ + Para.Mass2);
-    // return 1.0 / Para.Beta;
-  } else if (VerType == 1) {
+  WeightDir = -8.0 * PI * Para.Charge2 / (kDiQ * kDiQ + Para.Mass2);
+  WeightEx = 8.0 * PI * Para.Charge2 / (kExQ * kExQ + Para.Mass2);
+  // return 1.0 / Para.Beta;
+  if (VerType == 1) {
     // return 0.0;
-    double EffInt = 0.0;
     if (kDiQ < 1.0 * Para.Kf || kExQ < 1.0 * Para.Kf) {
       int AngleIndex = Angle2Index(Angle3D(*LegK[INL], *LegK[INR]), AngBinSize);
       if (kDiQ < 1.0 * Para.Kf)
-        EffInt += EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
+        WeightDir += EffInterT(AngleIndex, 0) * exp(-kDiQ * kDiQ / 0.1);
       if (kExQ < 1.0 * Para.Kf)
-        EffInt -= EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
-      return EffInt;
+        WeightEx -= EffInterT(AngleIndex, 0) * exp(-kExQ * kExQ / 0.1);
+      return;
     } else
-      return 0.0;
+      return;
 
     // return 0.0;
     // if (k < Para.MaxExtMom) {
@@ -214,19 +192,6 @@ double verQTheta::Interaction(const array<momentum *, 4> &LegK, double Tau,
     // } else {
     //   return 0.0;
     // }
-  } else if (VerType == -1) {
-    return 1.0;
-  } else if (VerType == -2) {
-    // return exp(-Transfer.norm() / Para.Kf);
-    return 1.0;
-    // return 8.0 * PI / (k * k + Para.Mass2) *
-    //        (0.5 / (1 + pow(abs(Tau) * 10.0, 2) * 10.0 / PI) +
-    //         0.5 / (1 + pow((Para.Beta - abs(Tau)) * 10.0, 2) * 10.0 /
-    //         PI));
-    // return 0.5 / (1 + pow(abs(Tau) * 10.0, 2) * 10.0 / PI) +
-    //        0.5 / (1 + pow((Para.Beta - abs(Tau)) * 10.0, 2) * 10.0 / PI);
-  } else {
-    ABORT("VerType can not be " << VerType);
   }
 }
 
@@ -501,43 +466,6 @@ double fermi::Green(double Tau, const momentum &Mom, spin Spin, int GType,
     // return FakeGreen(Tau, Mom);
   }
   return green;
-}
-
-verfunc::verfunc() {
-  // test angle utility
-
-  // TODO: implement D=3
-  if (D == 3)
-    return;
-
-  // _TestAngle2D();
-  // _TestAngleIndex();
-
-  // // initialize UV ver4 table
-  // momentum KInL = {1.0, 0.0};
-  // for (int inin = 0; inin < InInAngBinSize; ++inin)
-  //   for (int inout = 0; inout < InOutAngBinSize; ++inout) {
-  //     double AngleInIn = Index2Angle(inin, InInAngBinSize);
-  //     double AngleInOut = Index2Angle(inout, InOutAngBinSize);
-  //     momentum KInR = {cos(AngleInIn), sin(AngleInIn)};
-  //     momentum KOutL = {cos(AngleInOut), sin(AngleInOut)};
-  //     momentum KOutR = KInL + KInR - KOutL;
-  //     Ver4AtUV[inin][inout] = (KInL - KInR).dot(KOutL - KOutR);
-  //   }
-}
-
-void verfunc::Vertex4(const momentum &InL, const momentum &InR,
-                      const momentum &OutL, const momentum &OutR,
-                      int Ver4TypeDirect, int Ver4TypeExchange, double &Direct,
-                      double &Exchange) {
-  if (Ver4TypeDirect != 0 || Ver4TypeExchange != 0)
-    ABORT("Ver4Type is only implemented for 0!");
-
-  /**************   Yokawar Interaction ************************/
-  Direct = 8.0 * PI / ((OutL - InL).squaredNorm() + Para.Mass2);
-  Exchange = 8.0 * PI / ((OutR - InL).squaredNorm() + Para.Mass2);
-
-  /**************   Generic Interaction ************************/
 }
 
 double diag::Index2Mom(const int &Index) {

@@ -70,9 +70,7 @@ private:
   template <typename... TS> string ERR(string format, TS... args);
 
   fermi Fermi;
-  verQ VerQ;
   verQTheta VerQTheta;
-  verfunc VerFunc;
 
   dse::verDiag VerDiag;
   // diagram for different order and channel

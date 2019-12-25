@@ -37,7 +37,8 @@ private:
 class verQTheta {
 public:
   verQTheta();
-  double Interaction(const array<momentum *, 4> &LegK, double Tau, int VerType);
+  void Interaction(const array<momentum *, 4> &LegK, double Tau, int VerType,
+                   double &WeightDir, double &WeightEx);
 
   void Measure(const momentum &InL, const momentum &InR, const int QIndex,
                int Order, double Tau, int Channel, double WeightFactor);
@@ -88,28 +89,6 @@ public:
   int QIndexI;
   int AngleIndexI;
   int OrderIndexI;
-};
-
-class verQ {
-public:
-  double Interaction(double Tau, const momentum &Momentum, int VerType,
-                     double Scale = 0);
-};
-
-class verfunc {
-public:
-  verfunc();
-  void Vertex4(const momentum &InL, const momentum &InR, const momentum &OutL,
-               const momentum &OutR, int Ver4TypeDirect, int Ver4TypeExchange,
-               double &Direct, double &Exchange);
-
-  // private:
-  //   double Ver4AtUV[InInAngBinSize][InOutAngBinSize];
-  //   double Angle2D(const momentum &K1, const momentum &K2);
-  //   double Index2Angle(const int &Index, const int &AngleNum);
-  //   int Angle2Index(const double &Angle, const int &AngleNum);
-  //   void _TestAngleIndex();
-  //   void _TestAngle2D();
 };
 
 double Angle3D(const momentum &K1, const momentum &K2);

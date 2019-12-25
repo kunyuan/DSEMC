@@ -110,6 +110,7 @@ const int INL = 0, OUTL = 1, INR = 2, OUTR = 3;
 const int DIRECT = 0, EXCHANGE = 1;
 
 const int IRR = 0, RED = 1; // irreducible, reducible
+const int DIR = 0, EX = 1;
 
 #define FLIP(x) (1 - x)
 //////////////////////////////////////////////////////

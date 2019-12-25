@@ -107,16 +107,9 @@ ver4 verDiag::Vertex(array<momentum *, 4> LegK, int InTL, int LoopNum,
     }
   }
 
-  Ver4.WeightDir.resize(Ver4.T.size());
-  for (auto &d : Ver4.WeightDir) {
-    d[IRR] = 0.0;
-    d[RED] = 0.0;
-  }
-  Ver4.WeightEx.resize(Ver4.T.size());
-  for (auto &d : Ver4.WeightEx) {
-    d[IRR] = 0.0;
-    d[RED] = 0.0;
-  }
+  Ver4.Weight.resize(Ver4.T.size());
+  for (auto &d : Ver4.Weight)
+    d.SetZero();
 
   return Ver4;
 }
