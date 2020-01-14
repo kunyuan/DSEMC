@@ -17,23 +17,30 @@ using namespace std;
 
 enum caltype { BARE, RG, PARQUET, RENORMALIZED, VARIATIONAL };
 enum channel { I = 0, T, U, S };
+enum verType { CHAIN, LVER, RVER, OTHER };
 
 struct bubble;
 struct envelope;
 
 class weightMatrix {
-  // 2x2 matrix of weight; Direct/Exchange and Irreducible/reducible
+  // 2x2 matrix of weight; Direct/Exchange and chain/Lver/Rver/other
 public:
   weightMatrix() { SetZero(); }
   void SetZero() {
-    for (auto &i : _Weight)
-      i = 0.0;
+    for (auto &i : _Weight) {
+      i[0] = 0.0;
+      i[1] = 0.0;
+    }
   }
-  double Sum() { return _Weight[0] + _Weight[1] + _Weight[2] + _Weight[3]; }
-  double &operator()(int dir, int red) { return _Weight[dir * 2 + red]; }
+  double Sum() {
+    double sum = 0;
+    for (auto &i : _Weight)
+      sum += i[0] + i[1];
+  }
+  double &operator()(int dir, int type) { return _Weight[type][type]; }
 
 private:
-  array<double, 4> _Weight;
+  array<array<double, 2>, 4> _Weight;
 };
 
 struct ver4 {
