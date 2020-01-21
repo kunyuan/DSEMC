@@ -33,6 +33,7 @@ public:
     double sum = 0;
     for (auto &i : _Weight)
       sum += i;
+    return sum;
   }
   double &operator()(int dir) { return _Weight[dir]; }
 
