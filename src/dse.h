@@ -34,10 +34,10 @@ public:
     for (auto &i : _Weight)
       sum += i;
   }
-  double &operator()(int dir, int red) { return _Weight[dir * 2 + red]; }
+  double &operator()(int dir) { return _Weight[dir]; }
 
 private:
-  array<double, 4> _Weight;
+  array<double, 2> _Weight;
 };
 
 struct ver4 {

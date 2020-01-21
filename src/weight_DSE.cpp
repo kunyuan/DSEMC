@@ -63,8 +63,8 @@ double weight::Evaluate(int LoopNum, int Channel) {
 
 void weight::Ver0(ver4 &Ver4) {
   array<momentum *, 4> &K = Ver4.LegK;
-  double &WeightDir = Ver4.Weight[0](DIR, RED); // direct, reducible
-  double &WeightEx = Ver4.Weight[0](EX, IRR);   // exchange, irreducible
+  double &WeightDir = Ver4.Weight[0](DIR); // direct, reducible
+  double &WeightEx = Ver4.Weight[0](EX);   // exchange, irreducible
   // Ver4.Weight[0] = 1.0 / Para.Beta;
   if (Ver4.RexpandBare) {
     // bare+quantum correction
@@ -217,21 +217,25 @@ void weight::ChanUST(dse::ver4 &Ver4) {
       for (auto &map : pair.Map) {
         Weight = pair.SymFactor * bubble.ProjFactor[pair.Channel];
         Weight *= G[0](map.G0T) * G[pair.Channel](map.GT);
-        // cout << Weight << endl;
-        // WeightDir = LVer.WeightDir[map.LVerTidx][] *
-        // RVer.WeightDir[map.RVerTidx]; cout << Weight << endl; cout << endl;
+        auto &CWeight = Ver4.Weight[map.Tidx];
+        auto &LWeight = LVer.Weight[map.LVerTidx];
+        auto &RWeight = RVer.Weight[map.RVerTidx];
         if (pair.Channel == T) {
-          // Ver4.WeightDir[map.Tidx][IRR] += Weight *
-          //                                  LVer.WeightDir[map.LVerTidx][IRR]
-          //                                  *
-          //                                  RVer.WeightDir[map.RVerTidx][IRR];
-          Ver4.Weight[map.Tidx](DIR, IRR) +=
-              Weight * LVer.Weight[map.LVerTidx](DIR, IRR) *
-              RVer.Weight[map.RVerTidx](DIR, IRR);
+          CWeight(DIR) = Weight * (LWeight(DIR) * RWeight(DIR) +
+                                   LWeight(DIR) * RWeight(EX) +
+                                   LWeight(EX) * RWeight(DIR));
+          CWeight(EX) = Weight * LWeight(EX) * RWeight(EX);
+        } else if (pair.Channel == U) {
+          CWeight(EX) = Weight * (LWeight(DIR) * RWeight(DIR) +
+                                  LWeight(DIR) * RWeight(EX) +
+                                  LWeight(EX) * RWeight(DIR));
+          CWeight(DIR) = Weight * LWeight(EX) * RWeight(EX);
+        } else if (pair.Channel == S) {
+          CWeight(DIR) = Weight * (LWeight(DIR) * RWeight(DIR) +
+                                   LWeight(EX) * RWeight(EX));
 
-          Ver4.Weight[map.Tidx](DIR, IRR) +=
-              Weight * LVer.Weight[map.LVerTidx](DIR, IRR) *
-              RVer.Weight[map.RVerTidx](DIR, IRR);
+          CWeight(EX) = Weight * (LWeight(DIR) * RWeight(EX) +
+                                  LWeight(EX) * RWeight(DIR));
         }
       }
     }
