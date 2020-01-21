@@ -225,12 +225,13 @@ void weight::ChanUST(dse::ver4 &Ver4) {
           //                                  LVer.WeightDir[map.LVerTidx][IRR]
           //                                  *
           //                                  RVer.WeightDir[map.RVerTidx][IRR];
-          Ver4.Weight[map.Tidx](DIR, CHAIN) +=
-              Weight *
-              (LVer.Weight[map.LVerTidx](DIR, CHAIN) +
-               LVer.Weight[map.LVerTidx](DIR, LVER)) *
-              (RVer.Weight[map.RVerTidx](DIR, CHAIN) +
-               RVer.Weight[map.RVerTidx](DIR, RVER));
+          Ver4.Weight[map.Tidx](DIR, IRR) +=
+              Weight * LVer.Weight[map.LVerTidx](DIR, IRR) *
+              RVer.Weight[map.RVerTidx](DIR, IRR);
+
+          Ver4.Weight[map.Tidx](DIR, IRR) +=
+              Weight * LVer.Weight[map.LVerTidx](DIR, IRR) *
+              RVer.Weight[map.RVerTidx](DIR, IRR);
         }
       }
     }
