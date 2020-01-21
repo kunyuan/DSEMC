@@ -221,12 +221,12 @@ void weight::ChanUST(dse::ver4 &Ver4) {
         auto &LWeight = LVer.Weight[map.LVerTidx];
         auto &RWeight = RVer.Weight[map.RVerTidx];
         if (pair.Channel == T) {
-          CWeight(DIR) += Weight * (LWeight(DIR) * RWeight(DIR) +
+          CWeight(DIR) += Weight * (LWeight(DIR) * RWeight(DIR) * SpinIndex +
                                     LWeight(DIR) * RWeight(EX) +
                                     LWeight(EX) * RWeight(DIR));
           CWeight(EX) += Weight * LWeight(EX) * RWeight(EX);
         } else if (pair.Channel == U) {
-          CWeight(EX) += Weight * (LWeight(DIR) * RWeight(DIR) +
+          CWeight(EX) += Weight * (LWeight(DIR) * RWeight(DIR) * SpinIndex +
                                    LWeight(DIR) * RWeight(EX) +
                                    LWeight(EX) * RWeight(DIR));
           CWeight(DIR) += Weight * LWeight(EX) * RWeight(EX);
