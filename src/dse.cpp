@@ -151,7 +151,7 @@ vector<mapT2> CreateMapT2(ver4 &Ver4, ver4 LVer, ver4 RVer, channel Chan,
       G0T = {LvT[OUTR], RvT[INL]};
       GT[T] = {RvT[OUTL], LvT[INR]};
       GT[U] = {RvT[OUTL], LvT[INR]};
-      GT[S] = {LvT[OUTL], RvT[INL]};
+      GT[S] = {LvT[OUTL], RvT[INR]};
 
       if (IsProjected == false) {
         LegT[T] = {LvT[INL], LvT[OUTL], RvT[INR], RvT[OUTR]};
